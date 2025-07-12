@@ -8,10 +8,10 @@ from datetime import datetime, timedelta
 import structlog
 
 from app import db
-from app.models.user import User
-from app.models.vessel import Vessel
-from app.models.task import Task
-from app.models.sync_log import SyncLog
+from models.user import User
+from models.vessel import Vessel
+from models.task import Task
+from models.sync_log import SyncLog
 
 logger = structlog.get_logger()
 

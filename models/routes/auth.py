@@ -11,8 +11,8 @@ import structlog
 from datetime import datetime
 
 from app import db, redis_client, limiter
-from app.models.user import User
-from app.models.sync_log import SyncLog
+from models.user import User
+from models.sync_log import SyncLog
 
 logger = structlog.get_logger()
 

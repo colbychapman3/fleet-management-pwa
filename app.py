@@ -96,10 +96,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.models.user import User
-from app.models.vessel import Vessel
-from app.models.task import Task
-from app.models.sync_log import SyncLog
+from models.user import User
+from models.vessel import Vessel
+from models.task import Task
+from models.sync_log import SyncLog
 
 # User loader for Flask-Login
 @login_manager.user_loader

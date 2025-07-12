@@ -8,10 +8,10 @@ import psutil
 import structlog
 
 from app import db, redis_client, metrics
-from app.models.user import User
-from app.models.task import Task
-from app.models.vessel import Vessel
-from app.models.sync_log import SyncLog
+from models.user import User
+from models.task import Task
+from models.vessel import Vessel
+from models.sync_log import SyncLog
 
 logger = structlog.get_logger()
 
