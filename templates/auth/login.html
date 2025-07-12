@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Fleet Management System{% endblock %}
+
+{% block content %}
+<div class="auth-page">
+    <div class="auth-container">
+        <div class="auth-header">
+            <img src="/static/icons/icon-96x96.png" alt="Fleet MS" class="auth-logo">
+            <h1>Sign In</h1>
+            <p>Access your maritime operations dashboard</p>
+        </div>
+        
+        <form class="auth-form" method="POST" data-offline="true">
+            {{ csrf_token() }}
+            
+            <div class="form-group">
+                <label for="email" class="form-label">Email Address</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    class="form-control" 
+                    required 
+                    autofocus
+                    autocomplete="email"
+                    placeholder="Enter your email"
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    class="form-control" 
+                    required
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                >
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    <input type="checkbox" id="remember" name="remember" class="form-check-input">
+                    <label for="remember" class="form-check-label">Remember me</label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-lg auth-submit">
+                Sign In
+            </button>
+            
+            <div class="auth-divider">
+                <span>Demo Accounts</span>
+            </div>
+            
+            <div class="demo-accounts">
+                <button type="button" class="btn btn-outline demo-btn" data-email="admin@fleet.com" data-password="admin123">
+                    Login as Manager
+                </button>
+                <button type="button" class="btn btn-outline demo-btn" data-email="worker@fleet.com" data-password="worker123">
+                    Login as Worker
+                </button>
+            </div>
+        </form>
+        
+        <div class="auth-footer">
+            <div class="auth-info">
+                <h3>Designed for Maritime Operations</h3>
+                <ul class="auth-features">
+                    <li>✅ Works completely offline</li>
+                    <li>🚢 Optimized for ships and vessels</li>
+                    <li>🔄 Auto-sync when connection returns</li>
+                    <li>📱 Install as mobile/desktop app</li>
+                </ul>
+            </div>
+            
+            <div class="pwa-install" style="display: none;">
+                <button class="install-btn btn btn-outline">
+                    📱 Install App
+                </button>
+                <p class="install-text">Install for better offline experience</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.auth-page {
+    min-height: calc(100vh - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, 
+        rgba(33, 150, 243, 0.1) 0%, 
+        rgba(33, 150, 243, 0.05) 100%
+    );
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 480px;
+    background: var(--surface-color);
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+}
+
+.auth-header {
+    text-align: center;
+    padding: var(--spacing-xxl) var(--spacing-xl) var(--spacing-lg);
+    background: var(--primary-color);
+    color: white;
+}
+
+.auth-logo {
+    width: 64px;
+    height: 64px;
+    margin-bottom: var(--spacing-lg);
+}
+
+.auth-header h1 {
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: var(--font-size-xxl);
+    font-weight: 600;
+}
+
+.auth-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: var(--font-size-base);
+}
+
+.auth-form {
+    padding: var(--spacing-xl);
+}
+
+.auth-submit {
+    width: 100%;
+    margin-bottom: var(--spacing-lg);
+}
+
+.auth-divider {
+    position: relative;
+    text-align: center;
+    margin: var(--spacing-lg) 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--divider-color);
+    z-index: 1;
+}
+
+.auth-divider span {
+    background: var(--surface-color);
+    padding: 0 var(--spacing-md);
+    position: relative;
+    z-index: 2;
+}
+
+.demo-accounts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+}
+
+.demo-btn {
+    width: 100%;
+}
+
+.auth-footer {
+    background: var(--background-color);
+    padding: var(--spacing-xl);
+    border-top: 1px solid var(--divider-color);
+}
+
+.auth-info h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-lg);
+}
+
+.auth-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 var(--spacing-lg) 0;
+}
+
+.auth-features li {
+    padding: var(--spacing-xs) 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.pwa-install {
+    text-align: center;
+    border-top: 1px solid var(--divider-color);
+    padding-top: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.install-text {
+    margin: var(--spacing-sm) 0 0 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+@media (max-width: 480px) {
+    .auth-page {
+        padding: var(--spacing-md);
+    }
+    
+    .auth-container {
+        border-radius: 8px;
+    }
+    
+    .auth-header,
+    .auth-form,
+    .auth-footer {
+        padding: var(--spacing-lg);
+    }
+    
+    .demo-accounts {
+        flex-direction: column;
+    }
+}
+
+/* Loading state for form submission */
+.auth-submit:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.auth-submit.loading {
+    position: relative;
+    color: transparent;
+}
+
+.auth-submit.loading::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+</style>
+
+<script>
+// Enhanced login functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('.auth-form');
+    const submitBtn = document.querySelector('.auth-submit');
+    const demoButtons = document.querySelectorAll('.demo-btn');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    
+    // Demo account login
+    demoButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const email = this.dataset.email;
+            const password = this.dataset.password;
+            
+            emailInput.value = email;
+            passwordInput.value = password;
+            
+            // Auto-submit after a short delay
+            setTimeout(() => {
+                form.submit();
+            }, 300);
+        });
+    });
+    
+    // Form submission handling
+    form.addEventListener('submit', function(e) {
+        submitBtn.disabled = true;
+        submitBtn.classList.add('loading');
+        submitBtn.textContent = 'Signing In...';
+        
+        // Re-enable button after 10 seconds if no response (in case of errors)
+        setTimeout(() => {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            submitBtn.textContent = 'Sign In';
+        }, 10000);
+    });
+    
+    // Handle offline login
+    if (!navigator.onLine) {
+        // Check if we have cached credentials for offline use
+        checkOfflineLogin();
+    }
+    
+    // PWA install prompt for login page
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        
+        const installSection = document.querySelector('.pwa-install');
+        const installBtn = document.querySelector('.install-btn');
+        
+        installSection.style.display = 'block';
+        
+        installBtn.addEventListener('click', async () => {
+            e.prompt();
+            const choiceResult = await e.userChoice;
+            
+            if (choiceResult.outcome === 'accepted') {
+                installSection.style.display = 'none';
+            }
+        });
+    });
+});
+
+async function checkOfflineLogin() {
+    try {
+        // Check if we have cached user session
+        if (window.offlineDB) {
+            await window.offlineDB.init();
+            const cachedUser = await window.offlineDB.getSetting('cached_user');
+            
+            if (cachedUser) {
+                // Show offline login option
+                showOfflineLoginOption(cachedUser);
+            }
+        }
+    } catch (error) {
+        console.log('Offline login check failed:', error);
+    }
+}
+
+function showOfflineLoginOption(cachedUser) {
+    const form = document.querySelector('.auth-form');
+    const offlineDiv = document.createElement('div');
+    offlineDiv.className = 'offline-login';
+    offlineDiv.innerHTML = `
+        <div class="auth-divider"><span>Offline Access</span></div>
+        <button type="button" class="btn btn-warning offline-login-btn">
+            Continue as ${cachedUser.username} (Offline)
+        </button>
+        <p class="offline-login-text">Continue with cached credentials while offline</p>
+    `;
+    
+    form.appendChild(offlineDiv);
+    
+    offlineDiv.querySelector('.offline-login-btn').addEventListener('click', () => {
+        // Simulate offline login
+        window.location.href = '/dashboard';
+    });
+}
+
+// Handle form validation
+document.getElementById('email').addEventListener('input', validateForm);
+document.getElementById('password').addEventListener('input', validateForm);
+
+function validateForm() {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    const submitBtn = document.querySelector('.auth-submit');
+    
+    const isValid = email.length > 0 && password.length > 0;
+    submitBtn.disabled = !isValid;
+}
+
+// Initial validation
+validateForm();
+</script>
+{% endblock %}

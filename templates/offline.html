@@ -1,0 +1,320 @@
+{% extends "base.html" %}
+
+{% block title %}Offline - Fleet Management System{% endblock %}
+
+{% block content %}
+<div class="offline-page">
+    <div class="offline-container">
+        <div class="offline-icon-large">📱</div>
+        <h1>You're Offline</h1>
+        <p class="offline-message">
+            You're currently offline, but the Fleet Management System is designed to work without an internet connection.
+        </p>
+        
+        <div class="offline-capabilities">
+            <h2>Available Offline Features:</h2>
+            <ul class="capabilities-list">
+                <li>
+                    <span class="capability-icon">✅</span>
+                    View and edit your assigned tasks
+                </li>
+                <li>
+                    <span class="capability-icon">✅</span>
+                    Create new tasks and reports
+                </li>
+                <li>
+                    <span class="capability-icon">✅</span>
+                    Update task status and completion
+                </li>
+                <li>
+                    <span class="capability-icon">✅</span>
+                    Access vessel and crew information
+                </li>
+                <li>
+                    <span class="capability-icon">✅</span>
+                    View cached dashboard data
+                </li>
+                <li>
+                    <span class="capability-icon">🔄</span>
+                    All changes will sync when connection returns
+                </li>
+            </ul>
+        </div>
+        
+        <div class="offline-actions">
+            <a href="/dashboard" class="btn btn-primary">
+                Continue Working Offline
+            </a>
+            <button onclick="checkConnection()" class="btn btn-outline">
+                Check Connection
+            </button>
+        </div>
+        
+        <div class="connection-status">
+            <div class="connectivity-indicator offline"></div>
+            <span>No internet connection</span>
+        </div>
+        
+        <div class="offline-tips">
+            <h3>Tips for Offline Usage:</h3>
+            <div class="tips-grid">
+                <div class="tip-card">
+                    <div class="tip-icon">💾</div>
+                    <h4>Data is Saved Locally</h4>
+                    <p>All your work is automatically saved to your device and will sync when you're back online.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">🔄</div>
+                    <h4>Auto-Sync When Online</h4>
+                    <p>The app will automatically synchronize all your offline changes when connection is restored.</p>
+                </div>
+                
+                <div class="tip-card">
+                    <div class="tip-icon">📱</div>
+                    <h4>Install for Better Experience</h4>
+                    <p>Install the app on your device for the best offline experience and faster loading.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.offline-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 100px);
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.offline-container {
+    max-width: 800px;
+    width: 100%;
+}
+
+.offline-icon-large {
+    font-size: 6rem;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.8;
+}
+
+.offline-page h1 {
+    font-size: 2.5rem;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.offline-message {
+    font-size: var(--font-size-lg);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-xxl);
+    line-height: 1.6;
+}
+
+.offline-capabilities {
+    background: var(--surface-color);
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    padding: var(--spacing-xl);
+    margin-bottom: var(--spacing-xl);
+    text-align: left;
+}
+
+.offline-capabilities h2 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.capabilities-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.capabilities-list li {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    font-size: var(--font-size-lg);
+}
+
+.capability-icon {
+    margin-right: var(--spacing-md);
+    font-size: var(--font-size-xl);
+    flex-shrink: 0;
+}
+
+.offline-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    justify-content: center;
+    margin-bottom: var(--spacing-xl);
+    flex-wrap: wrap;
+}
+
+.connection-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-xxl);
+    color: var(--text-secondary);
+}
+
+.offline-tips {
+    margin-top: var(--spacing-xxl);
+}
+
+.offline-tips h3 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-lg);
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-lg);
+}
+
+.tip-card {
+    background: var(--surface-color);
+    border: 1px solid var(--divider-color);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
+.tip-icon {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-md);
+}
+
+.tip-card h4 {
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.tip-card p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .offline-page {
+        padding: var(--spacing-md);
+    }
+    
+    .offline-icon-large {
+        font-size: 4rem;
+    }
+    
+    .offline-page h1 {
+        font-size: 2rem;
+    }
+    
+    .offline-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .offline-capabilities {
+        padding: var(--spacing-lg);
+    }
+    
+    .capabilities-list li {
+        font-size: var(--font-size-base);
+    }
+}
+
+/* Animations */
+.offline-icon-large {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 0.8; }
+    50% { opacity: 0.4; }
+    100% { opacity: 0.8; }
+}
+</style>
+
+<script>
+function checkConnection() {
+    const button = event.target;
+    const originalText = button.textContent;
+    
+    button.disabled = true;
+    button.innerHTML = '<span class="spinner"></span> Checking...';
+    
+    // Try to fetch a small resource to check connectivity
+    fetch('/health', { method: 'HEAD', cache: 'no-cache' })
+        .then(response => {
+            if (response.ok) {
+                // Connection restored
+                window.location.href = '/dashboard';
+            } else {
+                throw new Error('No connection');
+            }
+        })
+        .catch(() => {
+            // Still offline
+            button.disabled = false;
+            button.textContent = originalText;
+            
+            // Show temporary message
+            const statusElement = document.querySelector('.connection-status span');
+            const originalStatus = statusElement.textContent;
+            statusElement.textContent = 'Still offline - try again later';
+            statusElement.style.color = 'var(--warning-color)';
+            
+            setTimeout(() => {
+                statusElement.textContent = originalStatus;
+                statusElement.style.color = '';
+            }, 3000);
+        });
+}
+
+// Listen for online events
+window.addEventListener('online', () => {
+    // Redirect to dashboard when connection is restored
+    window.location.href = '/dashboard';
+});
+
+// Update connection status
+function updateConnectionStatus() {
+    const indicator = document.querySelector('.connectivity-indicator');
+    const status = document.querySelector('.connection-status span');
+    
+    if (navigator.onLine) {
+        indicator.classList.remove('offline');
+        indicator.classList.add('online');
+        status.textContent = 'Connection restored!';
+        status.style.color = 'var(--success-color)';
+        
+        // Redirect after a moment
+        setTimeout(() => {
+            window.location.href = '/dashboard';
+        }, 1000);
+    } else {
+        indicator.classList.remove('online');
+        indicator.classList.add('offline');
+        status.textContent = 'No internet connection';
+        status.style.color = '';
+    }
+}
+
+// Check periodically
+setInterval(updateConnectionStatus, 5000);
+</script>
+{% endblock %}

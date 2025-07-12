@@ -1,0 +1,115 @@
+# Prometheus configuration for Fleet Management System monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'fleet-management'
+    environment: 'production'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Fleet Management Application
+  - job_name: 'fleet-app'
+    static_configs:
+      - targets: ['app:9090']
+    metrics_path: '/monitoring/metrics/prometheus'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # Application Health Checks
+  - job_name: 'fleet-health'
+    static_configs:
+      - targets: ['app:5000']
+    metrics_path: '/health/detailed'
+    scrape_interval: 60s
+    scrape_timeout: 5s
+
+  # Nginx Metrics (if nginx-prometheus-exporter is installed)
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx:9113']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Redis Metrics (if redis-exporter is installed)
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Node Exporter for System Metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # Custom application metrics
+  - job_name: 'fleet-custom-metrics'
+    static_configs:
+      - targets: ['app:5000']
+    metrics_path: '/monitoring/metrics/application'
+    scrape_interval: 60s
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'fleet_.*'
+        target_label: __name__
+        replacement: '${1}'
+
+  # Sync metrics for offline operations
+  - job_name: 'fleet-sync-metrics'
+    static_configs:
+      - targets: ['app:5000']
+    metrics_path: '/monitoring/metrics/sync'
+    scrape_interval: 60s
+    scrape_timeout: 10s
+
+  # Performance metrics
+  - job_name: 'fleet-performance'
+    static_configs:
+      - targets: ['app:5000']
+    metrics_path: '/monitoring/metrics/performance'
+    scrape_interval: 120s
+    scrape_timeout: 15s
+
+# Global metric relabeling
+metric_relabel_configs:
+  # Add environment label to all metrics
+  - source_labels: [__name__]
+    target_label: environment
+    replacement: 'production'
+
+# Remote write configuration (for external monitoring services)
+# remote_write:
+#   - url: "https://your-external-monitoring-service.com/api/prom/push"
+#     basic_auth:
+#       username: "your-username"
+#       password: "your-password"
+
+# Remote read configuration (for external monitoring services)
+# remote_read:
+#   - url: "https://your-external-monitoring-service.com/api/prom/read"
+#     basic_auth:
+#       username: "your-username"
+#       password: "your-password"
