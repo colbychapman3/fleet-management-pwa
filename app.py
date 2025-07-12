@@ -96,10 +96,10 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from models.user import User
-from models.vessel import Vessel
-from models.task import Task
-from models.sync_log import SyncLog
+from models.models.user import User
+from models.models.vessel import Vessel
+from models.models.task import Task
+from models.models.sync_log import SyncLog
 
 # User loader for Flask-Login
 @login_manager.user_loader
@@ -107,10 +107,10 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # Import routes
-from app.routes.auth import auth_bp
-from app.routes.api import api_bp
-from app.routes.dashboard import dashboard_bp
-from app.routes.monitoring import monitoring_bp
+from models.routes.auth import auth_bp
+from models.routes.api import api_bp
+from models.routes.dashboard import dashboard_bp
+from models.routes.monitoring import monitoring_bp
 
 # Register blueprints
 app.register_blueprint(auth_bp, url_prefix='/auth')

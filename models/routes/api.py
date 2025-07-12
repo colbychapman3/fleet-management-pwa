@@ -9,10 +9,10 @@ import uuid
 import structlog
 
 from app import db, cache_get, cache_set, cache_delete, get_cache_key
-from models.user import User
-from models.vessel import Vessel
-from models.task import Task
-from models.sync_log import SyncLog
+from models.models.user import User
+from models.models.vessel import Vessel
+from models.models.task import Task
+from models.models.sync_log import SyncLog
 
 logger = structlog.get_logger()
 
