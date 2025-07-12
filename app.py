@@ -106,18 +106,6 @@ from models.models.sync_log import SyncLog
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Import routes
-from models.routes.auth import auth_bp
-from models.routes.api import api_bp
-from models.routes.dashboard import dashboard_bp
-from models.routes.monitoring import monitoring_bp
-
-# Register blueprints
-app.register_blueprint(auth_bp, url_prefix='/auth')
-app.register_blueprint(api_bp, url_prefix='/api')
-app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
-app.register_blueprint(monitoring_bp, url_prefix='/monitoring')
-
 # Cache helper functions
 def get_cache_key(prefix, *args):
     """Generate cache key with prefix and arguments"""
@@ -387,6 +375,17 @@ def init_db():
     
     db.session.commit()
     print("Database initialized successfully!")
+
+# Import and register blueprints after all app setup is complete
+from models.routes.auth import auth_bp
+from models.routes.api import api_bp
+from models.routes.dashboard import dashboard_bp
+from models.routes.monitoring import monitoring_bp
+
+app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(api_bp, url_prefix='/api')
+app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
+app.register_blueprint(monitoring_bp, url_prefix='/monitoring')
 
 if __name__ == '__main__':
     app.run(

@@ -8,7 +8,14 @@ from datetime import datetime, timedelta
 import uuid
 import structlog
 
-from app import db, cache_get, cache_set, cache_delete, get_cache_key
+# Access app components via current_app or direct import
+def get_app_db():
+    import app
+    return app.db
+
+def get_cache_functions():
+    import app
+    return app.cache_get, app.cache_set, app.cache_delete, app.get_cache_key
 from models.models.user import User
 from models.models.vessel import Vessel
 from models.models.task import Task

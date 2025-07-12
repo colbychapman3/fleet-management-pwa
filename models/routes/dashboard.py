@@ -7,7 +7,9 @@ from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import structlog
 
-from app import db
+def get_app_db():
+    import app
+    return app.db
 from models.models.user import User
 from models.models.vessel import Vessel
 from models.models.task import Task

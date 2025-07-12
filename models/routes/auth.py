@@ -10,7 +10,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import structlog
 from datetime import datetime
 
-from app import db, redis_client, limiter
+def get_app_db():
+    import app
+    return app.db
 from models.models.user import User
 from models.models.sync_log import SyncLog
 

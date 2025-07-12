@@ -7,7 +7,9 @@ from datetime import datetime, timedelta
 import psutil
 import structlog
 
-from app import db, redis_client, metrics
+def get_app_db():
+    import app
+    return app.db
 from models.models.user import User
 from models.models.task import Task
 from models.models.vessel import Vessel
