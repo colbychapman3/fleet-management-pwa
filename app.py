@@ -77,12 +77,12 @@ limiter.init_app(app)
 metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'Application info', version='1.0.0')
 
-# Custom metrics
+# Custom metrics (simplified for compatibility)
 REQUEST_COUNT = metrics.counter(
-    'requests_total', 'Total requests', ['method', 'endpoint', 'status']
+    'requests_total', 'Total requests'
 )
 REQUEST_LATENCY = metrics.histogram(
-    'request_duration_seconds', 'Request latency', ['method', 'endpoint']
+    'request_duration_seconds', 'Request latency'
 )
 ACTIVE_USERS = metrics.gauge(
     'active_users_total', 'Number of active users'
