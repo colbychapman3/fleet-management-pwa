@@ -92,6 +92,10 @@ DATABASE_CONNECTIONS = metrics.gauge(
 )
 
 # Import models after db initialization
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from app.models.user import User
 from app.models.vessel import Vessel
 from app.models.task import Task
