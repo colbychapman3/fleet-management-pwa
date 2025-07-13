@@ -1,319 +1,68 @@
 {% extends "base.html" %}
 
-{% block title %}Fleet Management System - Maritime Operations{% endblock %}
+{% block title %}Fleet Management System - Login{% endblock %}
 
 {% block content %}
-<div class="landing-page">
-    <div class="hero-section">
-        <div class="hero-content">
-            <img src="/static/icons/icon-192x192.png" alt="Fleet MS" class="hero-logo">
-            <h1 class="hero-title">Fleet Management System</h1>
-            <p class="hero-subtitle">Offshore-ready maritime operations management with offline capability</p>
-            
-            <div class="hero-actions">
-                <a href="/auth/login" class="btn btn-primary btn-lg">Sign In</a>
-                <button class="install-btn btn btn-outline btn-lg" style="display: none;">
-                    Install App
-                </button>
-            </div>
-        </div>
-    </div>
+<div style="text-align: center; padding: 40px 0;">
+    <h1>🚢 Fleet Management System</h1>
+    <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
+        PWA-enabled task management for maritime operations
+    </p>
     
-    <div class="features-section">
-        <div class="container">
-            <h2>Built for Maritime Operations</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📱</div>
-                    <h3>Offline First</h3>
-                    <p>Works completely offline. Perfect for ships with limited or no internet connectivity.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">⚓</div>
-                    <h3>Fleet Management</h3>
-                    <p>Manage vessels, crew assignments, and maritime operations from anywhere.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">📋</div>
-                    <h3>Task Tracking</h3>
-                    <p>Assign, track, and complete maintenance and operational tasks efficiently.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🔄</div>
-                    <h3>Auto Sync</h3>
-                    <p>Automatically synchronizes data when connection is restored.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3>Real-time Analytics</h3>
-                    <p>Monitor performance, completion rates, and operational efficiency.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">🔒</div>
-                    <h3>Secure & Reliable</h3>
-                    <p>Enterprise-grade security with role-based access control.</p>
-                </div>
+    <div style="max-width: 400px; margin: 0 auto;">
+        <h2>Login</h2>
+        <form method="POST" action="{{ url_for('auth.login') }}" style="text-align: left;">
+            <div style="margin-bottom: 15px;">
+                <label for="email" style="display: block; margin-bottom: 5px;">Email:</label>
+                <input type="email" id="email" name="email" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
             </div>
-        </div>
-    </div>
-    
-    <div class="pwa-section">
-        <div class="container">
-            <h2>Progressive Web App</h2>
-            <p>Install on any device for a native app experience</p>
             
-            <div class="pwa-features">
-                <div class="pwa-feature">
-                    <span class="pwa-icon">📲</span>
-                    <div>
-                        <h4>Install on Mobile</h4>
-                        <p>Add to home screen on iOS and Android devices</p>
-                    </div>
-                </div>
-                
-                <div class="pwa-feature">
-                    <span class="pwa-icon">💻</span>
-                    <div>
-                        <h4>Desktop App</h4>
-                        <p>Install as a desktop application on Windows, Mac, and Linux</p>
-                    </div>
-                </div>
-                
-                <div class="pwa-feature">
-                    <span class="pwa-icon">🔔</span>
-                    <div>
-                        <h4>Push Notifications</h4>
-                        <p>Get notified of urgent tasks and system updates</p>
-                    </div>
-                </div>
+            <div style="margin-bottom: 15px;">
+                <label for="password" style="display: block; margin-bottom: 5px;">Password:</label>
+                <input type="password" id="password" name="password" required 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
             </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: center;">
+                    <input type="checkbox" name="remember" style="margin-right: 8px;">
+                    Remember me
+                </label>
+            </div>
+            
+            <button type="submit" class="btn" style="width: 100%; font-size: 16px;">
+                Login
+            </button>
+        </form>
+        
+        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 4px;">
+            <h4>Demo Accounts:</h4>
+            <p><strong>Manager:</strong> admin@fleet.com / admin123</p>
+            <p><strong>Worker:</strong> worker@fleet.com / worker123</p>
         </div>
     </div>
 </div>
 
-<style>
-.landing-page {
-    margin-top: -100px;
-    min-height: 100vh;
-}
-
-.hero-section {
-    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-    color: white;
-    padding: 120px var(--spacing-lg) var(--spacing-xxl);
-    text-align: center;
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.hero-content {
-    max-width: 600px;
-}
-
-.hero-logo {
-    width: 120px;
-    height: 120px;
-    margin-bottom: var(--spacing-lg);
-}
-
-.hero-title {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-md);
-    font-weight: 700;
-}
-
-.hero-subtitle {
-    font-size: var(--font-size-xl);
-    margin-bottom: var(--spacing-xxl);
-    opacity: 0.9;
-}
-
-.hero-actions {
-    display: flex;
-    gap: var(--spacing-md);
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.features-section {
-    padding: var(--spacing-xxl) var(--spacing-lg);
-    background: var(--background-color);
-}
-
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    text-align: center;
-}
-
-.features-section h2 {
-    font-size: 2.5rem;
-    margin-bottom: var(--spacing-xxl);
-    color: var(--text-primary);
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-xl);
-    margin-top: var(--spacing-xxl);
-}
-
-.feature-card {
-    background: var(--surface-color);
-    padding: var(--spacing-xl);
-    border-radius: 12px;
-    box-shadow: var(--shadow-md);
-    transition: transform var(--transition-normal);
-}
-
-.feature-card:hover {
-    transform: translateY(-4px);
-}
-
-.feature-icon {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-lg);
-}
-
-.feature-card h3 {
-    font-size: var(--font-size-xl);
-    margin-bottom: var(--spacing-md);
-    color: var(--text-primary);
-}
-
-.feature-card p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-.pwa-section {
-    padding: var(--spacing-xxl) var(--spacing-lg);
-    background: var(--surface-color);
-}
-
-.pwa-section h2 {
-    font-size: 2.5rem;
-    margin-bottom: var(--spacing-md);
-    color: var(--text-primary);
-}
-
-.pwa-section > p {
-    font-size: var(--font-size-lg);
-    color: var(--text-secondary);
-    margin-bottom: var(--spacing-xxl);
-}
-
-.pwa-features {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--spacing-xl);
-    text-align: left;
-}
-
-.pwa-feature {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-    padding: var(--spacing-lg);
-    border: 1px solid var(--divider-color);
-    border-radius: 8px;
-}
-
-.pwa-icon {
-    font-size: 2rem;
-    flex-shrink: 0;
-}
-
-.pwa-feature h4 {
-    margin: 0 0 var(--spacing-sm) 0;
-    color: var(--text-primary);
-}
-
-.pwa-feature p {
-    margin: 0;
-    color: var(--text-secondary);
-}
-
-@media (max-width: 768px) {
-    .hero-title {
-        font-size: 2rem;
-    }
-    
-    .hero-subtitle {
-        font-size: var(--font-size-lg);
-    }
-    
-    .hero-actions {
-        flex-direction: column;
-        align-items: center;
-    }
-    
-    .features-section h2,
-    .pwa-section h2 {
-        font-size: 2rem;
-    }
-    
-    .features-grid {
-        grid-template-columns: 1fr;
-        gap: var(--spacing-lg);
-    }
-    
-    .feature-card {
-        padding: var(--spacing-lg);
-    }
-}
-</style>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-// Enhanced PWA installation prompt for landing page
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    
-    // Show install buttons
-    const installButtons = document.querySelectorAll('.install-btn');
-    installButtons.forEach(button => {
-        button.style.display = 'inline-flex';
-        
-        button.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const choiceResult = await deferredPrompt.userChoice;
-                
-                if (choiceResult.outcome === 'accepted') {
-                    console.log('PWA installed from landing page');
-                } else {
-                    console.log('PWA installation declined');
-                }
-                
-                deferredPrompt = null;
-                button.style.display = 'none';
-            }
-        });
-    });
-});
-
-window.addEventListener('appinstalled', () => {
-    console.log('PWA was installed');
-    deferredPrompt = null;
-    
-    // Hide install buttons
-    const installButtons = document.querySelectorAll('.install-btn');
-    installButtons.forEach(button => {
-        button.style.display = 'none';
-    });
-});
-</script>
+<div style="margin-top: 40px; text-align: center; color: #666;">
+    <h3>✨ PWA Features</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+        <div>
+            <h4>📱 Installable</h4>
+            <p>Install on mobile devices and desktops</p>
+        </div>
+        <div>
+            <h4>🔄 Offline Support</h4>
+            <p>Works without internet connection</p>
+        </div>
+        <div>
+            <h4>🚢 Ship Ready</h4>
+            <p>Perfect for maritime operations</p>
+        </div>
+        <div>
+            <h4>📊 Real-time Sync</h4>
+            <p>Data syncs when connection returns</p>
+        </div>
+    </div>
+</div>
 {% endblock %}

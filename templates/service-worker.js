@@ -1,7 +1,30 @@
-// Service Worker template - this will be served with proper headers
-// Content is the same as /static/js/sw.js but served through Flask template system
+// Simple Service Worker for PWA
+const CACHE_NAME = 'fleet-management-v1';
+const urlsToCache = [
+  '/',
+  '/static/icons/icon-192x192.png',
+  '/static/icons/icon-512x512.png',
+  '/offline'
+];
 
-{{ url_for('static', filename='js/sw.js') }}
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(function(cache) {
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
 
-// This template serves the service worker file with proper MIME type and headers
-// The actual service worker code is in /static/js/sw.js
+self.addEventListener('fetch', function(event) {
+  event.respondWith(
+    caches.match(event.request)
+      .then(function(response) {
+        if (response) {
+          return response;
+        }
+        return fetch(event.request);
+      }
+    )
+  );
+});

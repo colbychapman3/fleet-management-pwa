@@ -3,212 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Fleet Management System - Offline-capable maritime operations management">
+    <title>{% block title %}Fleet Management System{% endblock %}</title>
+    
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#2196F3">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Fleet MS">
+    <meta name="apple-mobile-web-app-title" content="FleetMS">
     
-    <title>{% block title %}Fleet Management System{% endblock %}</title>
-    
-    <!-- PWA manifest -->
-    <link rel="manifest" href="/manifest.json">
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('manifest') }}">
     
     <!-- Icons -->
-    <link rel="icon" href="/static/icons/icon-32x32.png" sizes="32x32">
-    <link rel="icon" href="/static/icons/icon-192x192.png" sizes="192x192">
-    <link rel="apple-touch-icon" href="/static/icons/icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192x192.png') }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192x192.png') }}">
     
-    <!-- Styles -->
-    <link rel="stylesheet" href="/static/css/app.css">
-    <link rel="stylesheet" href="/static/css/components.css">
-    {% block extra_css %}{% endblock %}
-    
-    <!-- Preload critical resources -->
-    <link rel="preload" href="/static/js/app.js" as="script">
-    <link rel="preload" href="/static/js/offline-db.js" as="script">
+    <!-- Basic CSS -->
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 { color: #2196F3; }
+        .btn {
+            background: #2196F3;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+        }
+        .btn:hover { background: #1976D2; }
+        .alert {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .alert-success { background: #d4edda; color: #155724; }
+        .alert-error { background: #f8d7da; color: #721c24; }
+        nav {
+            background: #2196F3;
+            padding: 10px 0;
+            margin: -20px -20px 20px -20px;
+        }
+        nav a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: inline-block;
+        }
+        nav a:hover { background: rgba(255,255,255,0.1); }
+    </style>
 </head>
 <body>
-    <!-- Connectivity indicator -->
-    <div id="connectivity-bar" class="connectivity-bar">
-        <div class="connectivity-indicator online" title="Online"></div>
-        <span class="connection-status">Online</span>
-        <div class="sync-status"></div>
-    </div>
-
-    <!-- Main navigation -->
-    {% if current_user.is_authenticated %}
-    <nav class="main-nav">
-        <div class="nav-container">
-            <div class="nav-brand">
-                <img src="/static/icons/icon-32x32.png" alt="Fleet MS" class="nav-logo">
-                <span class="nav-title">Fleet MS</span>
-            </div>
-            
-            <div class="nav-menu">
-                <a href="/dashboard" class="nav-link {% if request.endpoint and 'dashboard' in request.endpoint %}active{% endif %}">
-                    Dashboard
-                </a>
-                <a href="/dashboard/tasks" class="nav-link {% if request.endpoint and 'tasks' in request.endpoint %}active{% endif %}">
-                    Tasks
-                </a>
-                {% if current_user.is_manager() %}
-                <a href="/dashboard/vessels" class="nav-link {% if request.endpoint and 'vessels' in request.endpoint %}active{% endif %}">
-                    Vessels
-                </a>
-                <a href="/dashboard/users" class="nav-link {% if request.endpoint and 'users' in request.endpoint %}active{% endif %}">
-                    Users
-                </a>
-                <a href="/dashboard/reports" class="nav-link {% if request.endpoint and 'reports' in request.endpoint %}active{% endif %}">
-                    Reports
-                </a>
-                {% endif %}
-                <a href="/dashboard/sync" class="nav-link {% if request.endpoint and 'sync' in request.endpoint %}active{% endif %}">
-                    Sync
-                </a>
-            </div>
-            
-            <div class="nav-actions">
-                <button class="sync-btn btn btn-sm" title="Sync data">
-                    <span class="sync-icon">⟲</span>
-                </button>
-                <button class="install-btn btn btn-sm" title="Install app" style="display: none;">
-                    Install
-                </button>
-                
-                <div class="user-menu">
-                    <button class="user-menu-toggle" title="User menu">
-                        {{ current_user.username }}
-                        <span class="user-avatar">{{ current_user.username[0].upper() }}</span>
-                    </button>
-                    <div class="user-menu-dropdown">
-                        <a href="/auth/profile" class="dropdown-item">Profile</a>
-                        <a href="/dashboard/sync" class="dropdown-item">Sync Status</a>
-                        <div class="dropdown-divider"></div>
-                        <a href="/auth/logout" class="dropdown-item">Logout</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
-    {% endif %}
-
-    <!-- Main content -->
-    <main class="main-content">
-        <!-- Flash messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <div class="flash-messages">
-                    {% for category, message in messages %}
-                        <div class="flash-message flash-{{ category }}">
-                            {{ message }}
-                            <button class="flash-close">&times;</button>
-                        </div>
-                    {% endfor %}
-                </div>
+    <div class="container">
+        {% if current_user.is_authenticated %}
+        <nav>
+            <a href="{{ url_for('dashboard.main') }}">Dashboard</a>
+            <a href="{{ url_for('dashboard.tasks') }}">Tasks</a>
+            {% if current_user.is_manager() %}
+            <a href="{{ url_for('dashboard.vessels') }}">Vessels</a>
+            <a href="{{ url_for('dashboard.users') }}">Users</a>
             {% endif %}
-        {% endwith %}
-
-        <!-- Page content -->
-        {% block content %}{% endblock %}
-    </main>
-
-    <!-- Notification container -->
-    <div id="notification-container" class="notification-container"></div>
-
-    <!-- Loading overlay -->
-    <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Loading...</div>
-    </div>
-
-    <!-- Offline banner -->
-    <div id="offline-banner" class="offline-banner" style="display: none;">
-        <div class="offline-content">
-            <span class="offline-icon">📱</span>
-            <span class="offline-text">You're offline. Changes will be synced when connection is restored.</span>
+            <a href="{{ url_for('auth.profile') }}">Profile</a>
+            <a href="{{ url_for('auth.logout') }}">Logout</a>
+        </nav>
+        {% endif %}
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+            {{ message }}
         </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
     </div>
-
-    <!-- Scripts -->
-    <script src="/static/js/offline-db.js"></script>
-    <script src="/static/js/sync.js"></script>
-    <script src="/static/js/app.js"></script>
-    {% block extra_js %}{% endblock %}
-
-    <!-- Service Worker registration -->
+    
+    <!-- PWA Service Worker -->
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js')
-                    .then(registration => {
-                        console.log('SW registered: ', registration);
-                    })
-                    .catch(registrationError => {
-                        console.log('SW registration failed: ', registrationError);
-                    });
-            });
-        }
-    </script>
-
-    <!-- Critical app initialization -->
-    <script>
-        // Set up global error handling
-        window.addEventListener('error', (event) => {
-            console.error('Global error:', event.error);
-            // Could send to monitoring service
-        });
-
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            // Could send to monitoring service
-        });
-
-        // Handle offline banner
-        function updateOfflineBanner() {
-            const banner = document.getElementById('offline-banner');
-            const connectivityBar = document.getElementById('connectivity-bar');
-            
-            if (!navigator.onLine) {
-                banner.style.display = 'block';
-                connectivityBar.classList.add('offline');
-            } else {
-                banner.style.display = 'none';
-                connectivityBar.classList.remove('offline');
-            }
-        }
-
-        window.addEventListener('online', updateOfflineBanner);
-        window.addEventListener('offline', updateOfflineBanner);
-        updateOfflineBanner();
-
-        // Handle flash message close buttons
-        document.addEventListener('click', (event) => {
-            if (event.target.classList.contains('flash-close')) {
-                event.target.parentElement.remove();
-            }
-        });
-
-        // Handle user menu toggle
-        document.addEventListener('click', (event) => {
-            if (event.target.classList.contains('user-menu-toggle')) {
-                const dropdown = event.target.nextElementSibling;
-                dropdown.classList.toggle('show');
-            } else {
-                // Close all dropdowns when clicking outside
-                document.querySelectorAll('.user-menu-dropdown.show').forEach(dropdown => {
-                    dropdown.classList.remove('show');
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('SW registered: ', registration);
+                })
+                .catch(function(registrationError) {
+                    console.log('SW registration failed: ', registrationError);
                 });
-            }
-        });
-
-        // Handle mobile menu toggle
-        document.addEventListener('click', (event) => {
-            if (event.target.classList.contains('mobile-menu-toggle')) {
-                const navMenu = document.querySelector('.nav-menu');
-                navMenu.classList.toggle('show');
-            }
-        });
+        }
     </script>
 </body>
 </html>

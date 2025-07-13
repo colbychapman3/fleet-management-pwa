@@ -169,9 +169,11 @@ def index():
     # Try to initialize database on first request if not already done
     try:
         User.query.first()  # Test database connection
-    except Exception:
-        logger.info("Database not initialized, attempting to initialize now...")
-        init_database()
+    except Exception as e:
+        logger.info(f"Database not initialized, attempting to initialize now: {e}")
+        if not init_database():
+            # If database init fails, still show the page but with a message
+            flash('Database connection unavailable. Some features may not work.', 'error')
     
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.main'))
