@@ -47,15 +47,24 @@ except Exception as e:
     print(f"PostgreSQL connection failed, falling back to SQLite: {e}")
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fleet_management.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_timeout': 20,
-    'pool_recycle': 300,
-    'pool_pre_ping': True,
-    'connect_args': {
-        'connect_timeout': 10,
-        'application_name': 'fleet_management_pwa'
+
+# Set engine options based on database type
+if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
+    # SQLite options
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,
     }
-}
+else:
+    # PostgreSQL options
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_timeout': 20,
+        'pool_recycle': 300,
+        'pool_pre_ping': True,
+        'connect_args': {
+            'connect_timeout': 10,
+            'application_name': 'fleet_management_pwa'
+        }
+    }
 
 app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 
     'rediss://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6380')
