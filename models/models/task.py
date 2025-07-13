@@ -15,7 +15,7 @@ class Task(db.Model):
     description = db.Column(db.Text)
     priority = db.Column(db.String(20), default='medium')  # low, medium, high, urgent
     status = db.Column(db.String(20), default='pending', index=True)  # pending, in_progress, completed, cancelled
-    task_type = db.Column(db.String(50), nullable=False)  # maintenance, inspection, cleaning, safety, etc.
+    task_type = db.Column(db.String(50), nullable=False)  # maintenance, inspection, cleaning, safety, cargo_loading, cargo_discharge, berth_assignment, pilot_services, customs_clearance, equipment_operation
     
     # Assignment
     assigned_to_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
@@ -28,8 +28,19 @@ class Task(db.Model):
     actual_hours = db.Column(db.Float)
     
     # Location and equipment
-    location = db.Column(db.String(100))  # deck, engine room, bridge, etc.
+    location = db.Column(db.String(100))  # deck, engine room, bridge, berth, zone, etc.
     equipment = db.Column(db.String(100))
+    
+    # Maritime-specific fields
+    zone = db.Column(db.String(10))  # BRV, ZEE, SOU
+    berth_number = db.Column(db.String(20))
+    cargo_type = db.Column(db.String(50))  # automobiles, containers, bulk, general_cargo
+    quantity = db.Column(db.Float)  # Quantity of cargo or units to handle
+    unit_of_measure = db.Column(db.String(20))  # TEU, units, tons, etc.
+    safety_requirements = db.Column(db.JSON)  # List of safety requirements
+    required_equipment = db.Column(db.JSON)  # List of required equipment
+    weather_dependent = db.Column(db.Boolean, default=False)
+    tide_dependent = db.Column(db.Boolean, default=False)
     
     # Completion details
     completion_notes = db.Column(db.Text)
@@ -73,6 +84,54 @@ class Task(db.Model):
         }
         return priority_map.get(self.priority, self.priority.title())
     
+    def get_task_type_display(self):
+        """Get user-friendly task type display"""
+        type_map = {
+            'maintenance': 'Maintenance',
+            'inspection': 'Inspection',
+            'cleaning': 'Cleaning',
+            'safety': 'Safety Check',
+            'cargo_loading': 'Cargo Loading',
+            'cargo_discharge': 'Cargo Discharge',
+            'berth_assignment': 'Berth Assignment',
+            'pilot_services': 'Pilot Services',
+            'customs_clearance': 'Customs Clearance',
+            'equipment_operation': 'Equipment Operation'
+        }
+        return type_map.get(self.task_type, self.task_type.title())
+    
+    def is_maritime_task(self):
+        """Check if this is a maritime-specific task"""
+        maritime_types = [
+            'cargo_loading', 'cargo_discharge', 'berth_assignment',
+            'pilot_services', 'customs_clearance', 'equipment_operation'
+        ]
+        return self.task_type in maritime_types
+    
+    def requires_zone_access(self):
+        """Check if task requires specific zone access"""
+        return self.zone is not None
+    
+    def is_weather_sensitive(self):
+        """Check if task is weather dependent"""
+        return self.weather_dependent
+    
+    def is_tide_sensitive(self):
+        """Check if task is tide dependent"""
+        return self.tide_dependent
+    
+    def get_safety_requirements_list(self):
+        """Get safety requirements as a list"""
+        if not self.safety_requirements:
+            return []
+        return self.safety_requirements if isinstance(self.safety_requirements, list) else []
+    
+    def get_required_equipment_list(self):
+        """Get required equipment as a list"""
+        if not self.required_equipment:
+            return []
+        return self.required_equipment if isinstance(self.required_equipment, list) else []
+    
     def mark_completed(self, completion_notes=None, actual_hours=None, completion_photos=None):
         """Mark task as completed"""
         self.status = 'completed'
@@ -101,6 +160,7 @@ class Task(db.Model):
             'status': self.status,
             'status_display': self.get_status_display(),
             'task_type': self.task_type,
+            'task_type_display': self.get_task_type_display(),
             'assigned_to_id': self.assigned_to_id,
             'created_by_id': self.created_by_id,
             'vessel_id': self.vessel_id,
@@ -117,6 +177,21 @@ class Task(db.Model):
             'is_overdue': self.is_overdue(),
             'is_synced': self.is_synced,
             'local_id': self.local_id,
+            'zone': self.zone,
+            'berth_number': self.berth_number,
+            'cargo_type': self.cargo_type,
+            'quantity': self.quantity,
+            'unit_of_measure': self.unit_of_measure,
+            'safety_requirements': self.safety_requirements,
+            'required_equipment': self.required_equipment,
+            'weather_dependent': self.weather_dependent,
+            'tide_dependent': self.tide_dependent,
+            'is_maritime_task': self.is_maritime_task(),
+            'requires_zone_access': self.requires_zone_access(),
+            'is_weather_sensitive': self.is_weather_sensitive(),
+            'is_tide_sensitive': self.is_tide_sensitive(),
+            'safety_requirements_list': self.get_safety_requirements_list(),
+            'required_equipment_list': self.get_required_equipment_list(),
             # Include related data
             'assigned_to_name': self.assigned_to.get_full_name() if self.assigned_to else None,
             'created_by_name': self.created_by.get_full_name() if self.created_by else None,
@@ -173,3 +248,37 @@ class Task(db.Model):
             'completed': completed_tasks,
             'overdue': overdue_tasks
         }
+    
+    @staticmethod
+    def get_maritime_tasks():
+        """Get all maritime-specific tasks"""
+        maritime_types = [
+            'cargo_loading', 'cargo_discharge', 'berth_assignment',
+            'pilot_services', 'customs_clearance', 'equipment_operation'
+        ]
+        return Task.query.filter(Task.task_type.in_(maritime_types)).all()
+    
+    @staticmethod
+    def get_tasks_by_zone(zone):
+        """Get tasks for a specific zone"""
+        return Task.query.filter_by(zone=zone).order_by(Task.due_date.asc()).all()
+    
+    @staticmethod
+    def get_tasks_by_cargo_type(cargo_type):
+        """Get tasks for a specific cargo type"""
+        return Task.query.filter_by(cargo_type=cargo_type).order_by(Task.due_date.asc()).all()
+    
+    @staticmethod
+    def get_weather_dependent_tasks():
+        """Get all weather-dependent tasks"""
+        return Task.query.filter_by(weather_dependent=True).all()
+    
+    @staticmethod
+    def get_tide_dependent_tasks():
+        """Get all tide-dependent tasks"""
+        return Task.query.filter_by(tide_dependent=True).all()
+    
+    @staticmethod
+    def get_tasks_by_berth(berth_number):
+        """Get tasks for a specific berth"""
+        return Task.query.filter_by(berth_number=berth_number).order_by(Task.due_date.asc()).all()

@@ -19,7 +19,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     username = db.Column(db.String(80), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
-    role = db.Column(db.String(20), nullable=False, default='worker')  # 'manager', 'worker'
+    role = db.Column(db.String(20), nullable=False, default='worker')  # 'manager', 'worker', 'auto_ops_lead', 'heavy_ops_lead', 'stevedore', 'driver'
     is_active = db.Column(db.Boolean, default=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     last_login = db.Column(db.DateTime)
@@ -30,6 +30,16 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String(50))
     phone = db.Column(db.String(20))
     vessel_id = db.Column(db.Integer, db.ForeignKey('vessels.id'), nullable=True)
+    
+    # Maritime-specific fields
+    employee_id = db.Column(db.String(20), unique=True, index=True)
+    license_number = db.Column(db.String(50))
+    license_expiry = db.Column(db.Date)
+    certification_level = db.Column(db.String(50))  # Basic, Advanced, Expert
+    zone_access = db.Column(db.JSON)  # List of zones user can access ['BRV', 'ZEE', 'SOU']
+    shift_schedule = db.Column(db.JSON)  # Shift pattern information
+    emergency_contact = db.Column(db.String(100))
+    emergency_phone = db.Column(db.String(20))
     
     # Relationships
     vessel = db.relationship('Vessel', backref='crew_members', lazy=True)
@@ -53,6 +63,47 @@ class User(UserMixin, db.Model):
     def is_worker(self):
         """Check if user has worker role"""
         return self.role == 'worker'
+    
+    def is_auto_ops_lead(self):
+        """Check if user has auto operations lead role"""
+        return self.role == 'auto_ops_lead'
+    
+    def is_heavy_ops_lead(self):
+        """Check if user has heavy operations lead role"""
+        return self.role == 'heavy_ops_lead'
+    
+    def is_stevedore(self):
+        """Check if user has stevedore role"""
+        return self.role == 'stevedore'
+    
+    def is_driver(self):
+        """Check if user has driver role"""
+        return self.role == 'driver'
+    
+    def has_zone_access(self, zone):
+        """Check if user has access to a specific zone"""
+        if not self.zone_access:
+            return False
+        return zone in self.zone_access
+    
+    def is_license_valid(self):
+        """Check if user's license is still valid"""
+        if not self.license_expiry:
+            return True
+        from datetime import date
+        return self.license_expiry > date.today()
+    
+    def get_maritime_role_display(self):
+        """Get user-friendly maritime role display"""
+        role_map = {
+            'manager': 'Operations Manager',
+            'worker': 'Port Worker',
+            'auto_ops_lead': 'Automobile Operations Lead',
+            'heavy_ops_lead': 'Heavy Operations Lead',
+            'stevedore': 'Stevedore',
+            'driver': 'TICO Driver'
+        }
+        return role_map.get(self.role, self.role.title())
     
     def update_last_login(self):
         """Update last login timestamp"""
@@ -85,7 +136,17 @@ class User(UserMixin, db.Model):
             'last_name': self.last_name,
             'phone': self.phone,
             'vessel_id': self.vessel_id,
-            'full_name': self.get_full_name()
+            'full_name': self.get_full_name(),
+            'employee_id': self.employee_id,
+            'license_number': self.license_number,
+            'license_expiry': self.license_expiry.isoformat() if self.license_expiry else None,
+            'certification_level': self.certification_level,
+            'zone_access': self.zone_access,
+            'shift_schedule': self.shift_schedule,
+            'emergency_contact': self.emergency_contact,
+            'emergency_phone': self.emergency_phone,
+            'maritime_role_display': self.get_maritime_role_display(),
+            'is_license_valid': self.is_license_valid()
         }
         
         if include_sensitive:
@@ -112,3 +173,43 @@ class User(UserMixin, db.Model):
     def get_by_vessel(vessel_id):
         """Get all users assigned to a specific vessel"""
         return User.query.filter_by(vessel_id=vessel_id, is_active=True).all()
+    
+    @staticmethod
+    def get_by_role(role):
+        """Get all users with a specific role"""
+        return User.query.filter_by(role=role, is_active=True).all()
+    
+    @staticmethod
+    def get_by_zone_access(zone):
+        """Get all users with access to a specific zone"""
+        return User.query.filter(
+            User.zone_access.contains([zone]),
+            User.is_active == True
+        ).all()
+    
+    @staticmethod
+    def get_stevedores():
+        """Get all stevedore users"""
+        return User.query.filter_by(role='stevedore', is_active=True).all()
+    
+    @staticmethod
+    def get_drivers():
+        """Get all driver users"""
+        return User.query.filter_by(role='driver', is_active=True).all()
+    
+    @staticmethod
+    def get_ops_leads():
+        """Get all operations lead users"""
+        return User.query.filter(
+            User.role.in_(['auto_ops_lead', 'heavy_ops_lead']),
+            User.is_active == True
+        ).all()
+    
+    @staticmethod
+    def get_expired_licenses():
+        """Get users with expired licenses"""
+        from datetime import date
+        return User.query.filter(
+            User.license_expiry < date.today(),
+            User.is_active == True
+        ).all()

@@ -20,10 +20,40 @@ from models.models.user import User
 from models.models.vessel import Vessel
 from models.models.task import Task
 from models.models.sync_log import SyncLog
+from models.models.maritime_models import (
+    CargoOperation, StevedoreTeam, TicoVehicle, MaritimeDocument,
+    DischargeProgress, MaritimeOperationsHelper
+)
 
 logger = structlog.get_logger()
 
 api_bp = Blueprint('api', __name__)
+
+# Maritime role validation decorator
+def maritime_access_required(required_roles=None):
+    """Decorator to check maritime-specific role permissions"""
+    if required_roles is None:
+        required_roles = ['manager', 'maritime_supervisor', 'stevedore_lead', 'worker']
+    
+    def decorator(f):
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                return jsonify({'error': 'Authentication required'}), 401
+            
+            # Allow managers full access
+            if current_user.is_manager():
+                return f(*args, **kwargs)
+            
+            # Check specific maritime roles
+            user_role = getattr(current_user, 'maritime_role', current_user.role)
+            if user_role not in required_roles:
+                return jsonify({'error': 'Insufficient maritime permissions'}), 403
+            
+            return f(*args, **kwargs)
+        
+        wrapper.__name__ = f.__name__
+        return wrapper
+    return decorator
 
 # Tasks API
 @api_bp.route('/tasks', methods=['GET'])
