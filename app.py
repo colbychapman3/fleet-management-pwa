@@ -25,7 +25,7 @@ app = Flask(__name__)
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 
-# Database URL with fallback
+# Database URL with fallback to SQLite if PostgreSQL fails
 database_url = os.environ.get('DATABASE_URL')
 if not database_url:
     # Default connection string for development/fallback
@@ -35,7 +35,17 @@ if not database_url:
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+# Test connection and fallback to SQLite if needed
+try:
+    import psycopg2
+    # Quick connection test
+    conn = psycopg2.connect(database_url)
+    conn.close()
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    logger.info("Using PostgreSQL database")
+except Exception as e:
+    logger.warning(f"PostgreSQL connection failed, falling back to SQLite: {e}")
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fleet_management.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_timeout': 20,
