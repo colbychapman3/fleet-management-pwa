@@ -24,11 +24,30 @@ app = Flask(__name__)
 
 # Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 
-    'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres')
+
+# Database URL with fallback
+database_url = os.environ.get('DATABASE_URL')
+if not database_url:
+    # Default connection string for development/fallback
+    database_url = 'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres'
+
+# Fix Render's postgres:// to postgresql:// if needed
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_timeout': 20,
+    'pool_recycle': 300,
+    'pool_pre_ping': True,
+    'connect_args': {
+        'connect_timeout': 10
+    }
+}
+
 app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 
-    'redis://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6379')
+    'rediss://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6380')
 
 # Session configuration for Redis
 app.config['SESSION_TYPE'] = 'redis'
@@ -146,6 +165,13 @@ def cache_delete(key):
 @app.route('/')
 def index():
     """Main landing page with PWA manifest"""
+    # Try to initialize database on first request if not already done
+    try:
+        User.query.first()  # Test database connection
+    except Exception:
+        logger.info("Database not initialized, attempting to initialize now...")
+        init_database()
+    
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.main'))
     return render_template('index.html')
@@ -346,35 +372,49 @@ def after_request(response):
     
     return response
 
+# Database initialization helper
+def init_database():
+    """Initialize database tables and sample data if needed"""
+    try:
+        with app.app_context():
+            db.create_all()
+            
+            # Create sample data
+            if not User.query.filter_by(email='admin@fleet.com').first():
+                admin = User(
+                    email='admin@fleet.com',
+                    username='admin',
+                    password_hash=generate_password_hash('admin123'),
+                    role='manager',
+                    is_active=True
+                )
+                db.session.add(admin)
+            
+            if not User.query.filter_by(email='worker@fleet.com').first():
+                worker = User(
+                    email='worker@fleet.com',
+                    username='worker',
+                    password_hash=generate_password_hash('worker123'),
+                    role='worker',
+                    is_active=True
+                )
+                db.session.add(worker)
+            
+            db.session.commit()
+            logger.info("Database initialized successfully!")
+            return True
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}")
+        return False
+
 # CLI commands
 @app.cli.command()
 def init_db():
     """Initialize the database with tables and sample data"""
-    db.create_all()
-    
-    # Create sample data
-    if not User.query.filter_by(email='admin@fleet.com').first():
-        admin = User(
-            email='admin@fleet.com',
-            username='admin',
-            password_hash=generate_password_hash('admin123'),
-            role='manager',
-            is_active=True
-        )
-        db.session.add(admin)
-    
-    if not User.query.filter_by(email='worker@fleet.com').first():
-        worker = User(
-            email='worker@fleet.com',
-            username='worker',
-            password_hash=generate_password_hash('worker123'),
-            role='worker',
-            is_active=True
-        )
-        db.session.add(worker)
-    
-    db.session.commit()
-    print("Database initialized successfully!")
+    if init_database():
+        print("Database initialized successfully!")
+    else:
+        print("Database initialization failed!")
 
 # Import and register blueprints after all app setup is complete
 from models.routes.auth import auth_bp
