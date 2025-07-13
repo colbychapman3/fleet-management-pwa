@@ -97,19 +97,8 @@ limiter.init_app(app)
 metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'Application info', version='1.0.0')
 
-# Custom metrics (simplified for compatibility)
-REQUEST_COUNT = metrics.counter(
-    'requests_total', 'Total requests'
-)
-REQUEST_LATENCY = metrics.histogram(
-    'request_duration_seconds', 'Request latency'
-)
-ACTIVE_USERS = metrics.gauge(
-    'active_users_total', 'Number of active users'
-)
-DATABASE_CONNECTIONS = metrics.gauge(
-    'database_connections_active', 'Active database connections'
-)
+# Custom metrics (using prometheus_flask_exporter built-in metrics)
+# These are automatically tracked by prometheus_flask_exporter
 
 # Import models after db initialization
 import sys
@@ -345,28 +334,10 @@ def ratelimit_handler(e):
         return jsonify({'error': 'Rate limit exceeded', 'retry_after': e.retry_after}), 429
     return render_template('errors/429.html'), 429
 
-# Request hooks for metrics
-@app.before_request
-def before_request():
-    """Track request start time for metrics"""
-    request.start_time = datetime.utcnow()
-
+# Request hooks for security headers
 @app.after_request
 def after_request(response):
-    """Track request metrics"""
-    if hasattr(request, 'start_time'):
-        duration = (datetime.utcnow() - request.start_time).total_seconds()
-        REQUEST_LATENCY.labels(
-            method=request.method,
-            endpoint=request.endpoint or 'unknown'
-        ).observe(duration)
-    
-    REQUEST_COUNT.labels(
-        method=request.method,
-        endpoint=request.endpoint or 'unknown',
-        status=response.status_code
-    ).inc()
-    
+    """Add security headers"""
     # Security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
