@@ -4,8 +4,6 @@ Authentication routes for login, logout, and user management
 
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, flash, session
 from flask_login import login_user, logout_user, login_required, current_user
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
 from werkzeug.security import generate_password_hash, check_password_hash
 import structlog
 from datetime import datetime
@@ -13,6 +11,7 @@ from datetime import datetime
 def get_app_db():
     import app
     return app.db
+
 from models.models.user import User
 from models.models.sync_log import SyncLog
 
@@ -21,7 +20,6 @@ logger = structlog.get_logger()
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")
 def login():
     """User login endpoint"""
     if request.method == 'GET':
@@ -110,7 +108,6 @@ def logout():
     return redirect(url_for('auth.login'))
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
-@limiter.limit("3 per minute")
 def register():
     """User registration endpoint (for managers to create worker accounts)"""
     if request.method == 'GET':
@@ -182,6 +179,7 @@ def register():
             vessel_id=data.get('vessel_id') if data.get('vessel_id') else None
         )
         
+        db = get_app_db()
         db.session.add(user)
         db.session.commit()
         
@@ -197,6 +195,7 @@ def register():
         return redirect(url_for('dashboard.users'))
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         logger.error(f"Registration error: {e}")
         error_msg = 'An error occurred during registration'
@@ -234,6 +233,7 @@ def profile():
             if 'vessel_id' in data:
                 current_user.vessel_id = data['vessel_id'] if data['vessel_id'] else None
         
+        db = get_app_db()
         db.session.commit()
         
         logger.info(f"Profile updated for user: {current_user.email}")
@@ -248,6 +248,7 @@ def profile():
         return redirect(url_for('auth.profile'))
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         logger.error(f"Profile update error: {e}")
         error_msg = 'An error occurred while updating profile'
@@ -258,7 +259,6 @@ def profile():
 
 @auth_bp.route('/change-password', methods=['POST'])
 @login_required
-@limiter.limit("3 per hour")
 def change_password():
     """Change user password"""
     try:
@@ -302,6 +302,7 @@ def change_password():
         
         # Update password
         current_user.password_hash = generate_password_hash(new_password)
+        db = get_app_db()
         db.session.commit()
         
         logger.info(f"Password changed for user: {current_user.email}")
@@ -313,6 +314,7 @@ def change_password():
         return redirect(url_for('auth.profile'))
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         logger.error(f"Password change error: {e}")
         error_msg = 'An error occurred while changing password'

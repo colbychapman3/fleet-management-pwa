@@ -10,6 +10,10 @@ import structlog
 def get_app_db():
     import app
     return app.db
+
+def get_app_components():
+    import app
+    return app.db, app.redis_client, app.metrics
 from models.models.user import User
 from models.models.task import Task
 from models.models.vessel import Vessel
@@ -38,6 +42,9 @@ def health_detailed():
         'dependencies': {},
         'metrics': {}
     }
+    
+    # Get app components
+    db, redis_client, metrics = get_app_components()
     
     # Check database
     try:
@@ -116,6 +123,7 @@ def health_detailed():
         }
         
         # Update Prometheus metrics
+        db, redis_client, metrics = get_app_components()
         metrics.gauge('active_users_total').set(active_users)
         
     except Exception as e:
@@ -127,6 +135,9 @@ def health_detailed():
 def prometheus_metrics():
     """Prometheus metrics endpoint"""
     try:
+        # Get app components
+        db, redis_client, metrics = get_app_components()
+        
         # Update custom metrics before returning
         active_users = User.query.filter_by(is_active=True).count()
         pending_tasks = Task.query.filter_by(status='pending').count()
@@ -436,6 +447,7 @@ def get_alerts():
         
         # Check for database connectivity
         try:
+            db, redis_client, metrics = get_app_components()
             db.session.execute('SELECT 1')
         except Exception as e:
             alerts.append({

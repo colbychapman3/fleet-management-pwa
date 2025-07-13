@@ -122,6 +122,7 @@ def tasks():
         # Apply role-based filtering
         if current_user.is_worker():
             if current_user.vessel_id:
+                db = get_app_db()
                 query = query.filter(
                     db.or_(
                         Task.assigned_to_id == current_user.id,

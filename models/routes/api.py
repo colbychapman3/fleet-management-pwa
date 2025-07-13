@@ -40,6 +40,9 @@ def get_tasks():
         priority = request.args.get('priority')
         overdue_only = request.args.get('overdue', 'false').lower() == 'true'
         
+        # Get cache functions first
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
+        
         # Build cache key
         cache_key = get_cache_key(
             'tasks', current_user.id, page, per_page, status, 
@@ -59,6 +62,7 @@ def get_tasks():
         if current_user.is_worker():
             # Workers only see their own tasks or unassigned tasks on their vessel
             if current_user.vessel_id:
+                db = get_app_db()
                 query = query.filter(
                     db.or_(
                         Task.assigned_to_id == current_user.id,
@@ -151,6 +155,7 @@ def create_task():
             except ValueError:
                 return jsonify({'error': 'Invalid due_date format'}), 400
         
+        db = get_app_db()
         db.session.add(task)
         db.session.commit()
         
@@ -165,6 +170,7 @@ def create_task():
         )
         
         # Clear relevant caches
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
         cache_delete(get_cache_key('tasks', current_user.id, '*'))
         
         logger.info(f"Task created: {task.id} by user {current_user.id}")
@@ -175,6 +181,7 @@ def create_task():
         }), 201
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         logger.error(f"Create task error: {e}")
         return jsonify({'error': 'Failed to create task'}), 500
@@ -247,6 +254,7 @@ def update_task(task_id):
         task.updated_at = datetime.utcnow()
         task.is_synced = False  # Mark as needing sync
         
+        db = get_app_db()
         db.session.commit()
         
         # Log sync action
@@ -260,6 +268,7 @@ def update_task(task_id):
         )
         
         # Clear relevant caches
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
         cache_delete(get_cache_key('tasks', '*'))
         
         logger.info(f"Task updated: {task.id} by user {current_user.id}")
@@ -270,6 +279,7 @@ def update_task(task_id):
         })
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         logger.error(f"Update task error: {e}")
         return jsonify({'error': 'Failed to update task'}), 500
@@ -294,10 +304,12 @@ def delete_task(task_id):
             data_before=task_data
         )
         
+        db = get_app_db()
         db.session.delete(task)
         db.session.commit()
         
         # Clear relevant caches
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
         cache_delete(get_cache_key('tasks', '*'))
         
         logger.info(f"Task deleted: {task_id} by user {current_user.id}")
@@ -305,6 +317,7 @@ def delete_task(task_id):
         return jsonify({'message': 'Task deleted successfully'})
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         logger.error(f"Delete task error: {e}")
         return jsonify({'error': 'Failed to delete task'}), 500
@@ -315,6 +328,7 @@ def delete_task(task_id):
 def get_vessels():
     """Get vessels list"""
     try:
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
         cache_key = get_cache_key('vessels', 'all')
         cached_result = cache_get(cache_key)
         
@@ -358,6 +372,7 @@ def get_users():
         return jsonify({'error': 'Access denied'}), 403
     
     try:
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
         cache_key = get_cache_key('users', 'all')
         cached_result = cache_get(cache_key)
         
@@ -447,6 +462,7 @@ def sync_task_change(change):
             if data.get('due_date'):
                 task.due_date = datetime.fromisoformat(data['due_date'].replace('Z', '+00:00'))
             
+            db = get_app_db()
             db.session.add(task)
             db.session.commit()
             
@@ -463,6 +479,7 @@ def sync_task_change(change):
                     setattr(task, field, value)
             
             task.updated_at = datetime.utcnow()
+            db = get_app_db()
             db.session.commit()
             
             return {'status': 'updated'}
@@ -470,6 +487,7 @@ def sync_task_change(change):
         elif action == 'delete':
             task = Task.query.get(change['server_id'])
             if task:
+                db = get_app_db()
                 db.session.delete(task)
                 db.session.commit()
             
@@ -478,6 +496,7 @@ def sync_task_change(change):
         return {'status': 'error', 'message': f"Unknown action: {action}"}
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         return {'status': 'error', 'message': str(e)}
 
@@ -493,12 +512,14 @@ def sync_user_change(change):
                 if field in data:
                     setattr(current_user, field, data[field])
             
+            db = get_app_db()
             db.session.commit()
             return {'status': 'updated'}
         
         return {'status': 'error', 'message': 'Unauthorized user change'}
         
     except Exception as e:
+        db = get_app_db()
         db.session.rollback()
         return {'status': 'error', 'message': str(e)}
 
@@ -508,6 +529,7 @@ def sync_user_change(change):
 def get_dashboard_stats():
     """Get dashboard statistics"""
     try:
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
         cache_key = get_cache_key('dashboard_stats', current_user.id, current_user.role)
         cached_result = cache_get(cache_key)
         
