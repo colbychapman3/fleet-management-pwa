@@ -42,9 +42,9 @@ try:
     conn = psycopg2.connect(database_url)
     conn.close()
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    logger.info("Using PostgreSQL database")
+    print("Using PostgreSQL database")
 except Exception as e:
-    logger.warning(f"PostgreSQL connection failed, falling back to SQLite: {e}")
+    print(f"PostgreSQL connection failed, falling back to SQLite: {e}")
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fleet_management.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
