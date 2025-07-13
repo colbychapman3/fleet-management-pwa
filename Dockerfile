@@ -39,4 +39,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:$PORT/health || exit 1
 
 # Skip database init during build, do it on first request
-CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile - app:app
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 30 --preload --access-logfile - --error-logfile - app:app
