@@ -38,16 +38,5 @@ EXPOSE $PORT
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:$PORT/health || exit 1
 
-# Simple startup command for Render with error handling
-CMD python -c "
-import sys
-try:
-    from app import app, db
-    with app.app_context():
-        db.create_all()
-        print('Database initialized successfully')
-except Exception as e:
-    print(f'Database initialization failed: {e}')
-    print('Starting app anyway - database will be initialized on first request')
-    pass
-" && gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile - app:app
+# Skip database init during build, do it on first request
+CMD gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --access-logfile - --error-logfile - app:app
