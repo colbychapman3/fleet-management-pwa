@@ -19,6 +19,37 @@ logger = structlog.get_logger()
 
 auth_bp = Blueprint('auth', __name__)
 
+@auth_bp.route('/register', methods=['GET', 'POST'])
+def register():
+    """Register page"""
+    if request.method == 'POST':
+        email = request.form.get('email')
+        username = request.form.get('username')
+        password = request.form.get('password')
+        role = request.form.get('role')
+
+        # Check if user already exists
+        user = User.query.filter_by(email=email).first()
+        if user:
+            flash('Email address already exists')
+            return redirect(url_for('auth.register'))
+
+        # Create new user
+        new_user = User(
+            email=email,
+            username=username,
+            password_hash=generate_password_hash(password, method='sha256'),
+            role=role
+        )
+
+        # Add the new user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        return redirect(url_for('auth.login'))
+    return render_template('auth/register.html')
+
+
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """User login endpoint"""

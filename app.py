@@ -414,11 +414,13 @@ from models.routes.auth import auth_bp
 from models.routes.api import api_bp
 from models.routes.dashboard import dashboard_bp
 from models.routes.monitoring import monitoring_bp
+from models.routes.maritime.ship_operations import maritime_bp
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
 app.register_blueprint(monitoring_bp, url_prefix='/monitoring')
+app.register_blueprint(maritime_bp, url_prefix='/maritime')
 
 if __name__ == '__main__':
     app.run(

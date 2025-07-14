@@ -14,6 +14,7 @@ from models.models.user import User
 from models.models.vessel import Vessel
 from models.models.task import Task
 from models.models.sync_log import SyncLog
+from models.maritime.maritime_operation import MaritimeOperation
 
 logger = structlog.get_logger()
 
@@ -52,6 +53,9 @@ def manager():
         # Get sync status
         pending_syncs = SyncLog.get_pending_syncs()
         failed_syncs = SyncLog.get_failed_syncs()
+
+        # Get maritime operations
+        maritime_operations = MaritimeOperation.query.order_by(MaritimeOperation.created_at.desc()).all()
         
         return render_template('dashboard/manager.html',
             task_stats=task_stats,
@@ -60,7 +64,8 @@ def manager():
             vessels=vessels,
             users=users,
             pending_syncs_count=len(pending_syncs),
-            failed_syncs_count=len(failed_syncs)
+            failed_syncs_count=len(failed_syncs),
+            maritime_operations=maritime_operations
         )
         
     except Exception as e:

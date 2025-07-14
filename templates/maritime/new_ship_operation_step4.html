@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h1 class="title">New Ship Operation - Step 4: Confirmation</h1>
+    <p>Please review the details below and confirm to start the operation.</p>
+
+    <div class="box">
+        <p><strong>Vessel:</strong> {{ operation.vessel.name }}</p>
+        <p><strong>Operation Type:</strong> {{ operation.operation_type }}</p>
+        {# You would typically show more details here from the previous steps #}
+    </div>
+
+    <form method="POST">
+        <div class="field">
+            <div class="control">
+                <button class="button is-primary">Confirm and Start Operation</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

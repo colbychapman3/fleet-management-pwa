@@ -29,6 +29,37 @@
     </div>
     
     <div style="margin-top: 40px;">
+        <h3>🚢 Maritime Operations</h3>
+        <a href="{{ url_for('maritime.new_ship_operation_step1') }}" class="button is-primary">New Ship Operation</a>
+        <table class="table is-striped is-fullwidth" style="margin-top: 20px;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Vessel</th>
+                    <th>Operation Type</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for op in maritime_operations %}
+                <tr>
+                    <td>{{ op.id }}</td>
+                    <td>{{ op.vessel.name }}</td>
+                    <td>{{ op.operation_type }}</td>
+                    <td>{{ op.status }}</td>
+                    <td>{{ op.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5">No active maritime operations.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 40px;">
         <h3>🎉 Fleet Management System is Working!</h3>
         <p>Your PWA-compliant task management system is now operational.</p>
         <div style="margin-top: 20px;">
