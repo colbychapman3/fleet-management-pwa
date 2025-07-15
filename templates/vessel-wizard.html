@@ -1,0 +1,661 @@
+{% extends "base.html" %}
+
+{% block title %}Vessel Operations Wizard - Fleet Management{% endblock %}
+
+{% block content %}
+<div class="vessel-wizard-page">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-title-section">
+            <h1 class="page-title">🚢 Vessel Operations Setup</h1>
+            <p class="page-description">Configure vessel operations in 4 simple steps</p>
+        </div>
+        
+        <div class="page-actions">
+            <button type="button" class="btn btn-outline" id="load-saved-btn">
+                📂 Load Saved Progress
+            </button>
+            <button type="button" class="btn btn-outline" id="clear-data-btn">
+                🗑️ Clear All Data
+            </button>
+        </div>
+    </div>
+
+    <!-- Connectivity Status -->
+    <div class="connectivity-bar" id="connectivity-bar">
+        <div class="connectivity-content">
+            <div class="connectivity-indicator" id="connectivity-indicator"></div>
+            <span class="connection-status" id="connection-status">Checking...</span>
+        </div>
+        
+        <div class="sync-status" id="sync-status">
+            <span class="sync-indicator" id="sync-indicator"></span>
+            <span id="sync-text">Ready to sync</span>
+        </div>
+    </div>
+
+    <!-- Wizard Container -->
+    <div id="vessel-wizard-container" class="wizard-container">
+        <!-- Wizard will be dynamically rendered here -->
+    </div>
+
+    <!-- Action Panels -->
+    <div class="action-panels">
+        <!-- Quick Actions -->
+        <div class="action-panel">
+            <h3>Quick Actions</h3>
+            <div class="quick-actions">
+                <button type="button" class="action-btn" id="save-draft-btn">
+                    💾 Save Draft
+                </button>
+                <button type="button" class="action-btn" id="preview-operation-btn">
+                    👁️ Preview Operation
+                </button>
+                <button type="button" class="action-btn" id="export-data-btn">
+                    📤 Export Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Recent Operations -->
+        <div class="action-panel">
+            <h3>Recent Operations</h3>
+            <div class="recent-operations" id="recent-operations">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <!-- Sync Status -->
+        <div class="action-panel">
+            <h3>Sync Status</h3>
+            <div class="sync-panel" id="sync-panel">
+                <div class="sync-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="pending-count">0</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="draft-count">0</span>
+                        <span class="stat-label">Drafts</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="completed-count">0</span>
+                        <span class="stat-label">Completed</span>
+                    </div>
+                </div>
+                
+                <div class="sync-actions">
+                    <button type="button" class="btn btn-sm btn-primary" id="manual-sync-btn">
+                        🔄 Sync Now
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline" id="view-queue-btn">
+                        📋 View Queue
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+
+<!-- Load Saved Progress Modal -->
+<div id="load-saved-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Load Saved Progress</h3>
+            <button type="button" class="modal-close" data-modal="load-saved-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="saved-wizards-list">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Preview Operation Modal -->
+<div id="preview-modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Operation Preview</h3>
+            <button type="button" class="modal-close" data-modal="preview-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="operation-preview">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="print-preview-btn">🖨️ Print</button>
+            <button type="button" class="btn btn-outline" data-modal="preview-modal">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Sync Queue Modal -->
+<div id="sync-queue-modal" class="modal">
+    <div class="modal-content modal-large">
+        <div class="modal-header">
+            <h3>Sync Queue</h3>
+            <button type="button" class="modal-close" data-modal="sync-queue-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="sync-queue-content">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="force-sync-btn">🔄 Force Sync All</button>
+            <button type="button" class="btn btn-outline" data-modal="sync-queue-modal">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div id="success-modal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>✅ Operation Submitted Successfully</h3>
+        </div>
+        <div class="modal-body">
+            <div class="success-content">
+                <div class="success-icon">🎉</div>
+                <p>Your vessel operation has been submitted successfully!</p>
+                <div class="success-details" id="success-details">
+                    <!-- Details will be populated dynamically -->
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" id="new-operation-btn">Start New Operation</button>
+            <button type="button" class="btn btn-outline" id="view-operations-btn">View All Operations</button>
+        </div>
+    </div>
+</div>
+
+<!-- Notification Container -->
+<div id="notification-container" class="notification-container"></div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="loading-overlay" style="display: none;">
+    <div class="loading-spinner"></div>
+    <div class="loading-text">Processing...</div>
+</div>
+
+<!-- Styles -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vessel-wizard.css') }}">
+<style>
+/* Page-specific styles */
+.vessel-wizard-page {
+    padding: var(--spacing-lg);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.page-title-section h1 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--primary-color);
+    font-size: 2rem;
+}
+
+.page-description {
+    color: var(--text-secondary);
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.page-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.connectivity-bar {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--spacing-md);
+    border-radius: 6px;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color var(--transition-normal);
+}
+
+.connectivity-bar.offline {
+    background: var(--warning-color);
+}
+
+.connectivity-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.wizard-container {
+    margin-bottom: var(--spacing-xl);
+}
+
+.action-panels {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.action-panel {
+    background: var(--surface-color);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.action-panel h3 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: var(--spacing-sm);
+}
+
+.quick-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.action-btn {
+    background: var(--background-color);
+    border: 1px solid var(--divider-color);
+    padding: var(--spacing-md);
+    border-radius: 6px;
+    text-align: left;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-base);
+}
+
+.action-btn:hover {
+    background: var(--primary-light);
+    border-color: var(--primary-color);
+}
+
+.recent-operations {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.operation-item {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--divider-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.operation-item:last-child {
+    border-bottom: none;
+}
+
+.operation-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.operation-time {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.sync-stats {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--background-color);
+    border-radius: 6px;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    display: block;
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.sync-actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* Modal Styles */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: var(--z-modal);
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.modal.show {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-lg);
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow: hidden;
+    animation: slideIn 0.3s ease-out;
+}
+
+.modal-large {
+    max-width: 800px;
+}
+
+.modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--divider-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--background-color);
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-body {
+    padding: var(--spacing-lg);
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--divider-color);
+    background: var(--background-color);
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+.success-content {
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-md);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        gap: var(--spacing-md);
+        align-items: stretch;
+    }
+    
+    .page-actions {
+        justify-content: center;
+    }
+    
+    .action-panels {
+        grid-template-columns: 1fr;
+    }
+    
+    .modal-content {
+        width: 95%;
+        margin: var(--spacing-md);
+    }
+    
+    .sync-actions {
+        flex-direction: column;
+    }
+}
+</style>
+
+<!-- Scripts -->
+<script src="{{ url_for('static', filename='js/offline-db.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vessel-sync.js') }}"></script>
+<script src="{{ url_for('static', filename='js/vessel-wizard.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Initialize the wizard
+    const wizard = new VesselOperationsWizard('vessel-wizard-container', {
+        autoSave: true,
+        autoSaveInterval: 30000,
+        offline: true
+    });
+
+    // Initialize sync manager
+    let syncManager = null;
+    if (window.fleetApp?.offlineDB) {
+        syncManager = new VesselSyncManager(window.fleetApp.offlineDB);
+        
+        // Listen for sync events
+        syncManager.onSyncComplete((result) => {
+            updateSyncStatus();
+            if (result.success) {
+                showNotification('Data synchronized successfully', 'success');
+            } else {
+                showNotification('Synchronization failed: ' + result.error, 'error');
+            }
+        });
+    }
+
+    // Update connectivity status
+    function updateConnectivityStatus() {
+        const bar = document.getElementById('connectivity-bar');
+        const indicator = document.getElementById('connectivity-indicator');
+        const status = document.getElementById('connection-status');
+        
+        if (navigator.onLine) {
+            bar.classList.remove('offline');
+            status.textContent = 'Online';
+        } else {
+            bar.classList.add('offline');
+            status.textContent = 'Offline';
+        }
+    }
+
+    // Update sync status
+    async function updateSyncStatus() {
+        if (!syncManager) return;
+        
+        try {
+            const stats = await syncManager.getSyncStatistics();
+            
+            document.getElementById('pending-count').textContent = stats.pendingChanges;
+            document.getElementById('draft-count').textContent = stats.maritime.draft_operations;
+            document.getElementById('completed-count').textContent = stats.maritime.completed_operations;
+            
+            const syncText = document.getElementById('sync-text');
+            if (stats.syncInProgress) {
+                syncText.textContent = 'Syncing...';
+            } else if (stats.lastSyncTime) {
+                const lastSync = new Date(stats.lastSyncTime);
+                syncText.textContent = `Last sync: ${lastSync.toLocaleTimeString()}`;
+            } else {
+                syncText.textContent = 'Ready to sync';
+            }
+            
+        } catch (error) {
+            console.error('Failed to update sync status:', error);
+        }
+    }
+
+    // Load recent operations
+    async function loadRecentOperations() {
+        if (!window.fleetApp?.offlineDB) return;
+        
+        try {
+            const operations = await window.fleetApp.offlineDB.getShipOperations();
+            const recentOps = operations
+                .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
+                .slice(0, 5);
+            
+            const container = document.getElementById('recent-operations');
+            container.innerHTML = '';
+            
+            if (recentOps.length === 0) {
+                container.innerHTML = '<p class="text-secondary">No recent operations</p>';
+                return;
+            }
+            
+            recentOps.forEach(op => {
+                const item = document.createElement('div');
+                item.className = 'operation-item';
+                item.innerHTML = `
+                    <div>
+                        <div class="operation-name">${op.vessel?.name || 'Unknown Vessel'}</div>
+                        <div class="operation-time">${new Date(op.updated_at).toLocaleString()}</div>
+                    </div>
+                    <span class="status-badge status-${op.status}">${op.status}</span>
+                `;
+                container.appendChild(item);
+            });
+            
+        } catch (error) {
+            console.error('Failed to load recent operations:', error);
+        }
+    }
+
+    // Event listeners
+    document.getElementById('manual-sync-btn')?.addEventListener('click', async () => {
+        if (syncManager && navigator.onLine) {
+            try {
+                showLoadingOverlay('Synchronizing...');
+                await syncManager.triggerSync();
+                showNotification('Sync completed successfully', 'success');
+            } catch (error) {
+                showNotification('Sync failed: ' + error.message, 'error');
+            } finally {
+                hideLoadingOverlay();
+            }
+        } else {
+            showNotification('Cannot sync while offline', 'warning');
+        }
+    });
+
+    document.getElementById('save-draft-btn')?.addEventListener('click', () => {
+        if (wizard) {
+            wizard.performAutoSave();
+            showNotification('Draft saved successfully', 'success');
+        }
+    });
+
+    document.getElementById('clear-data-btn')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to clear all wizard data? This action cannot be undone.')) {
+            if (wizard) {
+                wizard.resetWizard();
+                showNotification('All data cleared', 'info');
+            }
+        }
+    });
+
+    // Modal handlers
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('modal-close') || e.target.dataset.modal) {
+            const modalId = e.target.dataset.modal || e.target.closest('.modal').id;
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('show');
+            }
+        }
+    });
+
+    // Utility functions
+    function showNotification(message, type = 'info') {
+        if (window.fleetApp) {
+            window.fleetApp.showNotification(message, type);
+        } else {
+            console.log(`${type.toUpperCase()}: ${message}`);
+        }
+    }
+
+    function showLoadingOverlay(text = 'Loading...') {
+        const overlay = document.getElementById('loading-overlay');
+        const textEl = overlay.querySelector('.loading-text');
+        if (textEl) textEl.textContent = text;
+        overlay.style.display = 'flex';
+    }
+
+    function hideLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        overlay.style.display = 'none';
+    }
+
+    // Initialize
+    updateConnectivityStatus();
+    updateSyncStatus();
+    loadRecentOperations();
+
+    // Listen for connectivity changes
+    window.addEventListener('online', updateConnectivityStatus);
+    window.addEventListener('offline', updateConnectivityStatus);
+
+    // Periodic updates
+    setInterval(updateSyncStatus, 30000); // Every 30 seconds
+    setInterval(loadRecentOperations, 60000); // Every minute
+});
+</script>
+{% endblock %}

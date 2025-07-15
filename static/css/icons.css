@@ -1,0 +1,213 @@
+/**
+ * Icon Styles for Operations Dashboard
+ * Simple icon system using Unicode characters and CSS classes
+ */
+
+/* Icon Base Styles */
+[class^="icon-"],
+[class*=" icon-"] {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-style: normal;
+    font-weight: normal;
+    display: inline-block;
+    line-height: 1;
+    text-decoration: none;
+    speak: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Navigation and UI Icons */
+.icon-ship::before { content: "🚢"; }
+.icon-anchor::before { content: "⚓"; }
+.icon-dock::before { content: "🏗️"; }
+.icon-crane::before { content: "🏗️"; }
+.icon-container::before { content: "📦"; }
+
+/* Status and Action Icons */
+.icon-plus::before { content: "+"; }
+.icon-plus-circle::before { content: "⊕"; }
+.icon-refresh::before { content: "↻"; }
+.icon-edit::before { content: "✏️"; }
+.icon-eye::before { content: "👁️"; }
+.icon-settings::before { content: "⚙️"; }
+.icon-x::before { content: "✕"; }
+.icon-check::before { content: "✓"; }
+
+/* Navigation Icons */
+.icon-activity::before { content: "📊"; }
+.icon-users::before { content: "👥"; }
+.icon-user::before { content: "👤"; }
+.icon-clock::before { content: "🕐"; }
+.icon-calendar::before { content: "📅"; }
+
+/* Alert and Status Icons */
+.icon-alert-triangle::before { content: "⚠️"; }
+.icon-alert-circle::before { content: "🔴"; }
+.icon-info::before { content: "ℹ️"; }
+.icon-warning::before { content: "⚠️"; }
+.icon-error::before { content: "❌"; }
+.icon-success::before { content: "✅"; }
+
+/* Progress and Workflow Icons */
+.icon-file-text::before { content: "📄"; }
+.icon-clipboard::before { content: "📋"; }
+.icon-box::before { content: "📦"; }
+.icon-truck::before { content = "🚛"; }
+.icon-forklift::before { content: "🏗️"; }
+
+/* Trend and Performance Icons */
+.icon-trend-up::before { content: "📈"; }
+.icon-trend-down::before { content: "📉"; }
+.icon-bar-chart::before { content: "📊"; }
+.icon-pie-chart::before { content: "🥧"; }
+
+/* Communication Icons */
+.icon-phone::before { content: "📞"; }
+.icon-mail::before { content: "✉️"; }
+.icon-message::before { content: "💬"; }
+.icon-radio::before { content: "📻"; }
+
+/* Location and Geography Icons */
+.icon-map::before { content: "🗺️"; }
+.icon-compass::before { content: "🧭"; }
+.icon-flag::before { content: "🏁"; }
+.icon-home::before { content: "🏠"; }
+
+/* Operational Icons */
+.icon-fuel::before { content: "⛽"; }
+.icon-battery::before { content: "🔋"; }
+.icon-power::before { content: "🔌"; }
+.icon-tools::before { content: "🔧"; }
+
+/* Text-based Icon Alternatives (fallback) */
+.icon-ship.text-icon::before { content: "SHIP"; font-size: 0.7em; }
+.icon-anchor.text-icon::before { content: "ANCHOR"; font-size: 0.7em; }
+.icon-dock.text-icon::before { content: "DOCK"; font-size: 0.7em; }
+.icon-users.text-icon::before { content: "TEAM"; font-size: 0.7em; }
+.icon-activity.text-icon::before { content: "OPS"; font-size: 0.7em; }
+.icon-alert-triangle.text-icon::before { content: "ALERT"; font-size: 0.7em; }
+
+/* Icon Sizes */
+.icon-xs { font-size: 0.75rem; }
+.icon-sm { font-size: 0.875rem; }
+.icon-md { font-size: 1rem; }
+.icon-lg { font-size: 1.25rem; }
+.icon-xl { font-size: 1.5rem; }
+.icon-2xl { font-size: 2rem; }
+
+/* Icon Colors */
+.icon-primary { color: var(--primary-color); }
+.icon-secondary { color: var(--text-secondary); }
+.icon-success { color: var(--success-color); }
+.icon-warning { color: var(--warning-color); }
+.icon-error { color: var(--error-color); }
+.icon-info { color: var(--info-color); }
+.icon-muted { color: var(--text-disabled); }
+
+/* Icon Animations */
+.icon-spin {
+    animation: icon-spin 1s linear infinite;
+}
+
+.icon-pulse {
+    animation: icon-pulse 2s infinite;
+}
+
+.icon-bounce {
+    animation: icon-bounce 1s infinite;
+}
+
+@keyframes icon-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes icon-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+@keyframes icon-bounce {
+    0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+    40%, 43% { transform: translateY(-5px); }
+    70% { transform: translateY(-2px); }
+    90% { transform: translateY(-1px); }
+}
+
+/* Icon Button Styles */
+.icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color var(--transition-fast);
+}
+
+.icon-button:hover {
+    background: var(--background-color);
+}
+
+.icon-button.active {
+    background: var(--primary-light);
+    color: var(--primary-color);
+}
+
+/* Responsive Icon Behavior */
+@media (max-width: 768px) {
+    /* Use text icons on smaller screens for better accessibility */
+    .icon-ship { font-size: 0.8rem; }
+    .icon-ship::before { content: "SHIP"; }
+    
+    .icon-anchor { font-size: 0.8rem; }
+    .icon-anchor::before { content: "PORT"; }
+    
+    .icon-users { font-size: 0.8rem; }
+    .icon-users::before { content: "TEAM"; }
+    
+    .icon-activity { font-size: 0.8rem; }
+    .icon-activity::before { content: "OPS"; }
+    
+    .icon-dock { font-size: 0.8rem; }
+    .icon-dock::before { content: "BERTH"; }
+    
+    .icon-alert-triangle { font-size: 0.8rem; }
+    .icon-alert-triangle::before { content: "ALERT"; }
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+    [class^="icon-"],
+    [class*=" icon-"] {
+        font-weight: bold;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .icon-spin,
+    .icon-pulse,
+    .icon-bounce {
+        animation: none;
+    }
+}
+
+/* Print Styles */
+@media print {
+    [class^="icon-"]::before,
+    [class*=" icon-"]::before {
+        content: "";
+    }
+    
+    .icon-ship::after { content: " [SHIP]"; }
+    .icon-anchor::after { content: " [PORT]"; }
+    .icon-users::after { content: " [TEAM]"; }
+    .icon-activity::after { content: " [OPS]"; }
+    .icon-dock::after { content: " [BERTH]"; }
+    .icon-alert-triangle::after { content: " [ALERT]"; }
+}

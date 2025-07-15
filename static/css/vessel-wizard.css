@@ -1,0 +1,742 @@
+/**
+ * Vessel Operations Wizard Styles
+ * Maritime-specific styling for the 4-step vessel operations wizard
+ */
+
+/* Wizard Container */
+.vessel-wizard {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: var(--surface-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+}
+
+/* Wizard Header */
+.wizard-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+    color: white;
+    padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.wizard-title {
+    margin: 0 0 var(--spacing-lg) 0;
+    font-size: var(--font-size-xxl);
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Progress Indicator */
+.progress-indicator {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: var(--spacing-md);
+    min-width: 100px;
+    transition: all var(--transition-normal);
+}
+
+.progress-step.active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.progress-step.completed {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.step-icon {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-xs);
+}
+
+.step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-xs);
+    transition: background-color var(--transition-normal);
+}
+
+.progress-step.active .step-number {
+    background: white;
+    color: var(--primary-color);
+}
+
+.progress-step.completed .step-number {
+    background: var(--success-color);
+    color: white;
+}
+
+.step-title {
+    font-size: var(--font-size-xs);
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.progress-bar {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: rgba(255, 255, 255, 0.3);
+    z-index: 1;
+    transform: translateY(-50%);
+}
+
+.progress-fill {
+    height: 100%;
+    background: white;
+    transition: width var(--transition-normal);
+    border-radius: 1px;
+}
+
+/* Wizard Content */
+.wizard-content {
+    padding: var(--spacing-xl);
+    min-height: 500px;
+}
+
+.wizard-step {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.step-header {
+    text-align: center;
+    margin-bottom: var(--spacing-xl);
+}
+
+.step-header h3 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-sm);
+    font-size: var(--font-size-xl);
+}
+
+.step-header p {
+    color: var(--text-secondary);
+    font-size: var(--font-size-lg);
+    margin: 0;
+}
+
+/* Form Styles */
+.step-form {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--spacing-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.form-control {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid var(--divider-color);
+    border-radius: 6px;
+    font-size: var(--font-size-base);
+    transition: all var(--transition-fast);
+    background: var(--surface-color);
+    color: var(--text-primary);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.1);
+}
+
+.form-control.error {
+    border-color: var(--error-color);
+    background: rgba(244, 67, 54, 0.05);
+}
+
+.field-error {
+    color: var(--error-color);
+    font-size: var(--font-size-sm);
+    margin-top: var(--spacing-xs);
+    display: none;
+}
+
+/* Cargo Configuration Styles */
+.cargo-summary {
+    background: var(--background-color);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.cargo-summary h4 {
+    margin-bottom: var(--spacing-md);
+    color: var(--primary-color);
+}
+
+.summary-cards {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.summary-card {
+    flex: 1;
+    background: white;
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-icon {
+    font-size: 2rem;
+    opacity: 0.8;
+}
+
+.card-number {
+    font-size: var(--font-size-xl);
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.card-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+/* Zone Configuration */
+.zone-configuration {
+    margin-bottom: var(--spacing-xl);
+}
+
+.zone-configuration h4 {
+    margin-bottom: var(--spacing-lg);
+    color: var(--primary-color);
+}
+
+.zone-section {
+    border: 2px solid var(--divider-color);
+    border-radius: 8px;
+    margin-bottom: var(--spacing-lg);
+    overflow: hidden;
+    transition: border-color var(--transition-normal);
+}
+
+.zone-section:hover {
+    border-color: var(--primary-light);
+}
+
+.zone-header {
+    background: var(--background-color);
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--divider-color);
+}
+
+.zone-header h5 {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.zone-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.zone-checkbox {
+    transform: scale(1.2);
+}
+
+.zone-content {
+    padding: var(--spacing-lg);
+    transition: opacity var(--transition-normal);
+}
+
+.zone-content.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    background: var(--background-color);
+}
+
+/* Team Assignment Styles */
+.team-section {
+    margin-bottom: var(--spacing-xl);
+}
+
+.team-section h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: var(--spacing-sm);
+}
+
+.stevedore-assignment {
+    background: var(--background-color);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+}
+
+.zone-teams {
+    display: grid;
+    gap: var(--spacing-lg);
+}
+
+.zone-team-card {
+    background: white;
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+    border-left: 4px solid var(--primary-color);
+}
+
+.zone-team-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+}
+
+.zone-team-header h5 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.zone-workload {
+    background: var(--primary-light);
+    color: var(--primary-dark);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 12px;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.team-assignment-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+}
+
+/* Review Step Styles */
+.review-sections {
+    margin-bottom: var(--spacing-xl);
+}
+
+.review-section {
+    background: var(--background-color);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+}
+
+.review-section h4 {
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.review-section h4::before {
+    content: "✓";
+    background: var(--success-color);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+}
+
+.review-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.review-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    border-bottom: 1px solid var(--divider-color);
+}
+
+.review-item:last-child {
+    border-bottom: none;
+}
+
+.review-label {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-right: var(--spacing-md);
+}
+
+.review-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+/* Cargo Review */
+.cargo-summary-review {
+    display: flex;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.summary-stat {
+    flex: 1;
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-number {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: var(--spacing-xs);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+}
+
+.zone-review {
+    background: white;
+    border-radius: 6px;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-left: 4px solid var(--primary-color);
+}
+
+.zone-review h5 {
+    margin: 0 0 var(--spacing-sm) 0;
+    color: var(--primary-color);
+    font-size: var(--font-size-base);
+}
+
+.zone-stats {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.zone-stat {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.zone-total {
+    margin-left: auto;
+    font-weight: 600;
+    color: var(--primary-color);
+    background: var(--primary-light);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 12px;
+    font-size: var(--font-size-sm);
+}
+
+/* Team Review */
+.team-review-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-lg);
+}
+
+.team-leader-review,
+.team-resources-review {
+    background: white;
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    box-shadow: var(--shadow-sm);
+}
+
+.team-leader-review h5,
+.team-resources-review h5 {
+    margin: 0 0 var(--spacing-md) 0;
+    color: var(--primary-color);
+    font-size: var(--font-size-lg);
+    border-bottom: 2px solid var(--primary-light);
+    padding-bottom: var(--spacing-sm);
+}
+
+/* Confirmation */
+.confirmation-section {
+    background: var(--primary-light);
+    border-radius: 8px;
+    padding: var(--spacing-lg);
+    border: 2px solid var(--primary-color);
+}
+
+.form-check {
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+}
+
+.form-check-input {
+    transform: scale(1.2);
+    margin-right: var(--spacing-md);
+}
+
+.form-check-label {
+    font-weight: 600;
+    color: var(--primary-dark);
+    cursor: pointer;
+}
+
+/* Wizard Footer */
+.wizard-footer {
+    background: var(--background-color);
+    padding: var(--spacing-lg) var(--spacing-xl);
+    border-top: 1px solid var(--divider-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.wizard-navigation {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.nav-spacer {
+    flex: 1;
+}
+
+.wizard-navigation .btn {
+    padding: var(--spacing-md) var(--spacing-lg);
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all var(--transition-fast);
+}
+
+.wizard-navigation .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Auto-save Status */
+.auto-save-status {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.save-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-xs);
+}
+
+.last-saved {
+    font-size: var(--font-size-xs);
+    opacity: 0.8;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .wizard-header {
+        padding: var(--spacing-md);
+    }
+    
+    .wizard-title {
+        font-size: var(--font-size-xl);
+    }
+    
+    .progress-indicator {
+        flex-wrap: wrap;
+        gap: var(--spacing-sm);
+    }
+    
+    .progress-step {
+        min-width: 80px;
+        padding: var(--spacing-sm);
+    }
+    
+    .step-icon {
+        font-size: 1.2rem;
+    }
+    
+    .progress-bar {
+        display: none;
+    }
+    
+    .wizard-content {
+        padding: var(--spacing-md);
+    }
+    
+    .summary-cards {
+        flex-direction: column;
+    }
+    
+    .team-assignment-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .team-review-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cargo-summary-review {
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .wizard-footer {
+        padding: var(--spacing-md);
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+    
+    .wizard-navigation {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .auto-save-status {
+        align-items: center;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .wizard-header {
+        padding: var(--spacing-sm);
+    }
+    
+    .progress-step {
+        min-width: 60px;
+        padding: var(--spacing-xs);
+    }
+    
+    .step-title {
+        font-size: 0.7rem;
+    }
+    
+    .wizard-content {
+        padding: var(--spacing-sm);
+    }
+    
+    .zone-header {
+        flex-direction: column;
+        gap: var(--spacing-sm);
+        text-align: center;
+    }
+    
+    .zone-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .review-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .review-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+}
+
+/* Print Styles */
+@media print {
+    .wizard-header {
+        background: white !important;
+        color: black !important;
+    }
+    
+    .progress-indicator,
+    .wizard-footer {
+        display: none !important;
+    }
+    
+    .wizard-content {
+        padding: 0;
+    }
+    
+    .zone-team-card,
+    .review-section,
+    .summary-card {
+        break-inside: avoid;
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+    .form-control {
+        padding: var(--spacing-lg);
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+    
+    .btn {
+        padding: var(--spacing-md) var(--spacing-lg);
+        min-height: 44px; /* Touch target size */
+    }
+    
+    .zone-checkbox,
+    .form-check-input {
+        transform: scale(1.5);
+        margin: var(--spacing-sm);
+    }
+}

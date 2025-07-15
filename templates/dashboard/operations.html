@@ -1,0 +1,473 @@
+{% extends "base.html" %}
+
+{% block title %}Multi-Ship Operations Dashboard{% endblock %}
+
+{% block content %}
+<div class="operations-dashboard">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="header-content">
+            <h1>
+                <i class="icon-ship"></i>
+                Multi-Ship Operations Dashboard
+            </h1>
+            <div class="header-actions">
+                <button class="btn btn-primary" onclick="initializeOperation()">
+                    <i class="icon-plus"></i>
+                    New Operation
+                </button>
+                <button class="btn btn-outline" onclick="refreshDashboard()">
+                    <i class="icon-refresh"></i>
+                    Refresh
+                </button>
+            </div>
+        </div>
+        
+        <!-- KPI Summary Cards -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-value" id="active-operations">{{ active_operations_count }}</div>
+                <div class="kpi-label">Active Operations</div>
+                <div class="kpi-trend positive">
+                    <i class="icon-trend-up"></i>
+                    +{{ kpi_stats.operations_trend }}%
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-value" id="berth-utilization">{{ kpi_stats.berth_utilization }}%</div>
+                <div class="kpi-label">Berth Utilization</div>
+                <div class="kpi-trend">
+                    <i class="icon-info"></i>
+                    {{ kpi_stats.berths_occupied }}/3 Occupied
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-value" id="cargo-throughput">{{ kpi_stats.cargo_throughput }}</div>
+                <div class="kpi-label">Cargo Throughput (MT/hr)</div>
+                <div class="kpi-trend positive">
+                    <i class="icon-trend-up"></i>
+                    +{{ kpi_stats.throughput_trend }}%
+                </div>
+            </div>
+            
+            <div class="kpi-card">
+                <div class="kpi-value" id="avg-turnaround">{{ kpi_stats.avg_turnaround }}h</div>
+                <div class="kpi-label">Avg Turnaround Time</div>
+                <div class="kpi-trend negative">
+                    <i class="icon-trend-down"></i>
+                    -{{ kpi_stats.turnaround_improvement }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Layout -->
+    <div class="dashboard-grid">
+        <!-- Berth Visualization Panel -->
+        <div class="berth-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="icon-dock"></i>
+                    Berth Status & Management
+                </h3>
+                <div class="panel-actions">
+                    <select class="form-control" id="zone-filter" onchange="filterByZone(this.value)">
+                        <option value="all">All Zones</option>
+                        <option value="BRV">BRV Zone</option>
+                        <option value="ZEE">ZEE Zone</option>
+                        <option value="SOU">SOU Zone</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="berth-visualization">
+                <!-- Berth 1 -->
+                <div class="berth-container" data-berth="1">
+                    <div class="berth berth-{{ berth_status.berth_1.status }}" id="berth-1">
+                        <div class="berth-header">
+                            <span class="berth-number">Berth 1</span>
+                            <span class="berth-status-indicator"></span>
+                        </div>
+                        
+                        {% if berth_status.berth_1.vessel %}
+                        <div class="vessel-info">
+                            <div class="vessel-name">{{ berth_status.berth_1.vessel.name }}</div>
+                            <div class="vessel-details">
+                                <span class="vessel-type">{{ berth_status.berth_1.vessel.vessel_type }}</span>
+                                <span class="eta">ETA: {{ berth_status.berth_1.eta }}</span>
+                            </div>
+                            <div class="operation-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ berth_status.berth_1.progress }}%"></div>
+                                </div>
+                                <span class="progress-text">{{ berth_status.berth_1.progress }}%</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="berth-empty">
+                            <i class="icon-plus-circle"></i>
+                            <span>Available</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="berth-actions">
+                            <button class="btn btn-sm btn-outline" onclick="manageBerth(1)">
+                                <i class="icon-settings"></i>
+                                Manage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Berth 2 -->
+                <div class="berth-container" data-berth="2">
+                    <div class="berth berth-{{ berth_status.berth_2.status }}" id="berth-2">
+                        <div class="berth-header">
+                            <span class="berth-number">Berth 2</span>
+                            <span class="berth-status-indicator"></span>
+                        </div>
+                        
+                        {% if berth_status.berth_2.vessel %}
+                        <div class="vessel-info">
+                            <div class="vessel-name">{{ berth_status.berth_2.vessel.name }}</div>
+                            <div class="vessel-details">
+                                <span class="vessel-type">{{ berth_status.berth_2.vessel.vessel_type }}</span>
+                                <span class="eta">ETA: {{ berth_status.berth_2.eta }}</span>
+                            </div>
+                            <div class="operation-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ berth_status.berth_2.progress }}%"></div>
+                                </div>
+                                <span class="progress-text">{{ berth_status.berth_2.progress }}%</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="berth-empty">
+                            <i class="icon-plus-circle"></i>
+                            <span>Available</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="berth-actions">
+                            <button class="btn btn-sm btn-outline" onclick="manageBerth(2)">
+                                <i class="icon-settings"></i>
+                                Manage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Berth 3 -->
+                <div class="berth-container" data-berth="3">
+                    <div class="berth berth-{{ berth_status.berth_3.status }}" id="berth-3">
+                        <div class="berth-header">
+                            <span class="berth-number">Berth 3</span>
+                            <span class="berth-status-indicator"></span>
+                        </div>
+                        
+                        {% if berth_status.berth_3.vessel %}
+                        <div class="vessel-info">
+                            <div class="vessel-name">{{ berth_status.berth_3.vessel.name }}</div>
+                            <div class="vessel-details">
+                                <span class="vessel-type">{{ berth_status.berth_3.vessel.vessel_type }}</span>
+                                <span class="eta">ETA: {{ berth_status.berth_3.eta }}</span>
+                            </div>
+                            <div class="operation-progress">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ berth_status.berth_3.progress }}%"></div>
+                                </div>
+                                <span class="progress-text">{{ berth_status.berth_3.progress }}%</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="berth-empty">
+                            <i class="icon-plus-circle"></i>
+                            <span>Available</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="berth-actions">
+                            <button class="btn btn-sm btn-outline" onclick="manageBerth(3)">
+                                <i class="icon-settings"></i>
+                                Manage
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vessel Queue -->
+            <div class="vessel-queue">
+                <h4>
+                    <i class="icon-clock"></i>
+                    Vessel Queue
+                </h4>
+                <div class="queue-list" id="vessel-queue">
+                    {% for vessel in vessel_queue %}
+                    <div class="queue-item" data-vessel-id="{{ vessel.id }}">
+                        <div class="vessel-info">
+                            <div class="vessel-name">{{ vessel.name }}</div>
+                            <div class="vessel-details">
+                                <span class="eta">ETA: {{ vessel.eta }}</span>
+                                <span class="cargo-type">{{ vessel.cargo_type }}</span>
+                            </div>
+                        </div>
+                        <div class="queue-actions">
+                            <button class="btn btn-sm btn-primary" onclick="assignToBerth('{{ vessel.id }}')">
+                                <i class="icon-dock"></i>
+                                Assign Berth
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Ship Operations Panel -->
+        <div class="operations-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="icon-activity"></i>
+                    Active Ship Operations
+                </h3>
+                <div class="panel-actions">
+                    <select class="form-control" id="status-filter" onchange="filterOperations(this.value)">
+                        <option value="all">All Operations</option>
+                        <option value="initiated">Initiated</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="step_1">Step 1: Documentation</option>
+                        <option value="step_2">Step 2: Positioning</option>
+                        <option value="step_3">Step 3: Cargo Ops</option>
+                        <option value="step_4">Step 4: Departure</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="operations-list" id="operations-list">
+                {% for operation in active_operations %}
+                <div class="operation-card" data-operation-id="{{ operation.id }}">
+                    <div class="operation-header">
+                        <div class="operation-title">
+                            <h4>{{ operation.vessel.name }}</h4>
+                            <span class="operation-id">{{ operation.operation_id }}</span>
+                        </div>
+                        <div class="operation-status">
+                            <span class="status-badge status-{{ operation.status }}">
+                                {{ operation.status.replace('_', ' ').title() }}
+                            </span>
+                            <span class="priority-badge priority-{{ operation.priority }}">
+                                {{ operation.priority.title() }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="operation-progress">
+                        <div class="progress-header">
+                            <span class="step-info">Step {{ operation.current_step }}: {{ operation.get_current_step_description() }}</span>
+                            <span class="progress-percentage">{{ operation.get_progress_percentage() }}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ operation.get_progress_percentage() }}%"></div>
+                        </div>
+                        
+                        <!-- Step Indicators -->
+                        <div class="step-indicators">
+                            <div class="step-indicator {{ 'completed' if operation.step_1_completed else 'active' if operation.current_step == 1 else 'pending' }}" 
+                                 title="Documentation">
+                                <i class="icon-file-text"></i>
+                                <span>1</span>
+                            </div>
+                            <div class="step-indicator {{ 'completed' if operation.step_2_completed else 'active' if operation.current_step == 2 else 'pending' }}"
+                                 title="Positioning">
+                                <i class="icon-anchor"></i>
+                                <span>2</span>
+                            </div>
+                            <div class="step-indicator {{ 'completed' if operation.step_3_completed else 'active' if operation.current_step == 3 else 'pending' }}"
+                                 title="Cargo Operations">
+                                <i class="icon-box"></i>
+                                <span>3</span>
+                            </div>
+                            <div class="step-indicator {{ 'completed' if operation.step_4_completed else 'active' if operation.current_step == 4 else 'pending' }}"
+                                 title="Departure">
+                                <i class="icon-ship"></i>
+                                <span>4</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="operation-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Berth:</span>
+                            <span class="detail-value">{{ operation.berth_assigned or 'Not Assigned' }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Operation Type:</span>
+                            <span class="detail-value">{{ operation.operation_type.title() }}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Zone:</span>
+                            <span class="detail-value">{{ operation.zone_assignment or 'TBD' }}</span>
+                        </div>
+                        {% if operation.stevedore_team %}
+                        <div class="detail-row">
+                            <span class="detail-label">Team:</span>
+                            <span class="detail-value">{{ operation.stevedore_team.team_name }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="operation-actions">
+                        <button class="btn btn-sm btn-primary" onclick="openOperationDetails('{{ operation.id }}')">
+                            <i class="icon-eye"></i>
+                            View Details
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="updateOperation('{{ operation.id }}')">
+                            <i class="icon-edit"></i>
+                            Update
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Team Performance Panel -->
+        <div class="performance-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="icon-users"></i>
+                    Team Performance
+                </h3>
+                <div class="panel-actions">
+                    <select class="form-control" id="shift-filter" onchange="filterByShift(this.value)">
+                        <option value="current">Current Shift</option>
+                        <option value="day">Day Shift</option>
+                        <option value="night">Night Shift</option>
+                        <option value="all">All Shifts</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="team-metrics">
+                {% for team in active_teams %}
+                <div class="team-card">
+                    <div class="team-header">
+                        <h4>{{ team.team_name }}</h4>
+                        <span class="team-status status-{{ team.status }}">{{ team.status.title() }}</span>
+                    </div>
+                    
+                    <div class="team-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">{{ team.cargo_processed_today }}</span>
+                            <span class="stat-label">MT Processed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ team.efficiency_rating }}%</span>
+                            <span class="stat-label">Efficiency</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ team.active_members_count }}</span>
+                            <span class="stat-label">Active Members</span>
+                        </div>
+                    </div>
+                    
+                    {% if team.current_operation %}
+                    <div class="team-assignment">
+                        <span class="assignment-label">Assigned to:</span>
+                        <span class="assignment-vessel">{{ team.current_operation.vessel.name }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="team-actions">
+                        <button class="btn btn-sm btn-outline" onclick="viewTeamDetails('{{ team.id }}')">
+                            <i class="icon-info"></i>
+                            Details
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Alerts & Notifications Panel -->
+        <div class="alerts-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="icon-alert-triangle"></i>
+                    Alerts & Notifications
+                </h3>
+                <div class="panel-actions">
+                    <button class="btn btn-sm btn-outline" onclick="markAllAlertsRead()">
+                        <i class="icon-check"></i>
+                        Mark All Read
+                    </button>
+                </div>
+            </div>
+            
+            <div class="alerts-list" id="alerts-list">
+                {% for alert in alerts %}
+                <div class="alert-item alert-{{ alert.severity }}" data-alert-id="{{ alert.id }}">
+                    <div class="alert-icon">
+                        <i class="icon-{{ alert.icon }}"></i>
+                    </div>
+                    <div class="alert-content">
+                        <div class="alert-title">{{ alert.title }}</div>
+                        <div class="alert-message">{{ alert.message }}</div>
+                        <div class="alert-time">{{ alert.created_at.strftime('%H:%M') }}</div>
+                    </div>
+                    <div class="alert-actions">
+                        <button class="btn btn-sm btn-outline" onclick="dismissAlert('{{ alert.id }}')">
+                            <i class="icon-x"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Operation Details Modal -->
+<div class="modal" id="operation-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Operation Details</h3>
+                <button class="modal-close" onclick="closeModal('operation-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="operation-modal-body">
+                <!-- Dynamic content loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Berth Assignment Modal -->
+<div class="modal" id="berth-assignment-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign Vessel to Berth</h3>
+                <button class="modal-close" onclick="closeModal('berth-assignment-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="berth-assignment-modal-body">
+                <!-- Dynamic content loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include operation dashboard CSS and JS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/operations-dashboard.css') }}">
+<script src="{{ url_for('static', filename='js/operations-dashboard.js') }}"></script>
+
+{% endblock %}
