@@ -72,6 +72,21 @@ class MaritimeOperation(db.Model):
     call_sign = db.Column(db.String(20))
     flag_state = db.Column(db.String(50))
     
+    # Enhanced maritime operation fields (from forms)
+    cargo_type = db.Column(db.String(100))
+    cargo_weight = db.Column(db.Float)
+    cargo_description = db.Column(db.Text)
+    cargo_origin = db.Column(db.String(100))
+    cargo_destination = db.Column(db.String(100))
+    stowage_location = db.Column(db.String(100))
+    stowage_notes = db.Column(db.Text)
+    safety_requirements = db.Column(db.Text)
+    loading_sequence = db.Column(db.Integer)
+    special_instructions = db.Column(db.Text)
+    priority_level = db.Column(db.String(20), default='normal')
+    assigned_crew = db.Column(db.String(200))
+    eta = db.Column(db.DateTime)
+    
     # Timestamps (backward compatible)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -220,6 +235,21 @@ class MaritimeOperation(db.Model):
             'team': self.get_team_summary(),
             'cargo': self.get_cargo_breakdown(),
             'targets': self.get_targets_summary(),
+            # Enhanced fields
+            'cargo_type': self.cargo_type,
+            'cargo_weight': self.cargo_weight,
+            'cargo_description': self.cargo_description,
+            'cargo_origin': self.cargo_origin,
+            'cargo_destination': self.cargo_destination,
+            'stowage_location': self.stowage_location,
+            'stowage_notes': self.stowage_notes,
+            'safety_requirements': self.safety_requirements,
+            'loading_sequence': self.loading_sequence,
+            'special_instructions': self.special_instructions,
+            'priority_level': self.priority_level,
+            'assigned_crew': self.assigned_crew,
+            'eta': self.eta.isoformat() if self.eta else None,
+            'estimated_completion': self.estimated_completion,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }

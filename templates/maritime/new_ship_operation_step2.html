@@ -3,16 +3,111 @@
 {% block content %}
 <div class="container">
     <h1 class="title">New Ship Operation - Step 2: Cargo Information</h1>
-    <form method="POST">
-        <div class="field">
-            <label class="label">Cargo Description</label>
-            <div class="control">
-                <textarea class="textarea" name="cargo_description" placeholder="Enter cargo details..."></textarea>
+    
+    <!-- Progress indicator -->
+    <div class="field">
+        <div class="control">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span class="tag is-primary is-medium">Step 2 of 4</span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <progress class="progress is-primary" value="50" max="100">50%</progress>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="columns">
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.cargo_type.label(class="label") }}
+                    <div class="control">
+                        {{ form.cargo_type(class="input" + (" is-danger" if form.cargo_type.errors else "")) }}
+                    </div>
+                    {% if form.cargo_type.errors %}
+                        <p class="help is-danger">{{ form.cargo_type.errors[0] }}</p>
+                    {% endif %}
+                    <p class="help">Type of cargo being handled (e.g., Containers, Bulk, Liquid)</p>
+                </div>
+            </div>
+            
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.cargo_weight.label(class="label") }}
+                    <div class="control">
+                        {{ form.cargo_weight(class="input" + (" is-danger" if form.cargo_weight.errors else ""), placeholder="0.0") }}
+                    </div>
+                    {% if form.cargo_weight.errors %}
+                        <p class="help is-danger">{{ form.cargo_weight.errors[0] }}</p>
+                    {% endif %}
+                    <p class="help">Total weight in tons</p>
+                </div>
+            </div>
+        </div>
+
         <div class="field">
+            {{ form.cargo_description.label(class="label") }}
             <div class="control">
-                <button class="button is-primary">Next</button>
+                {{ form.cargo_description(class="textarea" + (" is-danger" if form.cargo_description.errors else ""), placeholder="Enter detailed cargo description, special handling requirements, etc.", rows="4") }}
+            </div>
+            {% if form.cargo_description.errors %}
+                <p class="help is-danger">{{ form.cargo_description.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="columns">
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.cargo_origin.label(class="label") }}
+                    <div class="control">
+                        {{ form.cargo_origin(class="input" + (" is-danger" if form.cargo_origin.errors else ""), placeholder="Port of origin") }}
+                    </div>
+                    {% if form.cargo_origin.errors %}
+                        <p class="help is-danger">{{ form.cargo_origin.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.cargo_destination.label(class="label") }}
+                    <div class="control">
+                        {{ form.cargo_destination(class="input" + (" is-danger" if form.cargo_destination.errors else ""), placeholder="Destination port") }}
+                    </div>
+                    {% if form.cargo_destination.errors %}
+                        <p class="help is-danger">{{ form.cargo_destination.errors[0] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="field is-grouped">
+            <div class="control">
+                <button type="submit" class="button is-primary">
+                    <span class="icon">
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <span>Next: Stowage Plan</span>
+                </button>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('maritime.new_ship_operation_step1') }}" class="button">
+                    <span class="icon">
+                        <i class="fas fa-arrow-left"></i>
+                    </span>
+                    <span>Back</span>
+                </a>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('dashboard.operations') }}" class="button">Cancel</a>
             </div>
         </div>
     </form>

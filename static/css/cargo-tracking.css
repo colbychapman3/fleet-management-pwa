@@ -1,0 +1,641 @@
+/* Cargo Tracking UI Styles */
+
+.cargo-tracking-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Header Section */
+.cargo-tracking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+    border-radius: 10px;
+    color: white;
+}
+
+.cargo-tracking-header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+.cargo-tracking-header .status-badge {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.cargo-tracking-header .status-badge.in-progress {
+    background: #f39c12;
+}
+
+.cargo-tracking-header .status-badge.completed {
+    background: #27ae60;
+}
+
+/* Progress Overview */
+.progress-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.progress-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+    transition: all 0.3s ease;
+}
+
+.progress-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+.progress-card h3 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+    font-weight: 600;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #ecf0f1;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3498db, #2ecc71);
+    transition: width 0.5s ease;
+    border-radius: 4px;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.progress-value {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+/* Zone Operations */
+.zone-operations {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.zone-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+}
+
+.zone-card.brv {
+    border-left: 4px solid #e74c3c;
+}
+
+.zone-card.zee {
+    border-left: 4px solid #f39c12;
+}
+
+.zone-card.sou {
+    border-left: 4px solid #9b59b6;
+}
+
+.zone-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.zone-name {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.zone-capacity {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.zone-progress {
+    margin-bottom: 15px;
+}
+
+.zone-stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.zone-stat {
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.zone-stat-value {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.zone-stat-label {
+    font-size: 0.8em;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Equipment Status */
+.equipment-status {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+    margin-bottom: 30px;
+}
+
+.equipment-status h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.equipment-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.equipment-item {
+    padding: 15px;
+    border: 1px solid #ecf0f1;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.equipment-item h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.equipment-metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.equipment-metric {
+    text-align: center;
+}
+
+.equipment-metric-value {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.equipment-metric-label {
+    font-size: 0.8em;
+    color: #7f8c8d;
+}
+
+.equipment-status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.equipment-status-indicator.active {
+    background: #27ae60;
+}
+
+.equipment-status-indicator.inactive {
+    background: #e74c3c;
+}
+
+/* Discharge Rate Analytics */
+.discharge-analytics {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+    margin-bottom: 30px;
+}
+
+.discharge-analytics h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.discharge-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.discharge-metric {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.discharge-metric-value {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.discharge-metric-label {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    margin-bottom: 5px;
+}
+
+.discharge-metric-unit {
+    font-size: 0.8em;
+    color: #95a5a6;
+}
+
+.rate-efficiency {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.rate-efficiency.high {
+    color: #27ae60;
+}
+
+.rate-efficiency.medium {
+    color: #f39c12;
+}
+
+.rate-efficiency.low {
+    color: #e74c3c;
+}
+
+/* Cargo Breakdown */
+.cargo-breakdown {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+    margin-bottom: 30px;
+}
+
+.cargo-breakdown h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.cargo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.cargo-item {
+    padding: 15px;
+    border: 1px solid #ecf0f1;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.cargo-item h4 {
+    margin: 0 0 10px 0;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.cargo-count {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #3498db;
+}
+
+.cargo-type {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Real-time Updates */
+.real-time-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    background: #27ae60;
+    color: white;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.real-time-indicator .pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: white;
+    margin-right: 5px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+/* Completion Forecast */
+.completion-forecast {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+    margin-bottom: 30px;
+}
+
+.completion-forecast h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.forecast-timeline {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.forecast-current {
+    padding: 10px 15px;
+    background: #3498db;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.forecast-arrow {
+    margin: 0 15px;
+    font-size: 1.2em;
+    color: #7f8c8d;
+}
+
+.forecast-completion {
+    padding: 10px 15px;
+    background: #27ae60;
+    color: white;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.forecast-confidence {
+    text-align: center;
+    margin-top: 15px;
+}
+
+.forecast-confidence-bar {
+    width: 100%;
+    height: 6px;
+    background: #ecf0f1;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.forecast-confidence-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #e74c3c, #f39c12, #27ae60);
+    transition: width 0.5s ease;
+    border-radius: 3px;
+}
+
+.forecast-confidence-label {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+/* Recommendations */
+.recommendations {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ecf0f1;
+    margin-bottom: 30px;
+}
+
+.recommendations h2 {
+    margin: 0 0 20px 0;
+    color: #2c3e50;
+    font-size: 1.5em;
+    font-weight: 600;
+}
+
+.recommendation-item {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border-left: 4px solid #3498db;
+    border-radius: 4px;
+}
+
+.recommendation-item.warning {
+    border-left-color: #f39c12;
+}
+
+.recommendation-item.critical {
+    border-left-color: #e74c3c;
+}
+
+.recommendation-item.success {
+    border-left-color: #27ae60;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.action-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.action-btn.primary {
+    background: #3498db;
+    color: white;
+}
+
+.action-btn.primary:hover {
+    background: #2980b9;
+}
+
+.action-btn.secondary {
+    background: #95a5a6;
+    color: white;
+}
+
+.action-btn.secondary:hover {
+    background: #7f8c8d;
+}
+
+.action-btn.success {
+    background: #27ae60;
+    color: white;
+}
+
+.action-btn.success:hover {
+    background: #219a52;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .cargo-tracking-container {
+        padding: 10px;
+    }
+    
+    .progress-overview {
+        grid-template-columns: 1fr;
+    }
+    
+    .zone-operations {
+        grid-template-columns: 1fr;
+    }
+    
+    .equipment-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .discharge-metrics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .cargo-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cargo-tracking-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .forecast-timeline {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #3498db;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Error States */
+.error {
+    border: 1px solid #e74c3c;
+    background: #fdf2f2;
+    color: #c0392b;
+}
+
+.error-message {
+    padding: 10px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+/* Success States */
+.success {
+    border: 1px solid #27ae60;
+    background: #f2f8f2;
+    color: #1e8449;
+}
+
+.success-message {
+    padding: 10px;
+    background: #27ae60;
+    color: white;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}

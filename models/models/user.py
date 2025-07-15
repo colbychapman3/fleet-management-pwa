@@ -31,6 +31,19 @@ class User(UserMixin, db.Model):
     phone = db.Column(db.String(20))
     vessel_id = db.Column(db.Integer, db.ForeignKey('vessels.id'), nullable=True)
     
+    # Stevedore-specific fields
+    employee_id = db.Column(db.String(20), unique=True)
+    specialization = db.Column(db.String(50))  # 'auto_ops', 'heavy_ops', 'general', 'crane_operator', etc.
+    experience_years = db.Column(db.Integer, default=0)
+    current_shift = db.Column(db.String(20))  # 'day', 'night', 'swing'
+    is_team_lead = db.Column(db.Boolean, default=False)
+    safety_rating = db.Column(db.Float, default=100.0)  # Safety score out of 100
+    
+    # Performance metrics
+    operations_completed = db.Column(db.Integer, default=0)
+    average_efficiency = db.Column(db.Float, default=0.0)
+    safety_incidents = db.Column(db.Integer, default=0)
+    
     # Relationships
     vessel = db.relationship('Vessel', backref='crew_members', lazy=True)
     tasks_assigned = db.relationship('Task', foreign_keys='Task.assigned_to_id', 

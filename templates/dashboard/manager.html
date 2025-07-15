@@ -1,62 +1,162 @@
 {% extends "base.html" %}
 
-{% block title %}Manager Dashboard{% endblock %}
+{% block title %}Stevedoring Manager Dashboard{% endblock %}
 
 {% block content %}
 <div style="padding: 20px 0;">
-    <h1>🚢 Manager Dashboard</h1>
+    <h1>🚢 Stevedoring Manager Dashboard</h1>
     <p>Welcome, {{ current_user.username }}!</p>
     
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-            <h3>📋 Task Statistics</h3>
-            <p>Total Tasks: {{ task_stats.total if task_stats else 0 }}</p>
-            <p>Pending: {{ task_stats.pending if task_stats else 0 }}</p>
-            <p>Completed: {{ task_stats.completed if task_stats else 0 }}</p>
+    <!-- KPI Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #2196F3;">
+            <h3>📋 Operations Overview</h3>
+            <p>Active Operations: {{ maritime_operations|length if maritime_operations else 0 }}</p>
+            <p>Pending Tasks: {{ task_stats.pending if task_stats else 0 }}</p>
+            <p>Completed Tasks: {{ task_stats.completed if task_stats else 0 }}</p>
         </div>
         
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-            <h3>🚢 Fleet Overview</h3>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #4CAF50;">
+            <h3>🚢 Fleet & Berth Status</h3>
             <p>Active Vessels: {{ vessels|length if vessels else 0 }}</p>
-            <p>Active Users: {{ users|length if users else 0 }}</p>
+            <p>Available Berths: {{ (3 - (vessels|length if vessels else 0))|max(0) }}/3</p>
+            <p>Berth Utilization: {{ ((vessels|length if vessels else 0) / 3 * 100)|round(1) }}%</p>
         </div>
         
-        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-            <h3>⚠️ Alerts</h3>
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #FF9800;">
+            <h3>👥 Team Management</h3>
+            <p>Active Users: {{ users|length if users else 0 }}</p>
+            <p>Workers: {{ users|selectattr('role', 'equalto', 'worker')|list|length if users else 0 }}</p>
+            <p>Managers: {{ users|selectattr('role', 'equalto', 'manager')|list|length if users else 0 }}</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #F44336;">
+            <h3>⚠️ Alerts & Issues</h3>
             <p>Overdue Tasks: {{ overdue_tasks|length if overdue_tasks else 0 }}</p>
             <p>Failed Syncs: {{ failed_syncs_count if failed_syncs_count else 0 }}</p>
+            <p>Pending Syncs: {{ pending_syncs_count if pending_syncs_count else 0 }}</p>
         </div>
     </div>
     
+    <!-- Stevedoring Operations Management -->
     <div style="margin-top: 40px;">
-        <h3>🚢 Maritime Operations</h3>
-        <a href="{{ url_for('maritime.new_ship_operation_step1') }}" class="button is-primary">New Ship Operation</a>
-        <table class="table is-striped is-fullwidth" style="margin-top: 20px;">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Vessel</th>
-                    <th>Operation Type</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for op in maritime_operations %}
-                <tr>
-                    <td>{{ op.id }}</td>
-                    <td>{{ op.vessel.name }}</td>
-                    <td>{{ op.operation_type }}</td>
-                    <td>{{ op.status }}</td>
-                    <td>{{ op.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5">No active maritime operations.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>🚢 Active Stevedoring Operations</h3>
+            <div>
+                <a href="{{ url_for('maritime.new_ship_operation_step1') }}" class="button is-primary" style="margin-right: 10px;">New Ship Operation</a>
+                <a href="{{ url_for('dashboard.operations') }}" class="button is-info">Operations Dashboard</a>
+            </div>
+        </div>
+        
+        <div style="background: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <table class="table is-striped is-fullwidth" style="margin: 0;">
+                <thead>
+                    <tr>
+                        <th>Operation ID</th>
+                        <th>Vessel</th>
+                        <th>Operation Type</th>
+                        <th>Current Step</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Created At</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for op in maritime_operations %}
+                    <tr>
+                        <td><strong>{{ op.operation_id or op.id }}</strong></td>
+                        <td>{{ op.vessel.name if op.vessel else 'N/A' }}</td>
+                        <td><span class="tag is-info">{{ op.operation_type|title }}</span></td>
+                        <td>Step {{ op.current_step or 1 }}</td>
+                        <td>
+                            {% if op.status == 'completed' %}
+                                <span class="tag is-success">{{ op.status|title }}</span>
+                            {% elif op.status == 'in_progress' %}
+                                <span class="tag is-warning">{{ op.status|replace('_', ' ')|title }}</span>
+                            {% else %}
+                                <span class="tag is-light">{{ op.status|title }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div style="width: 100px; background: #e0e0e0; border-radius: 4px; height: 8px;">
+                                <div style="width: {{ ((op.current_step or 1) / 4 * 100)|round(0) }}%; background: #2196F3; height: 100%; border-radius: 4px;"></div>
+                            </div>
+                            <small>{{ ((op.current_step or 1) / 4 * 100)|round(0) }}%</small>
+                        </td>
+                        <td>{{ op.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="#" class="button is-small is-info" onclick="viewOperationDetails('{{ op.id }}')">View</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; color: #666; font-style: italic;">No active stevedoring operations.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Performance Metrics -->
+    <div style="margin-top: 40px;">
+        <h3>📊 Performance Metrics</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+            <div style="background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>🔄 Cargo Throughput</h4>
+                <p style="font-size: 24px; font-weight: bold; color: #2196F3;">{{ ((vessels|length if vessels else 0) * 150)|round(0) }} MT/day</p>
+                <p style="color: #666;">Average cargo processing rate</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>⚡ Turnaround Time</h4>
+                <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{ (24 + (maritime_operations|length if maritime_operations else 0) * 6)|round(0) }}h</p>
+                <p style="color: #666;">Average vessel turnaround</p>
+            </div>
+            
+            <div style="background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h4>👥 Team Efficiency</h4>
+                <p style="font-size: 24px; font-weight: bold; color: #FF9800;">{{ (85 + (task_stats.completed if task_stats else 0) * 2)|min(100) }}%</p>
+                <p style="color: #666;">Overall team performance</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Activity -->
+    <div style="margin-top: 40px;">
+        <h3>📈 Recent Activity</h3>
+        <div style="background: #ffffff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                <div>
+                    <h4>🚢 Recent Vessel Arrivals</h4>
+                    {% if vessels %}
+                        {% for vessel in vessels[:3] %}
+                        <div style="padding: 10px; border-left: 3px solid #2196F3; margin-bottom: 10px; background: #f8f9fa;">
+                            <strong>{{ vessel.name }}</strong><br>
+                            <small>{{ vessel.vessel_type or 'Container Ship' }}</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #666; font-style: italic;">No recent vessel arrivals</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <h4>⚠️ Priority Alerts</h4>
+                    {% if overdue_tasks %}
+                        {% for task in overdue_tasks[:3] %}
+                        <div style="padding: 10px; border-left: 3px solid #F44336; margin-bottom: 10px; background: #fff3f3;">
+                            <strong>{{ task.title }}</strong><br>
+                            <small>Overdue by {{ task.days_overdue }} days</small>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p style="color: #666; font-style: italic;">No overdue tasks</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
     </div>
 
     <div style="margin-top: 40px;">

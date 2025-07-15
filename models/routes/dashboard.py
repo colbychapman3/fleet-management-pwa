@@ -6,6 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import structlog
+from random import randint
 
 def get_app_db():
     import app
@@ -57,6 +58,20 @@ def manager():
         # Get maritime operations
         maritime_operations = MaritimeOperation.query.order_by(MaritimeOperation.created_at.desc()).all()
         
+        # Calculate stevedoring-specific metrics
+        today = datetime.utcnow().date()
+        completed_tasks_today = Task.query.filter(
+            Task.status == 'completed',
+            Task.completion_date >= today
+        ).count()
+        
+        # Mock berth utilization data
+        berth_utilization = {
+            'berth_1': {'status': 'occupied', 'vessel': vessels[0] if vessels else None, 'eta': '14:30', 'progress': 65},
+            'berth_2': {'status': 'available', 'vessel': None, 'eta': None, 'progress': 0},
+            'berth_3': {'status': 'occupied', 'vessel': vessels[1] if len(vessels) > 1 else None, 'eta': '16:00', 'progress': 30}
+        }
+        
         return render_template('dashboard/manager.html',
             task_stats=task_stats,
             overdue_tasks=overdue_tasks,
@@ -65,7 +80,10 @@ def manager():
             users=users,
             pending_syncs_count=len(pending_syncs),
             failed_syncs_count=len(failed_syncs),
-            maritime_operations=maritime_operations
+            maritime_operations=maritime_operations,
+            today=today,
+            completed_tasks_today=completed_tasks_today,
+            berth_utilization=berth_utilization
         )
         
     except Exception as e:
@@ -94,6 +112,10 @@ def worker():
         # Get sync status
         user_sync_stats = SyncLog.get_sync_statistics(current_user.id)
         
+        # Get current time for shift calculation
+        now = datetime.utcnow()
+        today = now.date()
+        
         return render_template('dashboard/worker.html',
             my_tasks=my_tasks,
             pending_tasks=pending_tasks,
@@ -102,7 +124,9 @@ def worker():
             overdue_tasks=overdue_tasks,
             vessel=vessel,
             vessel_tasks=vessel_tasks,
-            sync_stats=user_sync_stats
+            sync_stats=user_sync_stats,
+            now=now,
+            today=today
         )
         
     except Exception as e:
@@ -348,4 +372,101 @@ def reports():
     except Exception as e:
         logger.error(f"Reports page error: {e}")
         flash('An error occurred loading reports', 'error')
+        return render_template('dashboard/error.html'), 500
+
+@dashboard_bp.route('/operations')
+@login_required
+def operations():
+    """Stevedoring operations dashboard"""
+    try:
+        # Get active maritime operations
+        active_operations = MaritimeOperation.query.filter(
+            MaritimeOperation.status.in_(['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4'])
+        ).order_by(MaritimeOperation.created_at.desc()).all()
+        
+        # Get vessel queue (vessels not currently assigned to berths)
+        vessel_queue = Vessel.query.filter(
+            Vessel.berth_number.is_(None)
+        ).order_by(Vessel.created_at.desc()).all()
+        
+        # Mock berth status data
+        berth_status = {
+            'berth_1': {
+                'status': 'occupied',
+                'vessel': Vessel.query.first(),
+                'eta': '14:30',
+                'progress': 65
+            },
+            'berth_2': {
+                'status': 'available',
+                'vessel': None,
+                'eta': None,
+                'progress': 0
+            },
+            'berth_3': {
+                'status': 'maintenance',
+                'vessel': None,
+                'eta': None,
+                'progress': 0
+            }
+        }
+        
+        # Mock KPI statistics
+        kpi_stats = {
+            'operations_trend': randint(5, 15),
+            'berth_utilization': 67,
+            'berths_occupied': 1,
+            'cargo_throughput': randint(180, 250),
+            'throughput_trend': randint(3, 12),
+            'avg_turnaround': randint(18, 28),
+            'turnaround_improvement': randint(5, 15)
+        }
+        
+        # Mock active teams data
+        active_teams = []
+        for i in range(1, 4):
+            team = {
+                'id': i,
+                'team_name': f'Team Alpha-{i}',
+                'status': 'active',
+                'cargo_processed_today': randint(50, 150),
+                'efficiency_rating': randint(80, 95),
+                'active_members_count': randint(8, 12),
+                'current_operation': active_operations[0] if active_operations else None
+            }
+            active_teams.append(team)
+        
+        # Mock alerts data
+        alerts = [
+            {
+                'id': 1,
+                'severity': 'warning',
+                'icon': 'alert-triangle',
+                'title': 'Berth 3 Maintenance',
+                'message': 'Scheduled maintenance in progress',
+                'created_at': datetime.utcnow()
+            },
+            {
+                'id': 2,
+                'severity': 'info',
+                'icon': 'ship',
+                'title': 'Vessel Arrival',
+                'message': 'MV Atlantic Star approaching berth 1',
+                'created_at': datetime.utcnow()
+            }
+        ]
+        
+        return render_template('dashboard/operations.html',
+            active_operations=active_operations,
+            active_operations_count=len(active_operations),
+            vessel_queue=vessel_queue,
+            berth_status=berth_status,
+            kpi_stats=kpi_stats,
+            active_teams=active_teams,
+            alerts=alerts
+        )
+        
+    except Exception as e:
+        logger.error(f"Operations dashboard error: {e}")
+        flash('An error occurred loading operations dashboard', 'error')
         return render_template('dashboard/error.html'), 500

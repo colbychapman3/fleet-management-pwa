@@ -3,33 +3,64 @@
 {% block content %}
 <div class="container">
     <h1 class="title">New Ship Operation - Step 1: Operation Details</h1>
+    
+    <!-- Progress indicator -->
+    <div class="field">
+        <div class="control">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span class="tag is-primary is-medium">Step 1 of 4</span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <progress class="progress is-primary" value="25" max="100">25%</progress>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <form method="POST">
+        {{ form.hidden_tag() }}
+        
         <div class="field">
-            <label class="label">Vessel</label>
+            {{ form.vessel_id.label(class="label") }}
             <div class="control">
-                <div class="select">
-                    <select name="vessel_id">
-                        {% for vessel in vessels %}
-                        <option value="{{ vessel.id }}">{{ vessel.name }}</option>
-                        {% endfor %}
-                    </select>
+                <div class="select{% if form.vessel_id.errors %} is-danger{% endif %}">
+                    {{ form.vessel_id(class="select") }}
                 </div>
             </div>
+            {% if form.vessel_id.errors %}
+                <p class="help is-danger">{{ form.vessel_id.errors[0] }}</p>
+            {% endif %}
         </div>
+
         <div class="field">
-            <label class="label">Operation Type</label>
+            {{ form.operation_type.label(class="label") }}
             <div class="control">
-                <div class="select">
-                    <select name="operation_type">
-                        <option value="loading">Loading</option>
-                        <option value="discharging">Discharging</option>
-                    </select>
+                <div class="select{% if form.operation_type.errors %} is-danger{% endif %}">
+                    {{ form.operation_type(class="select") }}
                 </div>
             </div>
+            {% if form.operation_type.errors %}
+                <p class="help is-danger">{{ form.operation_type.errors[0] }}</p>
+            {% endif %}
+            <p class="help">Select the type of operation to be performed on this vessel.</p>
         </div>
-        <div class="field">
+
+        <div class="field is-grouped">
             <div class="control">
-                <button class="button is-primary">Next</button>
+                <button type="submit" class="button is-primary">
+                    <span class="icon">
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <span>Next: Cargo Information</span>
+                </button>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('dashboard.operations') }}" class="button">Cancel</a>
             </div>
         </div>
     </form>

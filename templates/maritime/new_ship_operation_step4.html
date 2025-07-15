@@ -3,18 +3,126 @@
 {% block content %}
 <div class="container">
     <h1 class="title">New Ship Operation - Step 4: Confirmation</h1>
-    <p>Please review the details below and confirm to start the operation.</p>
+    
+    <!-- Progress indicator -->
+    <div class="field">
+        <div class="control">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span class="tag is-primary is-medium">Step 4 of 4</span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <progress class="progress is-primary" value="100" max="100">100%</progress>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <div class="notification is-info is-light">
+        <p><strong>Review Operation Details:</strong> Please verify all information below before confirming the operation.</p>
+    </div>
+
+    <!-- Operation Summary -->
     <div class="box">
-        <p><strong>Vessel:</strong> {{ operation.vessel.name }}</p>
-        <p><strong>Operation Type:</strong> {{ operation.operation_type }}</p>
-        {# You would typically show more details here from the previous steps #}
+        <h2 class="subtitle">Operation Summary</h2>
+        <div class="columns">
+            <div class="column is-half">
+                <p><strong>Vessel:</strong> {{ session_data.vessel_name if session_data.vessel_name else 'Not specified' }}</p>
+                <p><strong>Operation Type:</strong> {{ session_data.operation_type if session_data.operation_type else 'Not specified' }}</p>
+                <p><strong>Cargo Type:</strong> {{ session_data.cargo_type if session_data.cargo_type else 'Not specified' }}</p>
+                <p><strong>Cargo Weight:</strong> {{ session_data.cargo_weight if session_data.cargo_weight else 'Not specified' }} tons</p>
+            </div>
+            <div class="column is-half">
+                <p><strong>Origin:</strong> {{ session_data.cargo_origin if session_data.cargo_origin else 'Not specified' }}</p>
+                <p><strong>Destination:</strong> {{ session_data.cargo_destination if session_data.cargo_destination else 'Not specified' }}</p>
+                <p><strong>Stowage Location:</strong> {{ session_data.stowage_location if session_data.stowage_location else 'Not specified' }}</p>
+                <p><strong>Loading Sequence:</strong> {{ session_data.loading_sequence if session_data.loading_sequence else 'Not specified' }}</p>
+            </div>
+        </div>
     </div>
 
     <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="columns">
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.estimated_completion.label(class="label") }}
+                    <div class="control">
+                        {{ form.estimated_completion(class="input" + (" is-danger" if form.estimated_completion.errors else ""), type="datetime-local") }}
+                    </div>
+                    {% if form.estimated_completion.errors %}
+                        <p class="help is-danger">{{ form.estimated_completion.errors[0] }}</p>
+                    {% endif %}
+                    <p class="help">When do you expect this operation to be completed?</p>
+                </div>
+            </div>
+            
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.priority_level.label(class="label") }}
+                    <div class="control">
+                        <div class="select{% if form.priority_level.errors %} is-danger{% endif %}">
+                            {{ form.priority_level(class="select") }}
+                        </div>
+                    </div>
+                    {% if form.priority_level.errors %}
+                        <p class="help is-danger">{{ form.priority_level.errors[0] }}</p>
+                    {% endif %}
+                    <p class="help">Priority level for this operation</p>
+                </div>
+            </div>
+        </div>
+
         <div class="field">
+            {{ form.assigned_crew.label(class="label") }}
             <div class="control">
-                <button class="button is-primary">Confirm and Start Operation</button>
+                {{ form.assigned_crew(class="input" + (" is-danger" if form.assigned_crew.errors else ""), placeholder="Enter crew members assigned to this operation") }}
+            </div>
+            {% if form.assigned_crew.errors %}
+                <p class="help is-danger">{{ form.assigned_crew.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            {{ form.special_instructions.label(class="label") }}
+            <div class="control">
+                {{ form.special_instructions(class="textarea" + (" is-danger" if form.special_instructions.errors else ""), placeholder="Any special instructions, notes, or requirements for this operation...", rows="4") }}
+            </div>
+            {% if form.special_instructions.errors %}
+                <p class="help is-danger">{{ form.special_instructions.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="notification is-warning is-light">
+            <div class="content">
+                <p><strong>Important:</strong> By confirming this operation, you are creating a new maritime operation record that will be tracked in the system. Ensure all details are accurate before proceeding.</p>
+            </div>
+        </div>
+
+        <div class="field is-grouped">
+            <div class="control">
+                <button type="submit" class="button is-primary is-large">
+                    <span class="icon">
+                        <i class="fas fa-check"></i>
+                    </span>
+                    <span>Confirm and Start Operation</span>
+                </button>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('maritime.new_ship_operation_step3') }}" class="button">
+                    <span class="icon">
+                        <i class="fas fa-arrow-left"></i>
+                    </span>
+                    <span>Back</span>
+                </a>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('dashboard.operations') }}" class="button">Cancel</a>
             </div>
         </div>
     </form>

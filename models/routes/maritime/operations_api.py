@@ -1,525 +1,564 @@
 """
-Maritime Operations API routes
-Real-time operations management endpoints
+Maritime Operations API for real-time cargo tracking
 """
 
-from flask import Blueprint, request, jsonify, current_app
-from flask_login import login_required, current_user
+from flask import Blueprint, request, jsonify
+from app import db
+from models.maritime.maritime_operation import MaritimeOperation
+from models.maritime.validation import MaritimeValidator
 from datetime import datetime, timedelta
-import structlog
+import json
+from typing import Dict, Any, List
 
-def get_app_db():
-    import app
-    return app.db
+operations_api = Blueprint('operations_api', __name__)
 
-from models.maritime.ship_operation import ShipOperation
-from models.maritime.stevedore_team import StevedoreTeam
-from models.maritime.cargo_discharge import CargoDischarge
-from models.models.vessel import Vessel
-
-logger = structlog.get_logger()
-
-operations_api_bp = Blueprint('operations_api', __name__, url_prefix='/api/maritime')
-
-@operations_api_bp.route('/operations/active', methods=['GET'])
-@login_required
-def get_active_operations():
-    """Get all active ship operations"""
+@operations_api.route('/api/operations/cargo/progress/<int:operation_id>', methods=['GET'])
+def get_cargo_progress(operation_id: int):
+    """Get real-time cargo progress for an operation"""
     try:
-        operations = ShipOperation.get_active_operations()
-        return jsonify([op.to_dict() for op in operations])
-    except Exception as e:
-        logger.error(f"Error fetching active operations: {e}")
-        return jsonify({'error': 'Failed to fetch operations'}), 500
-
-@operations_api_bp.route('/operations/<int:operation_id>', methods=['GET'])
-@login_required
-def get_operation_details(operation_id):
-    """Get detailed information about a specific operation"""
-    try:
-        operation = ShipOperation.query.get_or_404(operation_id)
-        return jsonify(operation.to_dict())
-    except Exception as e:
-        logger.error(f"Error fetching operation {operation_id}: {e}")
-        return jsonify({'error': 'Failed to fetch operation details'}), 500
-
-@operations_api_bp.route('/operations/<int:operation_id>/update', methods=['POST'])
-@login_required
-def update_operation(operation_id):
-    """Update operation progress and status"""
-    if not current_user.is_manager():
-        return jsonify({'error': 'Access denied'}), 403
-    
-    try:
-        db = get_app_db()
-        operation = ShipOperation.query.get_or_404(operation_id)
-        data = request.get_json()
+        operation = MaritimeOperation.query.get_or_404(operation_id)
         
-        # Update operation based on current step
-        current_step = data.get('current_step', operation.current_step)
-        
-        if current_step == 1:
-            operation.complete_step_1(**data.get('step_1_data', {}))
-        elif current_step == 2:
-            operation.complete_step_2(**data.get('step_2_data', {}))
-        elif current_step == 3:
-            operation.complete_step_3(**data.get('step_3_data', {}))
-        elif current_step == 4:
-            operation.complete_step_4(**data.get('step_4_data', {}))
-        
-        # Update general operation data
-        if 'priority' in data:
-            operation.priority = data['priority']
-        if 'status' in data:
-            operation.status = data['status']
-        
-        db.session.commit()
-        
-        # Broadcast update via WebSocket (if implemented)
-        # broadcast_operation_update(operation)
-        
-        return jsonify({
-            'success': True,
-            'operation': operation.to_dict()
-        })
-        
-    except Exception as e:
-        logger.error(f"Error updating operation {operation_id}: {e}")
-        db.session.rollback()
-        return jsonify({'error': 'Failed to update operation'}), 500
-
-@operations_api_bp.route('/berths/status', methods=['GET'])
-@login_required
-def get_berth_status():
-    """Get current status of all berths"""
-    try:
-        # Initialize berth status
-        berth_status = {
-            '1': {'status': 'available', 'vessel': None, 'operation': None},
-            '2': {'status': 'available', 'vessel': None, 'operation': None},
-            '3': {'status': 'available', 'vessel': None, 'operation': None}
+        # Calculate current progress metrics
+        progress_data = {
+            'operation_id': operation.id,
+            'vessel_name': operation.vessel_name,
+            'operation_type': operation.operation_type,
+            'status': operation.status,
+            'overall_progress': operation.progress or 0,
+            'cargo_breakdown': operation.get_cargo_breakdown(),
+            'zone_progress': _get_zone_progress(operation),
+            'equipment_status': _get_equipment_status(operation),
+            'discharge_rates': _get_discharge_rates(operation),
+            'estimated_completion': _calculate_estimated_completion(operation),
+            'last_updated': operation.updated_at.isoformat() if operation.updated_at else None
         }
         
-        # Get active operations with berth assignments
-        active_operations = ShipOperation.query.filter(
-            ShipOperation.status.in_(['initiated', 'in_progress']),
-            ShipOperation.berth_assigned.isnot(None)
-        ).all()
-        
-        # Update berth status based on active operations
-        for operation in active_operations:
-            berth_number = str(operation.berth_assigned)
-            if berth_number in berth_status:
-                berth_status[berth_number] = {
-                    'status': 'occupied',
-                    'vessel': {
-                        'id': operation.vessel.id,
-                        'name': operation.vessel.name,
-                        'vessel_type': operation.vessel.vessel_type,
-                        'imo_number': operation.vessel.imo_number
-                    } if operation.vessel else None,
-                    'operation': {
-                        'id': operation.id,
-                        'operation_id': operation.operation_id,
-                        'progress_percentage': operation.get_progress_percentage(),
-                        'current_step': operation.current_step,
-                        'eta': operation.arrival_datetime.isoformat() if operation.arrival_datetime else None,
-                        'priority': operation.priority
-                    }
-                }
-        
-        return jsonify(berth_status)
-        
-    except Exception as e:
-        logger.error(f"Error fetching berth status: {e}")
-        return jsonify({'error': 'Failed to fetch berth status'}), 500
-
-@operations_api_bp.route('/berths/assign', methods=['POST'])
-@login_required
-def assign_berth():
-    """Assign a vessel to a berth"""
-    if not current_user.is_manager():
-        return jsonify({'error': 'Access denied'}), 403
-    
-    try:
-        db = get_app_db()
-        data = request.get_json()
-        vessel_id = data.get('vessel_id')
-        berth_number = data.get('berth_number')
-        
-        if not vessel_id or not berth_number:
-            return jsonify({'error': 'Missing vessel_id or berth_number'}), 400
-        
-        # Find operation for this vessel
-        operation = ShipOperation.query.filter_by(
-            vessel_id=vessel_id,
-            status='initiated'
-        ).first()
-        
-        if not operation:
-            return jsonify({'error': 'No active operation found for vessel'}), 404
-        
-        # Check if berth is available
-        existing_operation = ShipOperation.query.filter_by(
-            berth_assigned=berth_number,
-            status='in_progress'
-        ).first()
-        
-        if existing_operation:
-            return jsonify({'error': f'Berth {berth_number} is already occupied'}), 409
-        
-        # Assign berth
-        operation.berth_assigned = berth_number
-        operation.berth_assignment_time = datetime.utcnow()
-        operation.status = 'in_progress'
-        operation.updated_at = datetime.utcnow()
-        
-        db.session.commit()
-        
         return jsonify({
             'success': True,
-            'message': f'Vessel assigned to berth {berth_number}',
-            'operation': operation.to_dict()
+            'data': progress_data
         })
         
     except Exception as e:
-        logger.error(f"Error assigning berth: {e}")
-        db.session.rollback()
-        return jsonify({'error': 'Failed to assign berth'}), 500
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
-@operations_api_bp.route('/teams/performance', methods=['GET'])
-@login_required
-def get_team_performance():
-    """Get performance data for all active teams"""
+@operations_api.route('/api/operations/cargo/update_progress', methods=['POST'])
+def update_cargo_progress():
+    """Update real-time cargo progress"""
     try:
-        teams = StevedoreTeam.get_active_teams()
-        team_data = []
-        
-        for team in teams:
-            team_data.append({
-                'id': team.id,
-                'team_name': team.team_name,
-                'status': team.status,
-                'cargo_processed_today': team.get_cargo_processed_today(),
-                'efficiency_rating': team.get_efficiency_rating(),
-                'active_members_count': team.get_active_members_count(),
-                'current_operation': team.get_current_operation(),
-                'zone_assignment': team.zone_assignment,
-                'shift_pattern': team.shift_pattern
-            })
-        
-        return jsonify(team_data)
-        
-    except Exception as e:
-        logger.error(f"Error fetching team performance: {e}")
-        return jsonify({'error': 'Failed to fetch team performance'}), 500
-
-@operations_api_bp.route('/kpis', methods=['GET'])
-@login_required
-def get_kpis():
-    """Get current maritime KPIs"""
-    try:
-        # Calculate real-time KPIs
-        active_operations = ShipOperation.get_active_operations()
-        total_operations = len(active_operations)
-        
-        # Berth utilization
-        occupied_berths = len([op for op in active_operations if op.berth_assigned])
-        berth_utilization = round((occupied_berths / 3) * 100)
-        
-        # Cargo throughput (mock calculation)
-        today = datetime.utcnow().date()
-        completed_today = ShipOperation.query.filter(
-            ShipOperation.status == 'completed',
-            ShipOperation.updated_at >= datetime.combine(today, datetime.min.time())
-        ).count()
-        
-        # Average turnaround time (mock calculation)
-        avg_turnaround = 18  # hours
-        
-        kpis = {
-            'active-operations': total_operations,
-            'berth-utilization': berth_utilization,
-            'cargo-throughput': 450,  # MT/hr (mock)
-            'avg-turnaround': avg_turnaround
-        }
-        
-        return jsonify(kpis)
-        
-    except Exception as e:
-        logger.error(f"Error calculating KPIs: {e}")
-        return jsonify({'error': 'Failed to calculate KPIs'}), 500
-
-@operations_api_bp.route('/alerts/active', methods=['GET'])
-@login_required
-def get_active_alerts():
-    """Get current active alerts"""
-    try:
-        alerts = []
-        
-        # Check for overdue operations
-        overdue_operations = ShipOperation.get_overdue_operations()
-        for operation in overdue_operations:
-            alerts.append({
-                'id': f'overdue_{operation.id}',
-                'title': 'Overdue Operation',
-                'message': f'Operation {operation.operation_id} is overdue',
-                'severity': 'warning',
-                'icon': 'clock',
-                'created_at': operation.created_at.isoformat(),
-                'operation_id': operation.id
-            })
-        
-        # Check for high priority operations without berth
-        unassigned_priority = ShipOperation.query.filter(
-            ShipOperation.priority.in_(['high', 'urgent']),
-            ShipOperation.berth_assigned.is_(None),
-            ShipOperation.status == 'initiated'
-        ).all()
-        
-        for operation in unassigned_priority:
-            alerts.append({
-                'id': f'unassigned_{operation.id}',
-                'title': 'High Priority Vessel Waiting',
-                'message': f'{operation.vessel.name} requires urgent berth assignment',
-                'severity': 'critical' if operation.priority == 'urgent' else 'warning',
-                'icon': 'alert-triangle',
-                'created_at': operation.created_at.isoformat(),
-                'operation_id': operation.id
-            })
-        
-        # Check for team performance issues
-        underperforming_teams = StevedoreTeam.query.filter(
-            StevedoreTeam.productivity_rating < 6.0,
-            StevedoreTeam.status == 'assigned'
-        ).all()
-        
-        for team in underperforming_teams:
-            alerts.append({
-                'id': f'team_performance_{team.id}',
-                'title': 'Team Performance Alert',
-                'message': f'{team.team_name} efficiency below threshold',
-                'severity': 'info',
-                'icon': 'users',
-                'created_at': team.updated_at.isoformat() if team.updated_at else team.created_at.isoformat(),
-                'team_id': team.id
-            })
-        
-        return jsonify(alerts)
-        
-    except Exception as e:
-        logger.error(f"Error fetching alerts: {e}")
-        return jsonify({'error': 'Failed to fetch alerts'}), 500
-
-@operations_api_bp.route('/alerts/<alert_id>/dismiss', methods=['POST'])
-@login_required
-def dismiss_alert(alert_id):
-    """Dismiss a specific alert"""
-    try:
-        # In a real implementation, you would update an alerts table
-        # For now, just return success
-        return jsonify({'success': True, 'message': 'Alert dismissed'})
-    except Exception as e:
-        logger.error(f"Error dismissing alert {alert_id}: {e}")
-        return jsonify({'error': 'Failed to dismiss alert'}), 500
-
-@operations_api_bp.route('/alerts/mark-all-read', methods=['POST'])
-@login_required
-def mark_all_alerts_read():
-    """Mark all alerts as read"""
-    try:
-        # In a real implementation, you would update alerts table
-        return jsonify({'success': True, 'message': 'All alerts marked as read'})
-    except Exception as e:
-        logger.error(f"Error marking alerts as read: {e}")
-        return jsonify({'error': 'Failed to mark alerts as read'}), 500
-
-@operations_api_bp.route('/operations/create', methods=['POST'])
-@login_required
-def create_operation():
-    """Create a new ship operation"""
-    if not current_user.is_manager():
-        return jsonify({'error': 'Access denied'}), 403
-    
-    try:
-        db = get_app_db()
         data = request.get_json()
         
-        vessel_id = data.get('vessel_id')
-        operation_type = data.get('operation_type', 'discharge')
+        if not data or 'operation_id' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'Operation ID is required'
+            }), 400
         
-        if not vessel_id:
-            return jsonify({'error': 'vessel_id is required'}), 400
+        operation = MaritimeOperation.query.get_or_404(data['operation_id'])
         
-        vessel = Vessel.query.get(vessel_id)
-        if not vessel:
-            return jsonify({'error': 'Vessel not found'}), 404
+        # Update progress fields
+        if 'progress' in data:
+            operation.progress = min(100, max(0, data['progress']))
         
-        # Generate operation ID
-        operation_id = ShipOperation.generate_operation_id(vessel.name, operation_type)
-        
-        # Create new operation
-        operation = ShipOperation(
-            operation_id=operation_id,
-            vessel_id=vessel_id,
-            operation_type=operation_type,
-            status='initiated',
-            priority=data.get('priority', 'medium'),
-            operation_manager_id=current_user.id,
-            cargo_type=data.get('cargo_type'),
-            total_cargo_quantity=data.get('total_cargo_quantity'),
-            zone_assignment=data.get('zone_assignment')
-        )
-        
-        db.session.add(operation)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Operation created successfully',
-            'operation': operation.to_dict()
-        }), 201
-        
-    except Exception as e:
-        logger.error(f"Error creating operation: {e}")
-        db.session.rollback()
-        return jsonify({'error': 'Failed to create operation'}), 500
-
-@operations_api_bp.route('/operations/<int:operation_id>/cargo/update', methods=['POST'])
-@login_required
-def update_cargo_progress(operation_id):
-    """Update cargo processing progress"""
-    try:
-        db = get_app_db()
-        operation = ShipOperation.query.get_or_404(operation_id)
-        data = request.get_json()
-        
-        processed_quantity = data.get('processed_quantity')
-        if processed_quantity is None:
-            return jsonify({'error': 'processed_quantity is required'}), 400
-        
-        operation.update_cargo_progress(processed_quantity)
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'operation': operation.to_dict()
-        })
-        
-    except Exception as e:
-        logger.error(f"Error updating cargo progress: {e}")
-        db.session.rollback()
-        return jsonify({'error': 'Failed to update cargo progress'}), 500
-
-@operations_api_bp.route('/teams/<int:team_id>/assign', methods=['POST'])
-@login_required
-def assign_team_to_operation(team_id):
-    """Assign a stevedore team to an operation"""
-    if not current_user.is_manager():
-        return jsonify({'error': 'Access denied'}), 403
-    
-    try:
-        db = get_app_db()
-        data = request.get_json()
-        operation_id = data.get('operation_id')
-        
-        if not operation_id:
-            return jsonify({'error': 'operation_id is required'}), 400
-        
-        team = StevedoreTeam.query.get_or_404(team_id)
-        operation = ShipOperation.query.get_or_404(operation_id)
-        
-        if not team.is_available_for_assignment():
-            return jsonify({'error': 'Team is not available for assignment'}), 409
-        
-        # Assign team to operation
-        operation.stevedore_team_id = team_id
-        team.assign_to_operation(f"{operation.vessel.name} - {operation.operation_type}")
-        
-        db.session.commit()
-        
-        return jsonify({
-            'success': True,
-            'message': f'Team {team.team_name} assigned to operation',
-            'operation': operation.to_dict(),
-            'team': team.to_dict()
-        })
-        
-    except Exception as e:
-        logger.error(f"Error assigning team: {e}")
-        db.session.rollback()
-        return jsonify({'error': 'Failed to assign team'}), 500
-
-@operations_api_bp.route('/dashboard/summary', methods=['GET'])
-@login_required
-def get_dashboard_summary():
-    """Get complete dashboard summary data"""
-    try:
-        # Get all required data in one endpoint for efficiency
-        active_operations = ShipOperation.get_active_operations()
-        active_teams = StevedoreTeam.get_active_teams()
-        
-        # Calculate KPIs
-        total_operations = len(active_operations)
-        occupied_berths = len([op for op in active_operations if op.berth_assigned])
-        berth_utilization = round((occupied_berths / 3) * 100)
-        
-        # Berth status
-        berth_status = {}
-        for i in range(1, 4):
-            berth_status[f'berth_{i}'] = {'status': 'available', 'vessel': None, 'progress': 0}
-        
-        for operation in active_operations:
-            if operation.berth_assigned:
-                berth_key = f"berth_{operation.berth_assigned}"
-                if berth_key in berth_status:
-                    berth_status[berth_key] = {
-                        'status': 'occupied',
-                        'vessel': operation.vessel,
-                        'eta': operation.arrival_datetime,
-                        'progress': operation.get_progress_percentage()
-                    }
-        
-        # Vessel queue
-        vessel_queue = [
-            {
-                'id': op.vessel.id,
-                'name': op.vessel.name,
-                'eta': op.arrival_datetime,
-                'cargo_type': op.cargo_type or 'General',
-                'operation_id': op.operation_id
+        # Update zone progress
+        if 'zone_progress' in data:
+            zone_data = data['zone_progress']
+            current_hourly = operation.hourly_quantities or []
+            
+            # Add new hourly data point
+            hourly_entry = {
+                'timestamp': datetime.utcnow().isoformat(),
+                'brv_completed': zone_data.get('brv_completed', 0),
+                'zee_completed': zone_data.get('zee_completed', 0),
+                'sou_completed': zone_data.get('sou_completed', 0),
+                'total_completed': zone_data.get('total_completed', 0),
+                'rate_per_hour': zone_data.get('current_rate', 0)
             }
-            for op in active_operations if not op.berth_assigned
-        ]
+            
+            current_hourly.append(hourly_entry)
+            
+            # Keep only last 24 hours of data
+            cutoff_time = datetime.utcnow() - timedelta(hours=24)
+            current_hourly = [
+                entry for entry in current_hourly
+                if datetime.fromisoformat(entry['timestamp']) > cutoff_time
+            ]
+            
+            operation.hourly_quantities = current_hourly
         
-        summary = {
-            'kpis': {
-                'active_operations': total_operations,
-                'berth_utilization': berth_utilization,
-                'berths_occupied': occupied_berths,
-                'cargo_throughput': 450,  # Mock data
-                'avg_turnaround': 18
-            },
-            'berth_status': berth_status,
-            'active_operations': [op.to_dict() for op in active_operations],
-            'vessel_queue': vessel_queue,
-            'active_teams': [
-                {
-                    'id': team.id,
-                    'team_name': team.team_name,
-                    'status': team.status,
-                    'cargo_processed_today': team.get_cargo_processed_today(),
-                    'efficiency_rating': team.get_efficiency_rating(),
-                    'active_members_count': team.get_active_members_count(),
-                    'current_operation': team.get_current_operation()
-                }
-                for team in active_teams
-            ],
-            'last_updated': datetime.utcnow().isoformat()
-        }
+        # Update equipment status
+        if 'equipment_status' in data:
+            equipment_data = data['equipment_status']
+            
+            # Update equipment allocation if provided
+            if 'tico_vans' in equipment_data:
+                operation.tico_vans = equipment_data['tico_vans']
+            if 'tico_station_wagons' in equipment_data:
+                operation.tico_station_wagons = equipment_data['tico_station_wagons']
         
-        return jsonify(summary)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Progress updated successfully',
+            'current_progress': operation.progress
+        })
         
     except Exception as e:
-        logger.error(f"Error fetching dashboard summary: {e}")
-        return jsonify({'error': 'Failed to fetch dashboard summary'}), 500
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@operations_api.route('/api/operations/cargo/zones', methods=['GET'])
+def get_zone_info():
+    """Get zone configurations and current status"""
+    try:
+        zones = MaritimeValidator.ZONES
+        equipment_specs = MaritimeValidator.EQUIPMENT_SPECS
+        
+        # Get current operations by zone
+        active_operations = MaritimeOperation.query.filter_by(status='in_progress').all()
+        
+        zone_status = {}
+        for zone_code, zone_info in zones.items():
+            current_load = 0
+            active_ops = []
+            
+            for op in active_operations:
+                zone_target = getattr(op, f'{zone_code.lower()}_target', 0) or 0
+                current_load += zone_target
+                if zone_target > 0:
+                    active_ops.append({
+                        'operation_id': op.id,
+                        'vessel_name': op.vessel_name,
+                        'target': zone_target,
+                        'progress': op.progress or 0
+                    })
+            
+            zone_status[zone_code] = {
+                'name': zone_info['name'],
+                'max_capacity': zone_info['max_capacity'],
+                'current_load': current_load,
+                'available_capacity': zone_info['max_capacity'] - current_load,
+                'utilization_percentage': round((current_load / zone_info['max_capacity']) * 100, 1) if zone_info['max_capacity'] > 0 else 0,
+                'equipment_types': zone_info['equipment_types'],
+                'cargo_types': zone_info['cargo_types'],
+                'active_operations': active_ops
+            }
+        
+        return jsonify({
+            'success': True,
+            'zones': zone_status,
+            'equipment_specs': equipment_specs
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@operations_api.route('/api/operations/cargo/recommendations', methods=['POST'])
+def get_cargo_recommendations():
+    """Get recommendations for cargo allocation and equipment"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        # Get zone recommendations
+        zone_recommendations = MaritimeValidator.get_zone_recommendations(data)
+        
+        # Get discharge rate calculations
+        discharge_calculations = MaritimeValidator.calculate_discharge_rate(data)
+        
+        # Get equipment recommendations
+        equipment_recommendations = _get_equipment_recommendations(data)
+        
+        return jsonify({
+            'success': True,
+            'recommendations': {
+                'zones': zone_recommendations,
+                'discharge_rates': discharge_calculations,
+                'equipment': equipment_recommendations
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@operations_api.route('/api/operations/cargo/analytics/<int:operation_id>', methods=['GET'])
+def get_cargo_analytics(operation_id: int):
+    """Get detailed analytics for cargo operation"""
+    try:
+        operation = MaritimeOperation.query.get_or_404(operation_id)
+        
+        # Prepare data for analytics
+        operation_data = {
+            'total_vehicles': operation.total_vehicles or 0,
+            'total_automobiles_discharge': operation.total_automobiles_discharge or 0,
+            'heavy_equipment_discharge': operation.heavy_equipment_discharge or 0,
+            'total_electric_vehicles': operation.total_electric_vehicles or 0,
+            'total_static_cargo': operation.total_static_cargo or 0,
+            'brv_target': operation.brv_target or 0,
+            'zee_target': operation.zee_target or 0,
+            'sou_target': operation.sou_target or 0,
+            'expected_rate': operation.expected_rate or 0,
+            'total_drivers': operation.total_drivers or 0,
+            'tico_vans': operation.tico_vans or 0,
+            'tico_station_wagons': operation.tico_station_wagons or 0
+        }
+        
+        # Calculate analytics
+        discharge_rates = MaritimeValidator.calculate_discharge_rate(operation_data)
+        zone_recommendations = MaritimeValidator.get_zone_recommendations(operation_data)
+        
+        # Get hourly progress data
+        hourly_data = operation.hourly_quantities or []
+        
+        # Calculate performance metrics
+        performance_metrics = _calculate_performance_metrics(operation, hourly_data)
+        
+        analytics = {
+            'operation_info': {
+                'id': operation.id,
+                'vessel_name': operation.vessel_name,
+                'operation_type': operation.operation_type,
+                'status': operation.status,
+                'progress': operation.progress or 0,
+                'start_time': operation.start_time,
+                'estimated_completion': operation.estimated_completion
+            },
+            'cargo_breakdown': operation.get_cargo_breakdown(),
+            'zone_analysis': zone_recommendations,
+            'discharge_analysis': discharge_rates,
+            'performance_metrics': performance_metrics,
+            'hourly_progress': hourly_data,
+            'equipment_efficiency': _calculate_equipment_efficiency(operation)
+        }
+        
+        return jsonify({
+            'success': True,
+            'analytics': analytics
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# Helper functions
+def _get_zone_progress(operation: MaritimeOperation) -> Dict[str, Any]:
+    """Get zone-specific progress information"""
+    brv_target = operation.brv_target or 0
+    zee_target = operation.zee_target or 0
+    sou_target = operation.sou_target or 0
+    
+    overall_progress = operation.progress or 0
+    
+    return {
+        'brv': {
+            'target': brv_target,
+            'completed': int(brv_target * overall_progress / 100) if brv_target > 0 else 0,
+            'remaining': brv_target - int(brv_target * overall_progress / 100) if brv_target > 0 else 0,
+            'progress_percentage': overall_progress
+        },
+        'zee': {
+            'target': zee_target,
+            'completed': int(zee_target * overall_progress / 100) if zee_target > 0 else 0,
+            'remaining': zee_target - int(zee_target * overall_progress / 100) if zee_target > 0 else 0,
+            'progress_percentage': overall_progress
+        },
+        'sou': {
+            'target': sou_target,
+            'completed': int(sou_target * overall_progress / 100) if sou_target > 0 else 0,
+            'remaining': sou_target - int(sou_target * overall_progress / 100) if sou_target > 0 else 0,
+            'progress_percentage': overall_progress
+        }
+    }
+
+def _get_equipment_status(operation: MaritimeOperation) -> Dict[str, Any]:
+    """Get equipment status and utilization"""
+    tico_vans = operation.tico_vans or 0
+    tico_station_wagons = operation.tico_station_wagons or 0
+    
+    van_capacity = tico_vans * MaritimeValidator.EQUIPMENT_SPECS['tico_vans']['capacity_per_hour']
+    wagon_capacity = tico_station_wagons * MaritimeValidator.EQUIPMENT_SPECS['tico_station_wagons']['capacity_per_hour']
+    
+    return {
+        'tico_vans': {
+            'allocated': tico_vans,
+            'hourly_capacity': van_capacity,
+            'status': 'active' if tico_vans > 0 else 'inactive'
+        },
+        'tico_station_wagons': {
+            'allocated': tico_station_wagons,
+            'hourly_capacity': wagon_capacity,
+            'status': 'active' if tico_station_wagons > 0 else 'inactive'
+        },
+        'total_hourly_capacity': van_capacity + wagon_capacity
+    }
+
+def _get_discharge_rates(operation: MaritimeOperation) -> Dict[str, Any]:
+    """Get discharge rate information"""
+    expected_rate = operation.expected_rate or 0
+    total_cargo = operation.get_total_cargo()
+    
+    # Calculate actual rate from recent hourly data
+    hourly_data = operation.hourly_quantities or []
+    actual_rate = 0
+    
+    if len(hourly_data) >= 2:
+        recent_entries = hourly_data[-2:]
+        if len(recent_entries) == 2:
+            time_diff = (datetime.fromisoformat(recent_entries[1]['timestamp']) - 
+                        datetime.fromisoformat(recent_entries[0]['timestamp'])).total_seconds() / 3600
+            if time_diff > 0:
+                cargo_diff = recent_entries[1]['total_completed'] - recent_entries[0]['total_completed']
+                actual_rate = cargo_diff / time_diff
+    
+    return {
+        'expected_rate': expected_rate,
+        'actual_rate': round(actual_rate, 2),
+        'rate_efficiency': round((actual_rate / expected_rate) * 100, 1) if expected_rate > 0 else 0,
+        'total_cargo': total_cargo,
+        'completion_forecast': _calculate_completion_forecast(operation, actual_rate)
+    }
+
+def _calculate_estimated_completion(operation: MaritimeOperation) -> Dict[str, Any]:
+    """Calculate estimated completion time"""
+    total_cargo = operation.get_total_cargo()
+    progress = operation.progress or 0
+    remaining_cargo = total_cargo * (100 - progress) / 100
+    
+    # Get current rate from hourly data
+    hourly_data = operation.hourly_quantities or []
+    current_rate = 0
+    
+    if len(hourly_data) >= 2:
+        recent_entries = hourly_data[-2:]
+        if len(recent_entries) == 2:
+            time_diff = (datetime.fromisoformat(recent_entries[1]['timestamp']) - 
+                        datetime.fromisoformat(recent_entries[0]['timestamp'])).total_seconds() / 3600
+            if time_diff > 0:
+                cargo_diff = recent_entries[1]['total_completed'] - recent_entries[0]['total_completed']
+                current_rate = cargo_diff / time_diff
+    
+    if current_rate > 0:
+        hours_remaining = remaining_cargo / current_rate
+        estimated_completion = datetime.utcnow() + timedelta(hours=hours_remaining)
+    else:
+        estimated_completion = None
+        hours_remaining = None
+    
+    return {
+        'remaining_cargo': remaining_cargo,
+        'current_rate': round(current_rate, 2),
+        'hours_remaining': round(hours_remaining, 2) if hours_remaining else None,
+        'estimated_completion': estimated_completion.isoformat() if estimated_completion else None
+    }
+
+def _get_equipment_recommendations(data: Dict[str, Any]) -> Dict[str, Any]:
+    """Get equipment allocation recommendations"""
+    total_cargo = (data.get('total_vehicles', 0) or 0) + (data.get('total_static_cargo', 0) or 0)
+    expected_rate = data.get('expected_rate', 0) or 0
+    
+    # Calculate recommended equipment based on cargo type and rate
+    automobiles = data.get('total_automobiles_discharge', 0) or 0
+    heavy_equipment = data.get('heavy_equipment_discharge', 0) or 0
+    electric_vehicles = data.get('total_electric_vehicles', 0) or 0
+    
+    # TICO vans are good for automobiles and general cargo
+    recommended_vans = min(50, max(0, int((automobiles * 0.6) / MaritimeValidator.EQUIPMENT_SPECS['tico_vans']['capacity_per_hour'])))
+    
+    # TICO station wagons are better for heavy equipment and electric vehicles
+    recommended_wagons = min(30, max(0, int((heavy_equipment + electric_vehicles) / MaritimeValidator.EQUIPMENT_SPECS['tico_station_wagons']['capacity_per_hour'])))
+    
+    return {
+        'recommended_tico_vans': recommended_vans,
+        'recommended_tico_station_wagons': recommended_wagons,
+        'reasoning': {
+            'tico_vans': f"Recommended for {automobiles} automobiles at {MaritimeValidator.EQUIPMENT_SPECS['tico_vans']['capacity_per_hour']} units/hour capacity",
+            'tico_station_wagons': f"Recommended for {heavy_equipment} heavy equipment and {electric_vehicles} electric vehicles at {MaritimeValidator.EQUIPMENT_SPECS['tico_station_wagons']['capacity_per_hour']} units/hour capacity"
+        },
+        'total_recommended_capacity': (
+            recommended_vans * MaritimeValidator.EQUIPMENT_SPECS['tico_vans']['capacity_per_hour'] +
+            recommended_wagons * MaritimeValidator.EQUIPMENT_SPECS['tico_station_wagons']['capacity_per_hour']
+        )
+    }
+
+def _calculate_performance_metrics(operation: MaritimeOperation, hourly_data: List[Dict]) -> Dict[str, Any]:
+    """Calculate performance metrics for the operation"""
+    if not hourly_data:
+        return {
+            'average_rate': 0,
+            'peak_rate': 0,
+            'efficiency_trend': 'stable',
+            'total_time_elapsed': 0
+        }
+    
+    # Calculate rates from hourly data
+    rates = []
+    for i in range(1, len(hourly_data)):
+        prev_entry = hourly_data[i-1]
+        curr_entry = hourly_data[i]
+        
+        time_diff = (datetime.fromisoformat(curr_entry['timestamp']) - 
+                    datetime.fromisoformat(prev_entry['timestamp'])).total_seconds() / 3600
+        
+        if time_diff > 0:
+            cargo_diff = curr_entry['total_completed'] - prev_entry['total_completed']
+            rate = cargo_diff / time_diff
+            rates.append(rate)
+    
+    if not rates:
+        return {
+            'average_rate': 0,
+            'peak_rate': 0,
+            'efficiency_trend': 'stable',
+            'total_time_elapsed': 0
+        }
+    
+    # Calculate metrics
+    average_rate = sum(rates) / len(rates)
+    peak_rate = max(rates)
+    
+    # Determine efficiency trend
+    if len(rates) >= 3:
+        recent_avg = sum(rates[-3:]) / 3
+        earlier_avg = sum(rates[:3]) / 3
+        
+        if recent_avg > earlier_avg * 1.1:
+            efficiency_trend = 'improving'
+        elif recent_avg < earlier_avg * 0.9:
+            efficiency_trend = 'declining'
+        else:
+            efficiency_trend = 'stable'
+    else:
+        efficiency_trend = 'stable'
+    
+    # Calculate total time elapsed
+    if len(hourly_data) >= 2:
+        total_time_elapsed = (datetime.fromisoformat(hourly_data[-1]['timestamp']) - 
+                            datetime.fromisoformat(hourly_data[0]['timestamp'])).total_seconds() / 3600
+    else:
+        total_time_elapsed = 0
+    
+    return {
+        'average_rate': round(average_rate, 2),
+        'peak_rate': round(peak_rate, 2),
+        'efficiency_trend': efficiency_trend,
+        'total_time_elapsed': round(total_time_elapsed, 2)
+    }
+
+def _calculate_equipment_efficiency(operation: MaritimeOperation) -> Dict[str, Any]:
+    """Calculate equipment efficiency metrics"""
+    tico_vans = operation.tico_vans or 0
+    tico_station_wagons = operation.tico_station_wagons or 0
+    
+    van_capacity = tico_vans * MaritimeValidator.EQUIPMENT_SPECS['tico_vans']['capacity_per_hour']
+    wagon_capacity = tico_station_wagons * MaritimeValidator.EQUIPMENT_SPECS['tico_station_wagons']['capacity_per_hour']
+    total_capacity = van_capacity + wagon_capacity
+    
+    # Get actual performance from hourly data
+    hourly_data = operation.hourly_quantities or []
+    actual_rate = 0
+    
+    if len(hourly_data) >= 2:
+        recent_entries = hourly_data[-2:]
+        if len(recent_entries) == 2:
+            time_diff = (datetime.fromisoformat(recent_entries[1]['timestamp']) - 
+                        datetime.fromisoformat(recent_entries[0]['timestamp'])).total_seconds() / 3600
+            if time_diff > 0:
+                cargo_diff = recent_entries[1]['total_completed'] - recent_entries[0]['total_completed']
+                actual_rate = cargo_diff / time_diff
+    
+    efficiency = (actual_rate / total_capacity) * 100 if total_capacity > 0 else 0
+    
+    return {
+        'equipment_capacity': total_capacity,
+        'actual_rate': round(actual_rate, 2),
+        'efficiency_percentage': round(efficiency, 1),
+        'utilization_status': 'high' if efficiency > 80 else 'medium' if efficiency > 60 else 'low',
+        'recommendations': _get_efficiency_recommendations(efficiency, operation)
+    }
+
+def _get_efficiency_recommendations(efficiency: float, operation: MaritimeOperation) -> List[str]:
+    """Get recommendations to improve efficiency"""
+    recommendations = []
+    
+    if efficiency < 60:
+        recommendations.append("Consider increasing equipment allocation")
+        recommendations.append("Review driver assignments and shift patterns")
+        recommendations.append("Check for operational bottlenecks")
+    elif efficiency < 80:
+        recommendations.append("Monitor equipment utilization closely")
+        recommendations.append("Consider minor adjustments to equipment allocation")
+    else:
+        recommendations.append("Excellent efficiency - maintain current allocation")
+    
+    # Zone-specific recommendations
+    brv_target = operation.brv_target or 0
+    zee_target = operation.zee_target or 0
+    sou_target = operation.sou_target or 0
+    
+    if brv_target > zee_target + sou_target:
+        recommendations.append("Consider allocating more equipment to BRV zone")
+    elif zee_target > brv_target + sou_target:
+        recommendations.append("Consider allocating more equipment to ZEE zone")
+    elif sou_target > brv_target + zee_target:
+        recommendations.append("Consider allocating more equipment to SOU zone")
+    
+    return recommendations
+
+def _calculate_completion_forecast(operation: MaritimeOperation, actual_rate: float) -> Dict[str, Any]:
+    """Calculate completion forecast based on current rate"""
+    total_cargo = operation.get_total_cargo()
+    progress = operation.progress or 0
+    remaining_cargo = total_cargo * (100 - progress) / 100
+    
+    if actual_rate > 0:
+        hours_remaining = remaining_cargo / actual_rate
+        estimated_completion = datetime.utcnow() + timedelta(hours=hours_remaining)
+        
+        # Calculate confidence level based on rate consistency
+        hourly_data = operation.hourly_quantities or []
+        if len(hourly_data) >= 3:
+            recent_rates = []
+            for i in range(max(0, len(hourly_data)-3), len(hourly_data)-1):
+                time_diff = (datetime.fromisoformat(hourly_data[i+1]['timestamp']) - 
+                           datetime.fromisoformat(hourly_data[i]['timestamp'])).total_seconds() / 3600
+                if time_diff > 0:
+                    cargo_diff = hourly_data[i+1]['total_completed'] - hourly_data[i]['total_completed']
+                    recent_rates.append(cargo_diff / time_diff)
+            
+            if recent_rates:
+                rate_variance = sum(abs(r - actual_rate) for r in recent_rates) / len(recent_rates)
+                confidence = max(0, min(100, 100 - (rate_variance / actual_rate * 100)))
+            else:
+                confidence = 50
+        else:
+            confidence = 50
+    else:
+        hours_remaining = None
+        estimated_completion = None
+        confidence = 0
+    
+    return {
+        'hours_remaining': round(hours_remaining, 2) if hours_remaining else None,
+        'estimated_completion': estimated_completion.isoformat() if estimated_completion else None,
+        'confidence_level': round(confidence, 1),
+        'forecast_reliability': 'high' if confidence > 80 else 'medium' if confidence > 60 else 'low'
+    }

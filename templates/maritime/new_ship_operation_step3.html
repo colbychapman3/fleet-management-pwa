@@ -3,16 +3,107 @@
 {% block content %}
 <div class="container">
     <h1 class="title">New Ship Operation - Step 3: Stowage Plan</h1>
-    <form method="POST">
-        <div class="field">
-            <label class="label">Stowage Plan Details</label>
-            <div class="control">
-                <textarea class="textarea" name="stowage_plan" placeholder="Enter stowage plan details..."></textarea>
+    
+    <!-- Progress indicator -->
+    <div class="field">
+        <div class="control">
+            <div class="level">
+                <div class="level-left">
+                    <div class="level-item">
+                        <span class="tag is-primary is-medium">Step 3 of 4</span>
+                    </div>
+                </div>
+                <div class="level-right">
+                    <div class="level-item">
+                        <progress class="progress is-primary" value="75" max="100">75%</progress>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        
+        <div class="columns">
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.stowage_location.label(class="label") }}
+                    <div class="control">
+                        {{ form.stowage_location(class="input" + (" is-danger" if form.stowage_location.errors else ""), placeholder="e.g., Hold 1, Deck Area A, Container Bay 3") }}
+                    </div>
+                    {% if form.stowage_location.errors %}
+                        <p class="help is-danger">{{ form.stowage_location.errors[0] }}</p>
+                    {% endif %}
+                    <p class="help">Specific location where cargo will be stowed</p>
+                </div>
+            </div>
+            
+            <div class="column is-half">
+                <div class="field">
+                    {{ form.loading_sequence.label(class="label") }}
+                    <div class="control">
+                        {{ form.loading_sequence(class="input" + (" is-danger" if form.loading_sequence.errors else ""), placeholder="1") }}
+                    </div>
+                    {% if form.loading_sequence.errors %}
+                        <p class="help is-danger">{{ form.loading_sequence.errors[0] }}</p>
+                    {% endif %}
+                    <p class="help">Order in which this cargo should be loaded (1-100)</p>
+                </div>
+            </div>
+        </div>
+
         <div class="field">
+            {{ form.stowage_notes.label(class="label") }}
             <div class="control">
-                <button class="button is-primary">Next</button>
+                {{ form.stowage_notes(class="textarea" + (" is-danger" if form.stowage_notes.errors else ""), placeholder="Enter detailed stowage plan, weight distribution, securing methods, etc.", rows="4") }}
+            </div>
+            {% if form.stowage_notes.errors %}
+                <p class="help is-danger">{{ form.stowage_notes.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            {{ form.safety_requirements.label(class="label") }}
+            <div class="control">
+                {{ form.safety_requirements(class="textarea" + (" is-danger" if form.safety_requirements.errors else ""), placeholder="Safety precautions, hazardous materials handling, personal protective equipment requirements, etc.", rows="4") }}
+            </div>
+            {% if form.safety_requirements.errors %}
+                <p class="help is-danger">{{ form.safety_requirements.errors[0] }}</p>
+            {% endif %}
+        </div>
+
+        <div class="notification is-info is-light">
+            <div class="content">
+                <p><strong>Stowage Planning Tips:</strong></p>
+                <ul>
+                    <li>Heavy cargo should be stowed low and evenly distributed</li>
+                    <li>Hazardous materials require special handling and separation</li>
+                    <li>Consider vessel stability and trim throughout the operation</li>
+                    <li>Ensure adequate securing arrangements for all cargo types</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="field is-grouped">
+            <div class="control">
+                <button type="submit" class="button is-primary">
+                    <span class="icon">
+                        <i class="fas fa-arrow-right"></i>
+                    </span>
+                    <span>Next: Confirmation</span>
+                </button>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('maritime.new_ship_operation_step2') }}" class="button">
+                    <span class="icon">
+                        <i class="fas fa-arrow-left"></i>
+                    </span>
+                    <span>Back</span>
+                </a>
+            </div>
+            <div class="control">
+                <a href="{{ url_for('dashboard.operations') }}" class="button">Cancel</a>
             </div>
         </div>
     </form>
