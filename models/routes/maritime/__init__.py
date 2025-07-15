@@ -1,0 +1,3 @@
+"""
+Maritime API routes package
+"""
