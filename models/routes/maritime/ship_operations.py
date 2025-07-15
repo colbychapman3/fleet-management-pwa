@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import login_required, current_user
 from app import db
-from models.maritime.maritime_operation import MaritimeOperation
+# MaritimeOperation import moved to individual functions to avoid circular import
 from models.maritime.wizard_step import WizardStep
 from models.maritime.validation import MaritimeValidator
 from models.models.vessel import Vessel
@@ -25,6 +25,9 @@ def new_ship_operation_wizard():
     
     if request.method == 'POST' and form.validate_on_submit():
         try:
+            # Import MaritimeOperation here to avoid circular imports
+            from models.maritime.maritime_operation import MaritimeOperation
+            
             # Create new maritime operation from form data
             operation = MaritimeOperation()
             
@@ -49,6 +52,8 @@ def new_ship_operation_wizard():
 @login_required
 def list_operations():
     """List all maritime operations with filtering"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     page = request.args.get('page', 1, type=int)
     per_page = 10
     
@@ -85,6 +90,8 @@ def list_operations():
 @login_required
 def edit_operation(operation_id):
     """Edit an existing maritime operation"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     operation = MaritimeOperation.query.get_or_404(operation_id)
     form = MaritimeOperationEditForm(obj=operation)
     
@@ -111,6 +118,8 @@ def edit_operation(operation_id):
 @login_required
 def delete_operation(operation_id):
     """Delete a maritime operation"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     operation = MaritimeOperation.query.get_or_404(operation_id)
     
     try:
@@ -133,6 +142,8 @@ def delete_operation(operation_id):
 @login_required
 def wizard_save():
     """Auto-save wizard progress with form validation"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     try:
         data = request.get_json()
         
@@ -218,6 +229,8 @@ def wizard_validate():
 @login_required
 def wizard_submit():
     """Final wizard submission with comprehensive form validation"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     try:
         data = request.get_json()
         
@@ -278,6 +291,8 @@ def wizard_submit():
 @login_required
 def wizard_load(operation_id):
     """Load existing operation for editing"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     try:
         operation = MaritimeOperation.query.get_or_404(operation_id)
         
@@ -313,6 +328,8 @@ def vessel_search():
 @login_required
 def ship_operation_details(operation_id):
     """View completed operation details"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     operation = MaritimeOperation.query.get_or_404(operation_id)
     return render_template('maritime/ship_operation_details.html', operation=operation)
 
@@ -451,6 +468,7 @@ def _get_field_errors(errors):
 @login_required
 def new_ship_operation_step1():
     """Step 1: Operation Details"""
+    from models.maritime.maritime_operation import MaritimeOperation
     from models.forms.maritime_forms import MaritimeOperationStep1Form
     from flask import session
     
@@ -501,6 +519,7 @@ def new_ship_operation_step1():
 @login_required
 def new_ship_operation_step2(operation_id):
     """Step 2: Cargo Information"""
+    from models.maritime.maritime_operation import MaritimeOperation
     from models.forms.maritime_forms import MaritimeOperationStep2Form
     from flask import session
     
@@ -549,6 +568,7 @@ def new_ship_operation_step2(operation_id):
 @login_required
 def new_ship_operation_step3(operation_id):
     """Step 3: Stowage Plan"""
+    from models.maritime.maritime_operation import MaritimeOperation
     from models.forms.maritime_forms import MaritimeOperationStep3Form
     from flask import session
     
@@ -595,6 +615,7 @@ def new_ship_operation_step3(operation_id):
 @login_required
 def new_ship_operation_step4(operation_id):
     """Step 4: Confirmation Details"""
+    from models.maritime.maritime_operation import MaritimeOperation
     from models.forms.maritime_forms import MaritimeOperationStep4Form
     from flask import session
     
@@ -639,6 +660,8 @@ def new_ship_operation_step4(operation_id):
 @login_required
 def api_operations():
     """API endpoint for maritime operations"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     operations = MaritimeOperation.query.all()
     return jsonify([op.to_dict() for op in operations])
 
@@ -646,6 +669,8 @@ def api_operations():
 @login_required
 def api_operation_detail(operation_id):
     """API endpoint for single maritime operation"""
+    from models.maritime.maritime_operation import MaritimeOperation
+    
     operation = MaritimeOperation.query.get_or_404(operation_id)
     return jsonify(operation.to_dict())
 

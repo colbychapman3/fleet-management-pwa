@@ -4,7 +4,7 @@ Maritime Operations API for real-time cargo tracking
 
 from flask import Blueprint, request, jsonify
 from app import db
-from models.maritime.maritime_operation import MaritimeOperation
+# MaritimeOperation import moved to individual functions to avoid circular import
 from models.maritime.validation import MaritimeValidator
 from datetime import datetime, timedelta
 import json
@@ -15,6 +15,7 @@ operations_api = Blueprint('operations_api', __name__)
 @operations_api.route('/api/operations/cargo/progress/<int:operation_id>', methods=['GET'])
 def get_cargo_progress(operation_id: int):
     """Get real-time cargo progress for an operation"""
+    from models.maritime.maritime_operation import MaritimeOperation
     try:
         operation = MaritimeOperation.query.get_or_404(operation_id)
         
@@ -47,6 +48,7 @@ def get_cargo_progress(operation_id: int):
 @operations_api.route('/api/operations/cargo/update_progress', methods=['POST'])
 def update_cargo_progress():
     """Update real-time cargo progress"""
+    from models.maritime.maritime_operation import MaritimeOperation
     try:
         data = request.get_json()
         
@@ -116,6 +118,7 @@ def update_cargo_progress():
 @operations_api.route('/api/operations/cargo/zones', methods=['GET'])
 def get_zone_info():
     """Get zone configurations and current status"""
+    from models.maritime.maritime_operation import MaritimeOperation
     try:
         zones = MaritimeValidator.ZONES
         equipment_specs = MaritimeValidator.EQUIPMENT_SPECS
@@ -201,6 +204,7 @@ def get_cargo_recommendations():
 @operations_api.route('/api/operations/cargo/analytics/<int:operation_id>', methods=['GET'])
 def get_cargo_analytics(operation_id: int):
     """Get detailed analytics for cargo operation"""
+    from models.maritime.maritime_operation import MaritimeOperation
     try:
         operation = MaritimeOperation.query.get_or_404(operation_id)
         

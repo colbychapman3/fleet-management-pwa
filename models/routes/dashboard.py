@@ -15,7 +15,6 @@ from models.models.user import User
 from models.models.vessel import Vessel
 from models.models.task import Task
 from models.models.sync_log import SyncLog
-from models.maritime.maritime_operation import MaritimeOperation
 
 logger = structlog.get_logger()
 
@@ -56,6 +55,8 @@ def manager():
         failed_syncs = SyncLog.get_failed_syncs()
 
         # Get maritime operations
+        # Get maritime operations (late import to avoid circular import)
+        from models.maritime.maritime_operation import MaritimeOperation
         maritime_operations = MaritimeOperation.query.order_by(MaritimeOperation.created_at.desc()).all()
         
         # Calculate stevedoring-specific metrics
@@ -380,6 +381,8 @@ def operations():
     """Stevedoring operations dashboard"""
     try:
         # Get active maritime operations
+        # Get maritime operations (late import to avoid circular import)
+        from models.maritime.maritime_operation import MaritimeOperation
         active_operations = MaritimeOperation.query.filter(
             MaritimeOperation.status.in_(['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4'])
         ).order_by(MaritimeOperation.created_at.desc()).all()
