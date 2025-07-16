@@ -741,7 +741,8 @@ class OperationsDashboard {
     
     initializeOperation() {
         console.log('Initializing new operation');
-        // Open new operation wizard
+        // Navigate to maritime operations wizard step 1
+        window.location.href = '/maritime/ship_operations/new/step1';
     }
     
     updateOperation(operationId) {
