@@ -730,7 +730,7 @@ def maritime_access_required(required_roles=None):
 
 # Ship Operations Wizard API
 
-@ship_operations_bp.route('/', methods=['POST'])
+@maritime_bp.route('/ship_operations/', methods=['POST'])
 @login_required
 @maritime_access_required(['manager', 'maritime_supervisor'])
 def create_ship_operation():
@@ -830,7 +830,7 @@ def create_ship_operation():
         logger.error(f"Create ship operation error: {e}")
         return jsonify({'error': 'Failed to create ship operation'}), 500
 
-@ship_operations_bp.route('/<int:vessel_id>', methods=['GET'])
+@maritime_bp.route('/ship_operations/<int:vessel_id>', methods=['GET'])
 @login_required
 @maritime_access_required()
 def get_ship_operation(vessel_id):
@@ -881,7 +881,7 @@ def get_ship_operation(vessel_id):
         logger.error(f"Get ship operation error: {e}")
         return jsonify({'error': 'Failed to retrieve ship operation'}), 500
 
-@ship_operations_bp.route('/<int:vessel_id>/step/<int:step>', methods=['PUT'])
+@maritime_bp.route('/ship_operations/<int:vessel_id>/step/<int:step>', methods=['PUT'])
 @login_required
 @maritime_access_required()
 def update_wizard_step(vessel_id, step):
@@ -1112,7 +1112,7 @@ def process_step_4_berth_allocation(vessel, data, operation_metadata, db):
         ]
     })
 
-@ship_operations_bp.route('/', methods=['GET'])
+@maritime_bp.route('/ship_operations/', methods=['GET'])
 @login_required
 @maritime_access_required()
 def list_ship_operations():
@@ -1198,7 +1198,7 @@ def list_ship_operations():
         logger.error(f"List ship operations error: {e}")
         return jsonify({'error': 'Failed to retrieve ship operations'}), 500
 
-@ship_operations_bp.route('/<int:vessel_id>', methods=['DELETE'])
+@maritime_bp.route('/ship_operations/<int:vessel_id>', methods=['DELETE'])
 @login_required
 @maritime_access_required(['manager'])
 def delete_ship_operation(vessel_id):
