@@ -348,47 +348,269 @@
                         <option value="night">Night Shift</option>
                         <option value="all">All Shifts</option>
                     </select>
+                    <button class="btn btn-sm btn-primary" onclick="showTeamAssignmentModal()">
+                        <i class="icon-plus"></i>
+                        Assign Teams
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="refreshTeamPerformance()">
+                        <i class="icon-refresh"></i>
+                        Refresh
+                    </button>
                 </div>
             </div>
             
-            <div class="team-metrics">
-                {% for team in active_teams %}
-                <div class="team-card">
-                    <div class="team-header">
-                        <h4>{{ team.team_name }}</h4>
-                        <span class="team-status status-{{ team.status }}">{{ team.status.title() }}</span>
+            <!-- Team Performance Summary -->
+            <div class="performance-summary">
+                <div class="summary-card">
+                    <div class="summary-value" id="avg-team-efficiency">{{ team_summary.average_efficiency or 0 }}%</div>
+                    <div class="summary-label">Average Efficiency</div>
+                    <div class="summary-trend" id="efficiency-trend">
+                        <i class="icon-trending-up"></i>
+                        <span class="trend-value">+5.2%</span>
                     </div>
-                    
-                    <div class="team-stats">
-                        <div class="stat-item">
-                            <span class="stat-value">{{ team.cargo_processed_today }}</span>
-                            <span class="stat-label">MT Processed</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">{{ team.efficiency_rating }}%</span>
-                            <span class="stat-label">Efficiency</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-value">{{ team.active_members_count }}</span>
-                            <span class="stat-label">Active Members</span>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="total-throughput">{{ team_summary.total_throughput or 0 }}</div>
+                    <div class="summary-label">Total Throughput (MT/hr)</div>
+                    <div class="summary-trend" id="throughput-trend">
+                        <i class="icon-trending-up"></i>
+                        <span class="trend-value">+12.5%</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="safety-incidents">{{ team_summary.safety_incidents or 0 }}</div>
+                    <div class="summary-label">Safety Incidents</div>
+                    <div class="summary-trend negative" id="safety-trend">
+                        <i class="icon-trending-down"></i>
+                        <span class="trend-value">-2</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="active-teams-count">{{ team_summary.active_teams or 0 }}</div>
+                    <div class="summary-label">Active Teams</div>
+                    <div class="summary-trend" id="teams-trend">
+                        <i class="icon-users"></i>
+                        <span class="trend-value">{{ team_summary.available_teams or 0 }} Available</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Performance Cards -->
+            <div class="team-metrics" id="team-metrics">
+                <!-- Team cards will be populated via JavaScript -->
+                <div class="team-card skeleton" id="team-loading">
+                    <div class="team-card-header">
+                        <div class="team-name">Loading teams...</div>
+                        <div class="team-status">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Fetching data</span>
                         </div>
                     </div>
-                    
-                    {% if team.current_operation %}
-                    <div class="team-assignment">
-                        <span class="assignment-label">Assigned to:</span>
-                        <span class="assignment-vessel">{{ team.current_operation.vessel.name }}</span>
+                </div>
+            </div>
+            
+            <!-- Team Performance Alerts -->
+            <div class="performance-alerts" id="team-alerts">
+                <h4>
+                    <i class="icon-alert-triangle"></i>
+                    Team Performance Alerts
+                </h4>
+                <div class="alert-items" id="team-alert-items">
+                    <!-- Alert items will be populated via JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Team Performance Trend Chart -->
+            <div class="performance-chart">
+                <h4>Team Performance Trends</h4>
+                <div class="chart-controls">
+                    <button class="btn btn-sm btn-outline" onclick="updateChart('efficiency')">Efficiency</button>
+                    <button class="btn btn-sm btn-outline" onclick="updateChart('throughput')">Throughput</button>
+                    <button class="btn btn-sm btn-outline" onclick="updateChart('safety')">Safety</button>
+                    <button class="btn btn-sm btn-outline active" onclick="updateChart('all')">All Metrics</button>
+                </div>
+                <div class="chart-container">
+                    <canvas id="teamPerformanceChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- TICO Vehicle Management Panel -->
+        <div class="vehicle-panel">
+            <div class="panel-header">
+                <h3>
+                    <i class="icon-truck"></i>
+                    TICO Vehicle Management
+                </h3>
+                <div class="panel-actions">
+                    <select class="form-control" id="vehicle-zone-filter" onchange="filterVehiclesByZone(this.value)">
+                        <option value="all">All Zones</option>
+                        <option value="BRV">BRV Zone</option>
+                        <option value="ZEE">ZEE Zone</option>
+                        <option value="SOU">SOU Zone</option>
+                        <option value="unassigned">Unassigned</option>
+                    </select>
+                    <button class="btn btn-sm btn-primary" onclick="showVehicleAssignmentModal()">
+                        <i class="icon-plus"></i>
+                        Assign Vehicle
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="refreshVehicles()">
+                        <i class="icon-refresh"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Vehicle Status Summary -->
+            <div class="vehicle-summary">
+                <div class="summary-card">
+                    <div class="summary-value" id="total-vehicles">{{ vehicle_summary.total_vehicles or 0 }}</div>
+                    <div class="summary-label">Total Vehicles</div>
+                    <div class="summary-detail" id="vehicle-types">
+                        <span class="detail-item">{{ vehicle_summary.vans or 0 }} Vans</span>
+                        <span class="detail-item">{{ vehicle_summary.station_wagons or 0 }} Station Wagons</span>
                     </div>
-                    {% endif %}
-                    
-                    <div class="team-actions">
-                        <button class="btn btn-sm btn-outline" onclick="viewTeamDetails('{{ team.id }}')">
-                            <i class="icon-info"></i>
-                            Details
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="available-vehicles">{{ vehicle_summary.available_vehicles or 0 }}</div>
+                    <div class="summary-label">Available Vehicles</div>
+                    <div class="summary-detail" id="availability-percentage">
+                        <span class="detail-item">{{ vehicle_summary.availability_percentage or 0 }}% Available</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="vehicle-utilization">{{ vehicle_summary.average_utilization or 0 }}%</div>
+                    <div class="summary-label">Average Utilization</div>
+                    <div class="summary-trend" id="utilization-trend">
+                        <i class="icon-trending-up"></i>
+                        <span class="trend-value">{{ vehicle_summary.utilization_trend or 0 }}%</span>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-value" id="maintenance-alerts">{{ vehicle_summary.maintenance_alerts or 0 }}</div>
+                    <div class="summary-label">Maintenance Alerts</div>
+                    <div class="summary-detail" id="maintenance-status">
+                        <span class="detail-item">{{ vehicle_summary.overdue_maintenance or 0 }} Overdue</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Zone Assignment Grid -->
+            <div class="zone-assignment-grid">
+                <div class="zone-card" data-zone="BRV">
+                    <div class="zone-header">
+                        <h4>BRV Zone</h4>
+                        <span class="zone-capacity" id="brv-capacity">{{ zone_summary.BRV.available_capacity or 0 }}/{{ zone_summary.BRV.total_capacity or 0 }}</span>
+                    </div>
+                    <div class="zone-vehicles" id="brv-vehicles">
+                        <!-- Vehicle cards will be populated via JavaScript -->
+                    </div>
+                    <div class="zone-actions">
+                        <button class="btn btn-sm btn-outline" onclick="optimizeZoneAssignment('BRV')">
+                            <i class="icon-zap"></i>
+                            Optimize
                         </button>
                     </div>
                 </div>
-                {% endfor %}
+                
+                <div class="zone-card" data-zone="ZEE">
+                    <div class="zone-header">
+                        <h4>ZEE Zone</h4>
+                        <span class="zone-capacity" id="zee-capacity">{{ zone_summary.ZEE.available_capacity or 0 }}/{{ zone_summary.ZEE.total_capacity or 0 }}</span>
+                    </div>
+                    <div class="zone-vehicles" id="zee-vehicles">
+                        <!-- Vehicle cards will be populated via JavaScript -->
+                    </div>
+                    <div class="zone-actions">
+                        <button class="btn btn-sm btn-outline" onclick="optimizeZoneAssignment('ZEE')">
+                            <i class="icon-zap"></i>
+                            Optimize
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="zone-card" data-zone="SOU">
+                    <div class="zone-header">
+                        <h4>SOU Zone</h4>
+                        <span class="zone-capacity" id="sou-capacity">{{ zone_summary.SOU.available_capacity or 0 }}/{{ zone_summary.SOU.total_capacity or 0 }}</span>
+                    </div>
+                    <div class="zone-vehicles" id="sou-vehicles">
+                        <!-- Vehicle cards will be populated via JavaScript -->
+                    </div>
+                    <div class="zone-actions">
+                        <button class="btn btn-sm btn-outline" onclick="optimizeZoneAssignment('SOU')">
+                            <i class="icon-zap"></i>
+                            Optimize
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="zone-card" data-zone="unassigned">
+                    <div class="zone-header">
+                        <h4>Unassigned</h4>
+                        <span class="zone-capacity" id="unassigned-count">{{ zone_summary.unassigned.count or 0 }}</span>
+                    </div>
+                    <div class="zone-vehicles" id="unassigned-vehicles">
+                        <!-- Vehicle cards will be populated via JavaScript -->
+                    </div>
+                    <div class="zone-actions">
+                        <button class="btn btn-sm btn-primary" onclick="assignAllUnassignedVehicles()">
+                            <i class="icon-arrow-right"></i>
+                            Auto-Assign
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vehicle Performance Metrics -->
+            <div class="vehicle-metrics">
+                <h4>
+                    <i class="icon-bar-chart"></i>
+                    Vehicle Performance Metrics
+                </h4>
+                <div class="metrics-tabs">
+                    <button class="tab-button active" onclick="showVehicleTab('utilization')">Utilization</button>
+                    <button class="tab-button" onclick="showVehicleTab('efficiency')">Efficiency</button>
+                    <button class="tab-button" onclick="showVehicleTab('assignments')">Assignments</button>
+                </div>
+                <div class="metrics-content">
+                    <div class="metric-tab active" id="utilization-tab">
+                        <div class="utilization-chart">
+                            <canvas id="vehicleUtilizationChart" width="400" height="200"></canvas>
+                        </div>
+                    </div>
+                    <div class="metric-tab" id="efficiency-tab">
+                        <div class="efficiency-metrics" id="efficiency-metrics">
+                            <!-- Efficiency metrics will be populated via JavaScript -->
+                        </div>
+                    </div>
+                    <div class="metric-tab" id="assignments-tab">
+                        <div class="assignments-list" id="recent-assignments">
+                            <!-- Recent assignments will be populated via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Vehicle Optimization Recommendations -->
+            <div class="optimization-recommendations" id="vehicle-recommendations">
+                <h4>
+                    <i class="icon-lightbulb"></i>
+                    Optimization Recommendations
+                </h4>
+                <div class="recommendation-items" id="recommendation-items">
+                    <!-- Recommendations will be populated via JavaScript -->
+                </div>
+                <div class="recommendation-actions">
+                    <button class="btn btn-sm btn-primary" onclick="applyOptimizationRecommendations()">
+                        <i class="icon-check"></i>
+                        Apply Recommendations
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="refreshOptimizationRecommendations()">
+                        <i class="icon-refresh"></i>
+                        Refresh
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -465,9 +687,359 @@
     </div>
 </div>
 
+<!-- Team Assignment Modal -->
+<div class="modal" id="team-assignment-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign Teams to Operation</h3>
+                <button class="modal-close" onclick="closeModal('team-assignment-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="team-assignment-modal-body">
+                <!-- Operation Selection -->
+                <div class="form-group">
+                    <label for="operation-select">Select Operation:</label>
+                    <select class="form-control" id="operation-select" onchange="loadOperationDetails()">
+                        <option value="">Select an operation...</option>
+                        <!-- Options populated via JavaScript -->
+                    </select>
+                </div>
+                
+                <!-- Operation Details -->
+                <div class="operation-details" id="operation-details" style="display: none;">
+                    <div class="details-card">
+                        <h4>Operation Details</h4>
+                        <div class="detail-row">
+                            <span class="detail-label">Vessel:</span>
+                            <span class="detail-value" id="vessel-name"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value" id="operation-type"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Berth:</span>
+                            <span class="detail-value" id="berth-location"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Current Teams:</span>
+                            <span class="detail-value" id="current-teams"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Selection -->
+                <div class="team-selection" id="team-selection" style="display: none;">
+                    <h4>Available Teams</h4>
+                    <div class="team-filters">
+                        <div class="filter-group">
+                            <label for="zone-filter">Zone:</label>
+                            <select class="form-control" id="zone-filter-modal" onchange="filterAvailableTeams()">
+                                <option value="">All Zones</option>
+                                <option value="BRV">BRV</option>
+                                <option value="ZEE">ZEE</option>
+                                <option value="SOU">SOU</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="shift-filter">Shift:</label>
+                            <select class="form-control" id="shift-filter-modal" onchange="filterAvailableTeams()">
+                                <option value="">All Shifts</option>
+                                <option value="day">Day Shift</option>
+                                <option value="night">Night Shift</option>
+                                <option value="rotating">Rotating</option>
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label for="specialization-filter">Specialization:</label>
+                            <select class="form-control" id="specialization-filter-modal" onchange="filterAvailableTeams()">
+                                <option value="">All Specializations</option>
+                                <option value="automobiles">Automobiles</option>
+                                <option value="heavy_equipment">Heavy Equipment</option>
+                                <option value="containers">Containers</option>
+                                <option value="bulk_cargo">Bulk Cargo</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="team-list" id="available-teams">
+                        <!-- Team cards populated via JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Selected Teams -->
+                <div class="selected-teams" id="selected-teams" style="display: none;">
+                    <h4>Selected Teams</h4>
+                    <div class="selected-team-list" id="selected-team-list">
+                        <!-- Selected teams will be shown here -->
+                    </div>
+                </div>
+                
+                <!-- Assignment Options -->
+                <div class="assignment-options" id="assignment-options" style="display: none;">
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="force-reassign" />
+                            Force reassignment (remove teams from conflicting operations)
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="assignment-notes">Assignment Notes:</label>
+                        <textarea class="form-control" id="assignment-notes" rows="3" placeholder="Optional notes about this team assignment..."></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('team-assignment-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="assignTeamsToOperation()" id="assign-teams-btn" disabled>
+                    <i class="icon-users"></i>
+                    Assign Teams
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Team Performance Details Modal -->
+<div class="modal" id="team-performance-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Team Performance Details</h3>
+                <button class="modal-close" onclick="closeModal('team-performance-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="team-performance-modal-body">
+                <!-- Team performance details will be populated via JavaScript -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Assignment Modal -->
+<div class="modal" id="vehicle-assignment-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign TICO Vehicle</h3>
+                <button class="modal-close" onclick="closeModal('vehicle-assignment-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="vehicle-assignment-modal-body">
+                <!-- Vehicle Selection -->
+                <div class="form-group">
+                    <label for="vehicle-select">Select Vehicle:</label>
+                    <select class="form-control" id="vehicle-select" onchange="loadVehicleDetails()">
+                        <option value="">Select a vehicle...</option>
+                        <!-- Options populated via JavaScript -->
+                    </select>
+                </div>
+                
+                <!-- Vehicle Details -->
+                <div class="vehicle-details" id="vehicle-details" style="display: none;">
+                    <div class="details-card">
+                        <h4>Vehicle Details</h4>
+                        <div class="detail-row">
+                            <span class="detail-label">License Plate:</span>
+                            <span class="detail-value" id="vehicle-license-plate"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Type:</span>
+                            <span class="detail-value" id="vehicle-type"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Capacity:</span>
+                            <span class="detail-value" id="vehicle-capacity"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Current Status:</span>
+                            <span class="detail-value" id="vehicle-status"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Current Zone:</span>
+                            <span class="detail-value" id="vehicle-current-zone"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Available Capacity:</span>
+                            <span class="detail-value" id="vehicle-available-capacity"></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Assignment Details -->
+                <div class="assignment-details" id="assignment-details" style="display: none;">
+                    <h4>Assignment Details</h4>
+                    <div class="form-group">
+                        <label for="assignment-zone">Target Zone:</label>
+                        <select class="form-control" id="assignment-zone" onchange="updateAssignmentDetails()">
+                            <option value="">Select zone...</option>
+                            <option value="BRV">BRV Zone</option>
+                            <option value="ZEE">ZEE Zone</option>
+                            <option value="SOU">SOU Zone</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignment-driver">Driver:</label>
+                        <select class="form-control" id="assignment-driver">
+                            <option value="">Select driver...</option>
+                            <!-- Options populated via JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="passenger-count">Passenger Count:</label>
+                        <input type="number" class="form-control" id="passenger-count" min="1" max="10" value="1" onchange="validatePassengerCount()">
+                        <small class="form-text text-muted">Number of passengers to transport</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignment-location">Current Location:</label>
+                        <input type="text" class="form-control" id="assignment-location" placeholder="Enter current location...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignment-coordinates">GPS Coordinates (optional):</label>
+                        <input type="text" class="form-control" id="assignment-coordinates" placeholder="lat,lng">
+                    </div>
+                </div>
+                
+                <!-- Optimization Recommendations -->
+                <div class="optimization-section" id="optimization-section" style="display: none;">
+                    <h4>Optimization Recommendations</h4>
+                    <div class="recommendation-card" id="assignment-recommendation">
+                        <div class="recommendation-header">
+                            <i class="icon-lightbulb"></i>
+                            <span>Recommended Assignment</span>
+                        </div>
+                        <div class="recommendation-content" id="recommendation-content">
+                            <!-- Recommendations will be populated via JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('vehicle-assignment-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="assignVehicle()" id="assign-vehicle-btn" disabled>
+                    <i class="icon-truck"></i>
+                    Assign Vehicle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Location Update Modal -->
+<div class="modal" id="vehicle-location-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Vehicle Location</h3>
+                <button class="modal-close" onclick="closeModal('vehicle-location-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="location-vehicle-select">Select Vehicle:</label>
+                    <select class="form-control" id="location-vehicle-select">
+                        <option value="">Select a vehicle...</option>
+                        <!-- Options populated via JavaScript -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-location">New Location:</label>
+                    <input type="text" class="form-control" id="new-location" placeholder="Enter new location...">
+                </div>
+                
+                <div class="form-group">
+                    <label for="new-coordinates">GPS Coordinates (optional):</label>
+                    <input type="text" class="form-control" id="new-coordinates" placeholder="lat,lng">
+                </div>
+                
+                <div class="form-group">
+                    <button class="btn btn-outline" onclick="getCurrentLocation()">
+                        <i class="icon-map-pin"></i>
+                        Use Current Location
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('vehicle-location-modal')">Cancel</button>
+                <button class="btn btn-primary" onclick="updateVehicleLocation()" id="update-location-btn" disabled>
+                    <i class="icon-map-pin"></i>
+                    Update Location
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Vehicle Optimization Modal -->
+<div class="modal" id="vehicle-optimization-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Vehicle Assignment Optimization</h3>
+                <button class="modal-close" onclick="closeModal('vehicle-optimization-modal')">
+                    <i class="icon-x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Zone Demands -->
+                <div class="form-section">
+                    <h4>Zone Demands</h4>
+                    <div class="zone-demands">
+                        <div class="demand-input">
+                            <label for="brv-demand">BRV Zone Demand:</label>
+                            <input type="number" class="form-control" id="brv-demand" min="0" max="20" value="0">
+                        </div>
+                        <div class="demand-input">
+                            <label for="zee-demand">ZEE Zone Demand:</label>
+                            <input type="number" class="form-control" id="zee-demand" min="0" max="20" value="0">
+                        </div>
+                        <div class="demand-input">
+                            <label for="sou-demand">SOU Zone Demand:</label>
+                            <input type="number" class="form-control" id="sou-demand" min="0" max="20" value="0">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Optimization Results -->
+                <div class="optimization-results" id="optimization-results" style="display: none;">
+                    <h4>Optimization Results</h4>
+                    <div class="results-summary" id="results-summary">
+                        <!-- Results will be populated via JavaScript -->
+                    </div>
+                    <div class="assignment-recommendations" id="assignment-recommendations">
+                        <!-- Recommendations will be populated via JavaScript -->
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('vehicle-optimization-modal')">Cancel</button>
+                <button class="btn btn-secondary" onclick="calculateOptimization()">
+                    <i class="icon-calculator"></i>
+                    Calculate Optimization
+                </button>
+                <button class="btn btn-primary" onclick="applyOptimization()" id="apply-optimization-btn" disabled>
+                    <i class="icon-check"></i>
+                    Apply Optimization
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Include operation dashboard CSS and JS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/operations-dashboard.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/vehicle-management.css') }}">
 <script src="{{ url_for('static', filename='js/operations-dashboard.js') }}"></script>
 
 {% endblock %}

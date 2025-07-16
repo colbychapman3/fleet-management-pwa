@@ -90,6 +90,28 @@ class MaritimeOperation(db.Model):
     # Timestamps (backward compatible)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    completed_at = db.Column(db.DateTime)  # For turnaround calculations
+    
+    # Operational metrics
+    actual_duration = db.Column(db.Float)  # Hours for efficiency tracking
+    berth_assigned = db.Column(db.String(10))  # Berth number (1, 2, 3) for utilization
+    
+    # Wizard step tracking
+    current_step = db.Column(db.Integer, default=1)
+    step_1_completed = db.Column(db.Boolean, default=False)
+    step_2_completed = db.Column(db.Boolean, default=False)
+    step_3_completed = db.Column(db.Boolean, default=False)
+    step_4_completed = db.Column(db.Boolean, default=False)
+    
+    # Team Performance Tracking
+    assigned_teams = db.Column(db.Text)  # JSON array of team IDs
+    team_performance_data = db.Column(db.Text)  # JSON for team performance metrics
+    cargo_processed_mt = db.Column(db.Float, default=0.0)  # Metric tons processed
+    operation_efficiency = db.Column(db.Float, default=0.0)  # Overall efficiency rating
+    safety_incidents = db.Column(db.Integer, default=0)  # Number of safety incidents
+    team_completion_rates = db.Column(db.Text)  # JSON for team-specific completion rates
+    team_throughput_data = db.Column(db.Text)  # JSON for team throughput metrics
+    workload_distribution = db.Column(db.Text)  # JSON for team workload distribution
     
     # Relationships
     vessel = db.relationship('Vessel', backref='maritime_operations')
@@ -217,6 +239,138 @@ class MaritimeOperation(db.Model):
             'expected_rate': self.expected_rate or 0,
             'total_drivers': self.total_drivers or 0
         }
+    
+    def get_progress_percentage(self):
+        """Calculate operation progress percentage based on completed steps"""
+        if self.step_4_completed:
+            return 100
+        elif self.step_3_completed:
+            return 75
+        elif self.step_2_completed:
+            return 50
+        elif self.step_1_completed:
+            return 25
+        else:
+            return 0
+    
+    def get_current_step_description(self):
+        """Get description of current step"""
+        step_descriptions = {
+            1: "Documentation & Setup",
+            2: "Vessel Positioning",
+            3: "Cargo Operations",
+            4: "Completion & Departure"
+        }
+        return step_descriptions.get(self.current_step, "Unknown")
+    
+    def is_active(self):
+        """Check if operation is currently active"""
+        return self.status in ['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4']
+    
+    # Team Performance Methods
+    def get_assigned_teams(self):
+        """Get assigned teams as list of team IDs"""
+        if not self.assigned_teams:
+            return []
+        try:
+            return json.loads(self.assigned_teams)
+        except (json.JSONDecodeError, TypeError):
+            return []
+    
+    def set_assigned_teams(self, team_ids):
+        """Set assigned teams from list of team IDs"""
+        self.assigned_teams = json.dumps(team_ids) if team_ids else None
+    
+    def get_team_performance_data(self):
+        """Get team performance data as Python object"""
+        if not self.team_performance_data:
+            return {}
+        try:
+            return json.loads(self.team_performance_data)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    
+    def set_team_performance_data(self, data):
+        """Set team performance data from Python object"""
+        self.team_performance_data = json.dumps(data) if data else None
+    
+    def get_team_completion_rates(self):
+        """Get team completion rates as Python object"""
+        if not self.team_completion_rates:
+            return {}
+        try:
+            return json.loads(self.team_completion_rates)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    
+    def set_team_completion_rates(self, rates):
+        """Set team completion rates from Python object"""
+        self.team_completion_rates = json.dumps(rates) if rates else None
+    
+    def get_team_throughput_data(self):
+        """Get team throughput data as Python object"""
+        if not self.team_throughput_data:
+            return {}
+        try:
+            return json.loads(self.team_throughput_data)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    
+    def set_team_throughput_data(self, data):
+        """Set team throughput data from Python object"""
+        self.team_throughput_data = json.dumps(data) if data else None
+    
+    def get_workload_distribution(self):
+        """Get workload distribution as Python object"""
+        if not self.workload_distribution:
+            return {}
+        try:
+            return json.loads(self.workload_distribution)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+    
+    def set_workload_distribution(self, distribution):
+        """Set workload distribution from Python object"""
+        self.workload_distribution = json.dumps(distribution) if distribution else None
+    
+    def calculate_overall_efficiency(self):
+        """Calculate overall operation efficiency based on team performance"""
+        team_performance = self.get_team_performance_data()
+        if not team_performance:
+            return 0.0
+        
+        total_efficiency = 0.0
+        team_count = 0
+        
+        for team_id, performance in team_performance.items():
+            if isinstance(performance, dict) and 'efficiency' in performance:
+                total_efficiency += performance['efficiency']
+                team_count += 1
+        
+        return total_efficiency / team_count if team_count > 0 else 0.0
+    
+    def calculate_cargo_throughput_rate(self):
+        """Calculate cargo throughput rate in MT/hour"""
+        if not self.actual_duration or self.actual_duration <= 0:
+            return 0.0
+        
+        return self.cargo_processed_mt / self.actual_duration
+    
+    def get_team_efficiency_breakdown(self):
+        """Get efficiency breakdown by team"""
+        performance_data = self.get_team_performance_data()
+        breakdown = {}
+        
+        for team_id, data in performance_data.items():
+            if isinstance(data, dict):
+                breakdown[team_id] = {
+                    'efficiency': data.get('efficiency', 0.0),
+                    'cargo_processed': data.get('cargo_processed', 0.0),
+                    'hours_worked': data.get('hours_worked', 0.0),
+                    'throughput_rate': data.get('cargo_processed', 0.0) / data.get('hours_worked', 1.0)
+                }
+        
+        return breakdown
     
     def to_dict(self):
         """Convert to dictionary for API responses"""

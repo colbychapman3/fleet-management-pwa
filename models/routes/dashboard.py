@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import structlog
-from random import randint
+from sqlalchemy import func
 
 def get_app_db():
     import app
@@ -15,6 +15,7 @@ from models.models.user import User
 from models.models.vessel import Vessel
 from models.models.task import Task
 from models.models.sync_log import SyncLog
+from models.models.alert import Alert, AlertGenerator
 
 logger = structlog.get_logger()
 
@@ -73,6 +74,21 @@ def manager():
             'berth_3': {'status': 'occupied', 'vessel': vessels[1] if len(vessels) > 1 else None, 'eta': '16:00', 'progress': 30}
         }
         
+        # Run alert generation checks and get alerts
+        try:
+            AlertGenerator.run_all_checks()
+            manager_alerts = Alert.get_active_alerts(limit=5)
+            manager_alert_stats = Alert.get_alert_statistics()
+        except Exception as e:
+            logger.error(f"Manager dashboard alert generation error: {e}")
+            manager_alerts = []
+            manager_alert_stats = {
+                'total_active': 0,
+                'by_severity': {'critical': 0, 'error': 0, 'warning': 0, 'info': 0},
+                'by_type': {},
+                'recent_count': 0
+            }
+        
         return render_template('dashboard/manager.html',
             task_stats=task_stats,
             overdue_tasks=overdue_tasks,
@@ -84,7 +100,9 @@ def manager():
             maritime_operations=maritime_operations,
             today=today,
             completed_tasks_today=completed_tasks_today,
-            berth_utilization=berth_utilization
+            berth_utilization=berth_utilization,
+            alerts=[alert.to_dict() for alert in manager_alerts],
+            alert_stats=manager_alert_stats
         )
         
     except Exception as e:
@@ -392,72 +410,232 @@ def operations():
             Vessel.berth_number.is_(None)
         ).order_by(Vessel.created_at.desc()).all()
         
-        # Mock berth status data
+        # Real berth status from active operations
         berth_status = {
-            'berth_1': {
-                'status': 'occupied',
-                'vessel': Vessel.query.first(),
-                'eta': '14:30',
-                'progress': 65
-            },
-            'berth_2': {
-                'status': 'available',
-                'vessel': None,
-                'eta': None,
-                'progress': 0
-            },
-            'berth_3': {
-                'status': 'maintenance',
-                'vessel': None,
-                'eta': None,
-                'progress': 0
-            }
+            'berth_1': {'status': 'available', 'vessel': None, 'eta': None, 'progress': 0},
+            'berth_2': {'status': 'available', 'vessel': None, 'eta': None, 'progress': 0},
+            'berth_3': {'status': 'available', 'vessel': None, 'eta': None, 'progress': 0}
         }
         
-        # Mock KPI statistics
+        # Get active operations with berth assignments
+        try:
+            active_berth_ops = MaritimeOperation.query.filter(
+                MaritimeOperation.berth_assigned.isnot(None),
+                MaritimeOperation.status.in_(['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4'])
+            ).all()
+            
+            for op in active_berth_ops:
+                berth_key = f'berth_{op.berth_assigned}'
+                if berth_key in berth_status:
+                    berth_status[berth_key] = {
+                        'status': 'occupied',
+                        'vessel': op.vessel if op.vessel else None,
+                        'vessel_name': op.vessel_name,
+                        'eta': op.eta.strftime('%H:%M') if op.eta else None,
+                        'progress': op.get_progress_percentage()
+                    }
+        except Exception as e:
+            logger.error(f"Berth status calculation error: {e}")
+        
+        # Real KPI statistics from MaritimeOperation data with error handling
+        now = datetime.utcnow()
+        today = now.date()
+        yesterday = today - timedelta(days=1)
+        week_ago = today - timedelta(days=7)
+        
+        # Operations trend: Compare today vs yesterday
+        try:
+            operations_today = MaritimeOperation.query.filter(
+                func.date(MaritimeOperation.created_at) == today
+            ).count()
+            operations_yesterday = MaritimeOperation.query.filter(
+                func.date(MaritimeOperation.created_at) == yesterday
+            ).count()
+            
+            operations_trend = 0
+            if operations_yesterday > 0:
+                operations_trend = int(((operations_today - operations_yesterday) / operations_yesterday) * 100)
+            elif operations_today > 0:
+                operations_trend = 100
+        except Exception as e:
+            logger.error(f"Operations trend calculation error: {e}")
+            operations_trend = 0
+        
+        # Berth utilization: Count operations with berth_assigned / 3 berths * 100
+        try:
+            berths_occupied = MaritimeOperation.query.filter(
+                MaritimeOperation.berth_assigned.isnot(None),
+                MaritimeOperation.status.in_(['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4'])
+            ).count()
+            berth_utilization = min(int((berths_occupied / 3) * 100), 100) if berths_occupied >= 0 else 0
+        except Exception as e:
+            logger.error(f"Berth utilization calculation error: {e}")
+            berths_occupied = 0
+            berth_utilization = 0
+        
+        # Cargo throughput: Sum cargo_weight from completed operations today / total hours
+        try:
+            completed_today = MaritimeOperation.query.filter(
+                func.date(MaritimeOperation.completed_at) == today,
+                MaritimeOperation.status == 'completed'
+            ).all()
+            
+            total_weight = sum(op.cargo_weight or 0 for op in completed_today)
+            total_hours = sum(op.actual_duration or 0 for op in completed_today)
+            
+            cargo_throughput = 0
+            if total_hours > 0:
+                cargo_throughput = int(total_weight / total_hours)
+        except Exception as e:
+            logger.error(f"Cargo throughput calculation error: {e}")
+            cargo_throughput = 0
+        
+        # Calculate throughput trend (today vs yesterday)
+        try:
+            completed_yesterday = MaritimeOperation.query.filter(
+                func.date(MaritimeOperation.completed_at) == yesterday,
+                MaritimeOperation.status == 'completed'
+            ).all()
+            
+            yesterday_weight = sum(op.cargo_weight or 0 for op in completed_yesterday)
+            yesterday_hours = sum(op.actual_duration or 0 for op in completed_yesterday)
+            
+            yesterday_throughput = 0
+            if yesterday_hours > 0:
+                yesterday_throughput = yesterday_weight / yesterday_hours
+            
+            throughput_trend = 0
+            if yesterday_throughput > 0:
+                throughput_trend = int(((cargo_throughput - yesterday_throughput) / yesterday_throughput) * 100)
+            elif cargo_throughput > 0:
+                throughput_trend = 100
+        except Exception as e:
+            logger.error(f"Throughput trend calculation error: {e}")
+            throughput_trend = 0
+        
+        # Average turnaround: Average actual_duration from completed operations last 7 days
+        try:
+            completed_week = MaritimeOperation.query.filter(
+                func.date(MaritimeOperation.completed_at) >= week_ago,
+                MaritimeOperation.status == 'completed',
+                MaritimeOperation.actual_duration.isnot(None)
+            ).all()
+            
+            avg_turnaround = 0
+            if completed_week:
+                avg_turnaround = int(sum(op.actual_duration for op in completed_week) / len(completed_week))
+        except Exception as e:
+            logger.error(f"Average turnaround calculation error: {e}")
+            avg_turnaround = 0
+        
+        # Turnaround improvement: Compare current week vs previous week
+        try:
+            two_weeks_ago = week_ago - timedelta(days=7)
+            completed_prev_week = MaritimeOperation.query.filter(
+                func.date(MaritimeOperation.completed_at) >= two_weeks_ago,
+                func.date(MaritimeOperation.completed_at) < week_ago,
+                MaritimeOperation.status == 'completed',
+                MaritimeOperation.actual_duration.isnot(None)
+            ).all()
+            
+            turnaround_improvement = 0
+            if completed_prev_week:
+                prev_avg = sum(op.actual_duration for op in completed_prev_week) / len(completed_prev_week)
+                if prev_avg > 0 and avg_turnaround > 0:
+                    turnaround_improvement = int(((prev_avg - avg_turnaround) / prev_avg) * 100)
+        except Exception as e:
+            logger.error(f"Turnaround improvement calculation error: {e}")
+            turnaround_improvement = 0
+        
         kpi_stats = {
-            'operations_trend': randint(5, 15),
-            'berth_utilization': 67,
-            'berths_occupied': 1,
-            'cargo_throughput': randint(180, 250),
-            'throughput_trend': randint(3, 12),
-            'avg_turnaround': randint(18, 28),
-            'turnaround_improvement': randint(5, 15)
+            'operations_trend': operations_trend,
+            'berth_utilization': berth_utilization,
+            'berths_occupied': berths_occupied,
+            'cargo_throughput': cargo_throughput,
+            'throughput_trend': throughput_trend,
+            'avg_turnaround': avg_turnaround,
+            'turnaround_improvement': turnaround_improvement
         }
         
-        # Mock active teams data
+        # Real active teams data based on actual team assignments
         active_teams = []
-        for i in range(1, 4):
-            team = {
-                'id': i,
-                'team_name': f'Team Alpha-{i}',
-                'status': 'active',
-                'cargo_processed_today': randint(50, 150),
-                'efficiency_rating': randint(80, 95),
-                'active_members_count': randint(8, 12),
-                'current_operation': active_operations[0] if active_operations else None
-            }
-            active_teams.append(team)
+        try:
+            team_assignments = {}
+            
+            # Group operations by team leads to create team data
+            for op in active_operations:
+                if op.operation_manager:
+                    team_key = op.operation_manager
+                    if team_key not in team_assignments:
+                        team_assignments[team_key] = {
+                            'operations': [],
+                            'auto_ops_lead': op.auto_ops_lead,
+                            'heavy_ops_lead': op.heavy_ops_lead,
+                            'auto_ops_assistant': op.auto_ops_assistant,
+                            'heavy_ops_assistant': op.heavy_ops_assistant
+                        }
+                    team_assignments[team_key]['operations'].append(op)
+            
+            # Create team data from assignments
+            for idx, (manager, team_data) in enumerate(team_assignments.items(), 1):
+                operations = team_data['operations']
+                total_cargo = sum(op.cargo_weight or 0 for op in operations)
+                
+                # Count active team members
+                members = set()
+                for op in operations:
+                    if op.operation_manager:
+                        members.add(op.operation_manager)
+                    if op.auto_ops_lead:
+                        members.add(op.auto_ops_lead)
+                    if op.heavy_ops_lead:
+                        members.add(op.heavy_ops_lead)
+                    if op.auto_ops_assistant:
+                        members.add(op.auto_ops_assistant)
+                    if op.heavy_ops_assistant:
+                        members.add(op.heavy_ops_assistant)
+                
+                # Calculate efficiency based on progress
+                avg_progress = sum(op.get_progress_percentage() for op in operations) / len(operations) if operations else 0
+                
+                team = {
+                    'id': idx,
+                    'team_name': f'Team {manager}',
+                    'status': 'active',
+                    'cargo_processed_today': int(total_cargo),
+                    'efficiency_rating': int(avg_progress),
+                    'active_members_count': len(members),
+                    'current_operation': operations[0] if operations else None
+                }
+                active_teams.append(team)
+                
+        except Exception as e:
+            logger.error(f"Active teams calculation error: {e}")
         
-        # Mock alerts data
-        alerts = [
-            {
+        # If no teams found, create default empty team structure
+        if not active_teams:
+            active_teams = [{
                 'id': 1,
-                'severity': 'warning',
-                'icon': 'alert-triangle',
-                'title': 'Berth 3 Maintenance',
-                'message': 'Scheduled maintenance in progress',
-                'created_at': datetime.utcnow()
-            },
-            {
-                'id': 2,
-                'severity': 'info',
-                'icon': 'ship',
-                'title': 'Vessel Arrival',
-                'message': 'MV Atlantic Star approaching berth 1',
-                'created_at': datetime.utcnow()
-            }
-        ]
+                'team_name': 'No Active Teams',
+                'status': 'inactive',
+                'cargo_processed_today': 0,
+                'efficiency_rating': 0,
+                'active_members_count': 0,
+                'current_operation': None
+            }]
+        
+        # Run alert generation checks
+        try:
+            AlertGenerator.run_all_checks()
+        except Exception as e:
+            logger.error(f"Alert generation error: {e}")
+        
+        # Get real alerts data
+        alerts = Alert.get_active_alerts(limit=10)
+        alert_stats = Alert.get_alert_statistics()
+        
+        # Convert alerts to dict format for template
+        alerts_dict = [alert.to_dict() for alert in alerts]
         
         return render_template('dashboard/operations.html',
             active_operations=active_operations,
@@ -466,7 +644,8 @@ def operations():
             berth_status=berth_status,
             kpi_stats=kpi_stats,
             active_teams=active_teams,
-            alerts=alerts
+            alerts=alerts_dict,
+            alert_stats=alert_stats
         )
         
     except Exception as e:

@@ -1246,3 +1246,362 @@ def delete_ship_operation(vessel_id):
         db.session.rollback()
         logger.error(f"Delete ship operation error: {e}")
         return jsonify({'error': 'Failed to delete ship operation'}), 500
+
+# Berth Assignment API
+@maritime_bp.route('/berth/assign', methods=['POST'])
+@login_required
+@maritime_access_required(['manager', 'maritime_supervisor'])
+def assign_berth():
+    """
+    Assign vessel to berth
+    POST /api/maritime/berth/assign
+    """
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data or 'vessel_id' not in data or 'berth_number' not in data:
+            return jsonify({'error': 'vessel_id and berth_number are required'}), 400
+        
+        vessel_id = data['vessel_id']
+        berth_number = data['berth_number']
+        
+        # Validate berth number (1, 2, 3 for stevedoring operations)
+        if berth_number not in ['1', '2', '3']:
+            return jsonify({'error': 'Invalid berth number. Must be 1, 2, or 3'}), 400
+        
+        # Check if berth is available
+        existing_assignment = MaritimeOperation.query.filter(
+            MaritimeOperation.berth_assigned == berth_number,
+            MaritimeOperation.status.in_(['in_progress', 'step_1', 'step_2', 'step_3'])
+        ).first()
+        
+        if existing_assignment:
+            return jsonify({
+                'error': f'Berth {berth_number} is already occupied by {existing_assignment.vessel_name}'
+            }), 409
+        
+        # Find the maritime operation
+        operation = MaritimeOperation.query.filter_by(vessel_id=vessel_id).first()
+        
+        if not operation:
+            return jsonify({'error': 'Maritime operation not found'}), 404
+        
+        # Update berth assignment
+        operation.berth_assigned = berth_number
+        operation.berth = f'Berth {berth_number}'
+        operation.status = 'in_progress'
+        operation.updated_at = datetime.utcnow()
+        
+        # Update vessel if it exists
+        vessel = Vessel.query.get(vessel_id)
+        if vessel:
+            vessel.berth_number = berth_number
+            vessel.status = 'berthed'
+            vessel.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Log berth assignment
+        SyncLog.log_action(
+            user_id=current_user.id,
+            action='berth_assign',
+            table_name='maritime_operations',
+            record_id=operation.id,
+            data_after={
+                'vessel_id': vessel_id,
+                'berth_number': berth_number,
+                'vessel_name': operation.vessel_name,
+                'assigned_at': datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Clear relevant caches
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
+        cache_delete(get_cache_key('vessels', '*'))
+        cache_delete(get_cache_key('ship_operations', '*'))
+        cache_delete(get_cache_key('berths', '*'))
+        
+        logger.info(f"Berth {berth_number} assigned to vessel {vessel_id} by user {current_user.id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Vessel {operation.vessel_name} assigned to Berth {berth_number}',
+            'operation': {
+                'id': operation.id,
+                'vessel_id': vessel_id,
+                'vessel_name': operation.vessel_name,
+                'berth_assigned': berth_number,
+                'status': operation.status,
+                'updated_at': operation.updated_at.isoformat()
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Berth assignment error: {e}")
+        return jsonify({'error': 'Failed to assign berth'}), 500
+
+@maritime_bp.route('/berth/unassign', methods=['POST'])
+@login_required
+@maritime_access_required(['manager', 'maritime_supervisor'])
+def unassign_berth():
+    """
+    Remove vessel from berth
+    POST /api/maritime/berth/unassign
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'vessel_id' not in data:
+            return jsonify({'error': 'vessel_id is required'}), 400
+        
+        vessel_id = data['vessel_id']
+        
+        # Find the maritime operation
+        operation = MaritimeOperation.query.filter_by(vessel_id=vessel_id).first()
+        
+        if not operation:
+            return jsonify({'error': 'Maritime operation not found'}), 404
+        
+        berth_number = operation.berth_assigned
+        
+        # Update berth assignment
+        operation.berth_assigned = None
+        operation.berth = None
+        operation.status = 'pending'
+        operation.updated_at = datetime.utcnow()
+        
+        # Update vessel if it exists
+        vessel = Vessel.query.get(vessel_id)
+        if vessel:
+            vessel.berth_number = None
+            vessel.status = 'arriving'
+            vessel.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Log berth unassignment
+        SyncLog.log_action(
+            user_id=current_user.id,
+            action='berth_unassign',
+            table_name='maritime_operations',
+            record_id=operation.id,
+            data_after={
+                'vessel_id': vessel_id,
+                'berth_number': berth_number,
+                'vessel_name': operation.vessel_name,
+                'unassigned_at': datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Clear relevant caches
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
+        cache_delete(get_cache_key('vessels', '*'))
+        cache_delete(get_cache_key('ship_operations', '*'))
+        cache_delete(get_cache_key('berths', '*'))
+        
+        logger.info(f"Berth {berth_number} unassigned from vessel {vessel_id} by user {current_user.id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Vessel {operation.vessel_name} removed from Berth {berth_number}',
+            'operation': {
+                'id': operation.id,
+                'vessel_id': vessel_id,
+                'vessel_name': operation.vessel_name,
+                'berth_assigned': None,
+                'status': operation.status,
+                'updated_at': operation.updated_at.isoformat()
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Berth unassignment error: {e}")
+        return jsonify({'error': 'Failed to unassign berth'}), 500
+
+@maritime_bp.route('/berth/status', methods=['GET'])
+@login_required
+@maritime_access_required()
+def get_berth_status():
+    """
+    Get current berth status and availability
+    GET /api/maritime/berth/status
+    """
+    try:
+        # Get all berths (1, 2, 3) and their current assignments
+        berths = []
+        
+        for berth_number in ['1', '2', '3']:
+            # Check if berth is occupied
+            current_operation = MaritimeOperation.query.filter(
+                MaritimeOperation.berth_assigned == berth_number,
+                MaritimeOperation.status.in_(['in_progress', 'step_1', 'step_2', 'step_3'])
+            ).first()
+            
+            berth_info = {
+                'berth_number': berth_number,
+                'status': 'occupied' if current_operation else 'available',
+                'vessel': None,
+                'operation': None,
+                'capacity': 1,  # Each berth can handle 1 vessel
+                'utilization': 1.0 if current_operation else 0.0
+            }
+            
+            if current_operation:
+                berth_info['vessel'] = {
+                    'id': current_operation.vessel_id,
+                    'name': current_operation.vessel_name,
+                    'type': current_operation.vessel_type,
+                    'progress': current_operation.get_progress_percentage(),
+                    'eta': current_operation.eta.isoformat() if current_operation.eta else None
+                }
+                berth_info['operation'] = {
+                    'id': current_operation.id,
+                    'operation_type': current_operation.operation_type,
+                    'status': current_operation.status,
+                    'current_step': current_operation.current_step,
+                    'started_at': current_operation.created_at.isoformat(),
+                    'estimated_completion': current_operation.estimated_completion
+                }
+            
+            berths.append(berth_info)
+        
+        # Get vessel queue (unassigned vessels)
+        queue_operations = MaritimeOperation.query.filter(
+            MaritimeOperation.berth_assigned.is_(None),
+            MaritimeOperation.status.in_(['pending', 'initiated'])
+        ).order_by(MaritimeOperation.created_at.asc()).all()
+        
+        queue = []
+        for operation in queue_operations:
+            queue.append({
+                'vessel_id': operation.vessel_id,
+                'vessel_name': operation.vessel_name,
+                'vessel_type': operation.vessel_type,
+                'operation_type': operation.operation_type,
+                'priority': operation.priority_level,
+                'eta': operation.eta.isoformat() if operation.eta else None,
+                'created_at': operation.created_at.isoformat(),
+                'waiting_time': (datetime.utcnow() - operation.created_at).total_seconds() / 3600  # hours
+            })
+        
+        # Calculate summary statistics
+        total_berths = 3
+        occupied_berths = sum(1 for b in berths if b['status'] == 'occupied')
+        available_berths = total_berths - occupied_berths
+        utilization_rate = (occupied_berths / total_berths) * 100
+        
+        return jsonify({
+            'berths': berths,
+            'queue': queue,
+            'summary': {
+                'total_berths': total_berths,
+                'occupied_berths': occupied_berths,
+                'available_berths': available_berths,
+                'utilization_rate': utilization_rate,
+                'queue_length': len(queue),
+                'average_wait_time': sum(v['waiting_time'] for v in queue) / len(queue) if queue else 0
+            },
+            'timestamp': datetime.utcnow().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"Get berth status error: {e}")
+        return jsonify({'error': 'Failed to get berth status'}), 500
+
+@maritime_bp.route('/berth/reassign', methods=['POST'])
+@login_required
+@maritime_access_required(['manager', 'maritime_supervisor'])
+def reassign_berth():
+    """
+    Reassign vessel to different berth
+    POST /api/maritime/berth/reassign
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'vessel_id' not in data or 'new_berth_number' not in data:
+            return jsonify({'error': 'vessel_id and new_berth_number are required'}), 400
+        
+        vessel_id = data['vessel_id']
+        new_berth_number = data['new_berth_number']
+        
+        # Validate berth number
+        if new_berth_number not in ['1', '2', '3']:
+            return jsonify({'error': 'Invalid berth number. Must be 1, 2, or 3'}), 400
+        
+        # Check if new berth is available
+        existing_assignment = MaritimeOperation.query.filter(
+            MaritimeOperation.berth_assigned == new_berth_number,
+            MaritimeOperation.status.in_(['in_progress', 'step_1', 'step_2', 'step_3'])
+        ).first()
+        
+        if existing_assignment:
+            return jsonify({
+                'error': f'Berth {new_berth_number} is already occupied by {existing_assignment.vessel_name}'
+            }), 409
+        
+        # Find the maritime operation
+        operation = MaritimeOperation.query.filter_by(vessel_id=vessel_id).first()
+        
+        if not operation:
+            return jsonify({'error': 'Maritime operation not found'}), 404
+        
+        old_berth = operation.berth_assigned
+        
+        # Update berth assignment
+        operation.berth_assigned = new_berth_number
+        operation.berth = f'Berth {new_berth_number}'
+        operation.updated_at = datetime.utcnow()
+        
+        # Update vessel if it exists
+        vessel = Vessel.query.get(vessel_id)
+        if vessel:
+            vessel.berth_number = new_berth_number
+            vessel.updated_at = datetime.utcnow()
+        
+        db.session.commit()
+        
+        # Log berth reassignment
+        SyncLog.log_action(
+            user_id=current_user.id,
+            action='berth_reassign',
+            table_name='maritime_operations',
+            record_id=operation.id,
+            data_after={
+                'vessel_id': vessel_id,
+                'old_berth': old_berth,
+                'new_berth': new_berth_number,
+                'vessel_name': operation.vessel_name,
+                'reassigned_at': datetime.utcnow().isoformat()
+            }
+        )
+        
+        # Clear relevant caches
+        cache_get, cache_set, cache_delete, get_cache_key = get_cache_functions()
+        cache_delete(get_cache_key('vessels', '*'))
+        cache_delete(get_cache_key('ship_operations', '*'))
+        cache_delete(get_cache_key('berths', '*'))
+        
+        logger.info(f"Vessel {vessel_id} reassigned from Berth {old_berth} to Berth {new_berth_number} by user {current_user.id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Vessel {operation.vessel_name} reassigned from Berth {old_berth} to Berth {new_berth_number}',
+            'operation': {
+                'id': operation.id,
+                'vessel_id': vessel_id,
+                'vessel_name': operation.vessel_name,
+                'old_berth': old_berth,
+                'new_berth': new_berth_number,
+                'status': operation.status,
+                'updated_at': operation.updated_at.isoformat()
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Berth reassignment error: {e}")
+        return jsonify({'error': 'Failed to reassign berth'}), 500
