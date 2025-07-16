@@ -12,7 +12,9 @@ from models.forms.maritime_forms import (
     MaritimeOperationAPIForm
 )
 import json
+import uuid
 from datetime import datetime
+from sqlalchemy import or_
 
 maritime_bp = Blueprint('maritime', __name__, template_folder='templates')
 
@@ -698,7 +700,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-ship_operations_bp = Blueprint('ship_operations', __name__)
+# Duplicate blueprint removed - using maritime_bp
 
 # Maritime role validation decorator
 def maritime_access_required(required_roles=None):
