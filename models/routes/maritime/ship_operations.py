@@ -676,17 +676,6 @@ def api_operation_detail(operation_id):
 
 # Fix routing conflict by removing the redundant route
 # The single-page wizard is already handled by new_ship_operation_wizard above
-=======
-"""
-Maritime Ship Operations API - 4-step wizard implementation
-Handles vessel arrival, cargo manifest, team assignment, and berth allocation
-"""
-
-from flask import Blueprint, request, jsonify
-from flask_login import login_required, current_user
-from datetime import datetime, timedelta
-import uuid
-import structlog
 import json
 
 # Access app components via current_app or direct import
@@ -1254,4 +1243,3 @@ def delete_ship_operation(vessel_id):
         db.session.rollback()
         logger.error(f"Delete ship operation error: {e}")
         return jsonify({'error': 'Failed to delete ship operation'}), 500
->>>>>>> maritime-integration
