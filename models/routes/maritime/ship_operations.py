@@ -694,6 +694,7 @@ from models.models.maritime_models import (
     DischargeProgress, MaritimeOperationsHelper
 )
 from models.models.sync_log import SyncLog
+import structlog
 
 logger = structlog.get_logger()
 
