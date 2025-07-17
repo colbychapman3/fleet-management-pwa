@@ -123,12 +123,12 @@ class Vessel(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    berth = db.relationship('Berth', backref='vessels', lazy=True)
-    operations = db.relationship('ShipOperation', backref='vessel', lazy='dynamic', cascade='all, delete-orphan')
+    berth = db.relationship('Berth', foreign_keys=[current_berth_id], back_populates='vessels', lazy=True)
+    operations = db.relationship('ShipOperation', back_populates='vessel', lazy='dynamic', cascade='all, delete-orphan')
     cargo_batches = db.relationship('CargoBatch', backref='vessel', lazy='dynamic', cascade='all, delete-orphan')
     equipment_assignments = db.relationship('EquipmentAssignment', backref='vessel', lazy='dynamic')
     operation_assignments = db.relationship('OperationAssignment', backref='vessel', lazy='dynamic')
-    tasks = db.relationship('Task', backref='vessel', lazy='dynamic')
+    tasks = db.relationship('Task', foreign_keys='Task.vessel_id', lazy='dynamic')
     time_logs = db.relationship('WorkTimeLog', backref='vessel', lazy='dynamic')
     
     def __repr__(self):

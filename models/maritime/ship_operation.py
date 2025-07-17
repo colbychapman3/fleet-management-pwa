@@ -75,7 +75,7 @@ class ShipOperation(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    vessel = db.relationship('Vessel', backref='ship_operations', lazy=True)
+    vessel = db.relationship('Vessel', back_populates='operations', lazy=True)
     stevedore_team = db.relationship('StevedoreTeam', backref='ship_operations', lazy=True)
     operation_manager = db.relationship('User', foreign_keys=[operation_manager_id], backref='managed_operations', lazy=True)
     auto_ops_lead = db.relationship('User', foreign_keys=[auto_ops_lead_id], backref='auto_operations', lazy=True)

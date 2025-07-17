@@ -44,7 +44,7 @@ class Berth(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
     # Relationships
-    vessels = db.relationship('Vessel', foreign_keys='Vessel.current_berth_id', backref='current_berth', lazy='dynamic')
+    vessels = db.relationship('Vessel', foreign_keys='Vessel.current_berth_id', back_populates='berth', lazy='dynamic')
     
     def __repr__(self):
         return f'<Berth {self.berth_number}: {self.berth_name}>'

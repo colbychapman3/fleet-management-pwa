@@ -79,15 +79,15 @@ class User(UserMixin, db.Model):
     current_team = db.relationship('StevedoreTeam', foreign_keys=[current_team_id], backref='assigned_users', lazy=True)
     
     # Task relationships (from existing model)
-    tasks_assigned = db.relationship('Task', foreign_keys='Task.assigned_to_id', 
+    assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', 
                                    lazy='dynamic')
-    tasks_created = db.relationship('Task', foreign_keys='Task.created_by_id', 
+    created_tasks = db.relationship('Task', foreign_keys='Task.created_by_id', 
                                   lazy='dynamic')
     
     # Maritime-specific relationships
-    operation_assignments = db.relationship('OperationAssignment', backref='worker', lazy='dynamic')
-    equipment_assignments = db.relationship('EquipmentAssignment', backref='operator', lazy='dynamic')
-    time_logs = db.relationship('WorkTimeLog', backref='worker', lazy='dynamic')
+    operation_assignments = db.relationship('OperationAssignment', foreign_keys='OperationAssignment.user_id', lazy='dynamic')
+    equipment_assignments = db.relationship('EquipmentAssignment', foreign_keys='EquipmentAssignment.user_id', lazy='dynamic')
+    time_logs = db.relationship('WorkTimeLog', foreign_keys='WorkTimeLog.user_id', lazy='dynamic')
     
     # Offline sync tracking
     sync_logs = db.relationship('SyncLog', backref='user', lazy='dynamic')
