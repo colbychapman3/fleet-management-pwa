@@ -27,9 +27,8 @@ COPY . .
 # Create necessary directories
 RUN mkdir -p /app/logs /app/static/icons /app/static/screenshots
 
-# Create placeholder icons (for PWA)
-RUN echo "Icon placeholder" > /app/static/icons/icon-192x192.png && \
-    echo "Icon placeholder" > /app/static/icons/icon-512x512.png
+# Icons are already copied with the application code
+# No need to overwrite them with placeholder text
 
 # Expose port
 EXPOSE $PORT
