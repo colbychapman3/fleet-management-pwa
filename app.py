@@ -164,6 +164,9 @@ from models.models.enhanced_vessel import Vessel
 from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
 from models.models.berth import Berth
+from models.maritime.ship_operation import ShipOperation
+from models.models.operation_assignment import OperationAssignment
+from models.models.equipment_assignment import EquipmentAssignment
 
 # User loader for Flask-Login
 @login_manager.user_loader
