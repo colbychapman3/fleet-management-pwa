@@ -163,6 +163,7 @@ from models.models.enhanced_user import User
 from models.models.enhanced_vessel import Vessel
 from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
+from models.models.berth import Berth
 
 # User loader for Flask-Login
 @login_manager.user_loader
@@ -447,6 +448,28 @@ def init_database():
                     is_active=True
                 )
                 db.session.add(worker)
+            
+            # Create default berths if they don't exist
+            if not Berth.query.first():
+                berths = [
+                    Berth(berth_number='B01', berth_name='Berth 1 - Container Terminal', berth_type='Container', 
+                          length_meters=250.0, depth_meters=12.0, max_draft=11.0, max_loa=240.0, 
+                          status='active', hourly_rate=50.00, daily_rate=1000.00),
+                    Berth(berth_number='B02', berth_name='Berth 2 - RoRo Terminal', berth_type='RoRo', 
+                          length_meters=200.0, depth_meters=8.0, max_draft=7.5, max_loa=190.0, 
+                          status='active', hourly_rate=40.00, daily_rate=800.00),
+                    Berth(berth_number='B03', berth_name='Berth 3 - General Cargo', berth_type='General Cargo', 
+                          length_meters=180.0, depth_meters=10.0, max_draft=9.0, max_loa=170.0, 
+                          status='active', hourly_rate=35.00, daily_rate=700.00),
+                    Berth(berth_number='B04', berth_name='Berth 4 - Multi-Purpose', berth_type='Multi-Purpose', 
+                          length_meters=220.0, depth_meters=11.0, max_draft=10.0, max_loa=210.0, 
+                          status='active', hourly_rate=45.00, daily_rate=900.00),
+                    Berth(berth_number='B05', berth_name='Berth 5 - Heavy Lift', berth_type='Heavy Lift', 
+                          length_meters=160.0, depth_meters=15.0, max_draft=14.0, max_loa=150.0, 
+                          status='active', hourly_rate=60.00, daily_rate=1200.00)
+                ]
+                for berth in berths:
+                    db.session.add(berth)
             
             db.session.commit()
             logger.info("Database initialized successfully!")

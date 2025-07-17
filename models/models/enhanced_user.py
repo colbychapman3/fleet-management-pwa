@@ -80,9 +80,9 @@ class User(UserMixin, db.Model):
     
     # Task relationships (from existing model)
     tasks_assigned = db.relationship('Task', foreign_keys='Task.assigned_to_id', 
-                                   backref='assigned_to', lazy='dynamic')
+                                   lazy='dynamic')
     tasks_created = db.relationship('Task', foreign_keys='Task.created_by_id', 
-                                  backref='created_by', lazy='dynamic')
+                                  lazy='dynamic')
     
     # Maritime-specific relationships
     operation_assignments = db.relationship('OperationAssignment', backref='worker', lazy='dynamic')
