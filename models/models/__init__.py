@@ -1,13 +1,12 @@
 # Models package initialization
 
-from .user import User
-from .vessel import Vessel
-from .task import Task
-from .team import Team
+# Use enhanced models as primary
+from .enhanced_user import User
+from .enhanced_vessel import Vessel
+from .enhanced_task import Task
 from .sync_log import SyncLog
 from .maritime_models import (
     CargoOperation, 
-    StevedoreTeam, 
     MaritimeDocument, 
     DischargeProgress, 
     MaritimeOperationsHelper
@@ -19,18 +18,20 @@ from .tico_vehicle import (
     TicoRouteOptimizer
 )
 from .alert import Alert, AlertGenerator
-from .enhanced_user import EnhancedUser
-from .enhanced_vessel import EnhancedVessel
-from .enhanced_task import EnhancedTask
+
+# Import StevedoreTeam from maritime directory
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'maritime'))
+from stevedore_team import StevedoreTeam
 
 __all__ = [
     'User',
     'Vessel', 
     'Task',
-    'Team',
+    'StevedoreTeam',
     'SyncLog',
     'CargoOperation',
-    'StevedoreTeam',
     'TicoVehicle',
     'TicoVehicleAssignment',
     'TicoVehicleLocation',
@@ -39,8 +40,5 @@ __all__ = [
     'DischargeProgress',
     'MaritimeOperationsHelper',
     'Alert',
-    'AlertGenerator',
-    'EnhancedUser',
-    'EnhancedVessel',
-    'EnhancedTask'
+    'AlertGenerator'
 ]

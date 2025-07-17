@@ -3,10 +3,11 @@ Enhanced User model with maritime-specific roles, certifications, and stevedorin
 """
 
 from datetime import datetime, timedelta
+from decimal import Decimal
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash
-from sqlalchemy import Index
+from sqlalchemy import Index, DECIMAL
 from app import db
 
 class User(UserMixin, db.Model):
@@ -58,7 +59,7 @@ class User(UserMixin, db.Model):
     current_team_id = db.Column(db.Integer, db.ForeignKey('stevedore_teams.id'), nullable=True)
     shift_start_time = db.Column(db.Time)
     shift_end_time = db.Column(db.Time)
-    hourly_rate = db.Column(db.Decimal(10, 2))
+    hourly_rate = db.Column(DECIMAL(10, 2))
     
     # Performance tracking
     total_hours_worked = db.Column(db.Integer, default=0)

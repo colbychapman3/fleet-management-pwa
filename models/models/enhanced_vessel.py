@@ -4,7 +4,7 @@ Enhanced Vessel model with maritime-specific operations, cargo tracking, and ste
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from sqlalchemy import Index, text
+from sqlalchemy import Index, text, DECIMAL
 from app import db
 
 class Vessel(db.Model):
@@ -86,10 +86,10 @@ class Vessel(db.Model):
     hazmat_details = db.Column(db.Text)
     
     # Financial
-    port_dues = db.Column(db.Decimal(10, 2))
-    stevedoring_cost = db.Column(db.Decimal(10, 2))
-    equipment_cost = db.Column(db.Decimal(10, 2))
-    total_cost = db.Column(db.Decimal(10, 2))
+    port_dues = db.Column(DECIMAL(10, 2))
+    stevedoring_cost = db.Column(DECIMAL(10, 2))
+    equipment_cost = db.Column(DECIMAL(10, 2))
+    total_cost = db.Column(DECIMAL(10, 2))
     billing_status = db.Column(db.String(20), default='pending')
     
     # Communication

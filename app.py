@@ -63,20 +63,20 @@ else:
 
 # Logging configuration
 # Configure structlog for better structured logging
+# Use environment variable to determine if we're in debug mode
+is_debug = os.environ.get('FLASK_ENV') == 'development'
+
 structlog.configure(
     processors=[
+        structlog.stdlib.filter_by_level,
         structlog.stdlib.add_logger_name,
         structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
-        structlog.dev.ConsoleRenderer() if app.debug else structlog.processors.JSONRenderer(),
-        structlog.processors.CallsiteParameterAdder(
-            parameters=[
-                structlog.processors.CallsiteParameter.FILENAME,
-                structlog.processors.CallsiteParameter.LINENO,
-                structlog.processors.CallsiteParameter.FUNC_NAME,
-            ],
-        ),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
     ],
     logger_factory=structlog.stdlib.LoggerFactory(),
     wrapper_class=structlog.stdlib.BoundLogger,
@@ -159,9 +159,9 @@ metrics.info('app_info', 'Application info', version='1.0.0')
 # Import models after db initialization
 # sys.path.append(os.path.dirname(os.path.abspath(__file__))) # This line might not be necessary if models are importable directly
 
-from models.models.user import User
-from models.models.vessel import Vessel
-from models.models.task import Task
+from models.models.enhanced_user import User
+from models.models.enhanced_vessel import Vessel
+from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
 
 # User loader for Flask-Login
@@ -465,11 +465,11 @@ def init_db():
         print("Database initialization failed!")
 
 # Import and register blueprints after all app setup is complete
-from models.routes.auth import auth_bp
-from models.routes.api import api_bp
-from models.routes.dashboard import dashboard_bp
-from models.routes.monitoring import monitoring_bp
-from models.routes.maritime.ship_operations import maritime_bp
+from routes.auth import auth_bp
+from routes.api import api_bp
+from routes.dashboard import dashboard_bp
+from routes.monitoring import monitoring_bp
+from routes.maritime.ship_operations import maritime_bp
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(api_bp, url_prefix='/api')
