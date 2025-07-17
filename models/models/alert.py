@@ -25,7 +25,7 @@ class Alert(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
     alert_type = db.Column(db.String(50), nullable=False)  # berth_capacity, operation_delay, safety_violation, equipment_failure, etc.
     alert_code = db.Column(db.String(20), nullable=False)  # Unique identifier for alert type
-    metadata = db.Column(db.Text)  # JSON string for additional alert-specific data
+    alert_metadata = db.Column(db.Text)  # JSON string for additional alert-specific data
     created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
     dismissed_at = db.Column(db.DateTime, nullable=True)
     dismissed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
@@ -61,10 +61,10 @@ class Alert(db.Model):
     
     def get_metadata(self):
         """Get metadata as dictionary"""
-        if self.metadata:
+        if self.alert_metadata:
             try:
                 import json
-                return json.loads(self.metadata)
+                return json.loads(self.alert_metadata)
             except (json.JSONDecodeError, TypeError):
                 return {}
         return {}
@@ -73,9 +73,9 @@ class Alert(db.Model):
         """Set metadata from dictionary"""
         if data:
             import json
-            self.metadata = json.dumps(data)
+            self.alert_metadata = json.dumps(data)
         else:
-            self.metadata = None
+            self.alert_metadata = None
     
     def to_dict(self):
         """Convert to dictionary for API responses"""

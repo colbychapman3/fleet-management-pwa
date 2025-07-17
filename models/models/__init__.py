@@ -19,17 +19,13 @@ from .tico_vehicle import (
 )
 from .alert import Alert, AlertGenerator
 
-# Import StevedoreTeam from maritime directory
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'maritime'))
-from stevedore_team import StevedoreTeam
+# Note: StevedoreTeam should be imported directly from models.maritime.stevedore_team
+# Don't import here to avoid conflicts
 
 __all__ = [
     'User',
     'Vessel', 
     'Task',
-    'StevedoreTeam',
     'SyncLog',
     'CargoOperation',
     'TicoVehicle',

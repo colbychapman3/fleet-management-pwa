@@ -3,7 +3,8 @@ Enhanced Task model for stevedoring workflows, 4-step wizard, and maritime opera
 """
 
 from datetime import datetime, timedelta
-from sqlalchemy import Index, text
+from decimal import Decimal
+from sqlalchemy import Index, text, DECIMAL
 from app import db
 
 class Task(db.Model):
@@ -83,8 +84,8 @@ class Task(db.Model):
     incident_reports = db.Column(db.JSON)  # Related incident report IDs
     
     # Cost tracking
-    estimated_cost = db.Column(db.Decimal(10, 2))
-    actual_cost = db.Column(db.Decimal(10, 2))
+    estimated_cost = db.Column(DECIMAL(10, 2))
+    actual_cost = db.Column(DECIMAL(10, 2))
     cost_center = db.Column(db.String(50))
     
     # Communication and notifications
