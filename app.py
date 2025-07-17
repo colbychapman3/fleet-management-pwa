@@ -61,24 +61,6 @@ else:
         'rediss://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6380')
     print(f"Using external Redis: {app.config['REDIS_URL'].split('@')[1] if '@' in app.config['REDIS_URL'] else app.config['REDIS_URL']}")
 
-# Session configuration for Redis
-app.config['SESSION_TYPE'] = 'redis'
-app.config['SESSION_PERMANENT'] = False
-app.config['SESSION_USE_SIGNER'] = True
-app.config['SESSION_KEY_PREFIX'] = 'fleet:'
-# Initialize Redis client after setting REDIS_URL
-try:
-    app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
-    app.config['SESSION_REDIS'].ping()
-    logger.info("Redis connection established successfully")
-except Exception as e:
-    logger.error(f"Redis connection failed: {e}")
-    app.config['SESSION_REDIS'] = None # Ensure it's None if connection fails
-
-# Security configurations
-app.config['WTF_CSRF_TIME_LIMIT'] = None
-app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
-
 # Logging configuration
 # Configure structlog for better structured logging
 structlog.configure(
@@ -109,6 +91,24 @@ logging.basicConfig(
 )
 
 logger = structlog.get_logger()
+
+# Session configuration for Redis
+app.config['SESSION_TYPE'] = 'redis'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_KEY_PREFIX'] = 'fleet:'
+# Initialize Redis client after setting REDIS_URL
+try:
+    app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
+    app.config['SESSION_REDIS'].ping()
+    logger.info("Redis connection established successfully")
+except Exception as e:
+    logger.error(f"Redis connection failed: {e}")
+    app.config['SESSION_REDIS'] = None # Ensure it's None if connection fails
+
+# Security configurations
+app.config['WTF_CSRF_TIME_LIMIT'] = None
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 # Add request and user context to logs
 @app.before_request
