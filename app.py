@@ -7,6 +7,7 @@ Production-ready Flask app with PostgreSQL, Redis, PWA support, and monitoring
 import os
 import logging
 import redis
+import sys # Added import for sys
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -23,92 +24,131 @@ import structlog
 app = Flask(__name__)
 
 # Configuration
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
+# IMPORTANT: Change this to a strong, randomly generated key in production!
+# Use `os.urandom(24)` to generate a good secret key.
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'YOUR_SUPER_SECRET_KEY_CHANGE_THIS_IN_PRODUCTION')
 
-# Database URL with fallback to SQLite if PostgreSQL fails
-database_url = os.environ.get('DATABASE_URL')
-if not database_url:
-    # Default connection string for development/fallback
-    database_url = 'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres'
+# Database URL - PostgreSQL is primary
+# Use environment variable if available, otherwise default to Supabase URL
+database_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres')
 
 # Fix Render's postgres:// to postgresql:// if needed
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
-# Test connection and fallback to SQLite if needed
-try:
-    import psycopg2
-    # Quick connection test
-    conn = psycopg2.connect(database_url)
-    conn.close()
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-    print("Using PostgreSQL database")
-except Exception as e:
-    print(f"PostgreSQL connection failed, falling back to SQLite: {e}")
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///fleet_management.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+print(f"Using PostgreSQL database: {database_url.split('@')[1] if '@' in database_url else database_url}") # More informative print
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Set engine options based on database type
-if 'sqlite' in app.config['SQLALCHEMY_DATABASE_URI']:
-    # SQLite options
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_pre_ping': True,
+# PostgreSQL engine options
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_timeout': 20,
+    'pool_recycle': 300,
+    'pool_pre_ping': True,
+    'connect_args': {
+        'connect_timeout': 10,
+        'application_name': 'fleet_management_pwa'
     }
-else:
-    # PostgreSQL options
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_timeout': 20,
-        'pool_recycle': 300,
-        'pool_pre_ping': True,
-        'connect_args': {
-            'connect_timeout': 10,
-            'application_name': 'fleet_management_pwa'
-        }
-    }
+}
 
-app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 
-    'rediss://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6380')
+# Redis URL configuration: Use local Redis if FLASK_ENV is development, otherwise use external Upstash
+if os.environ.get('FLASK_ENV') == 'development':
+    app.config['REDIS_URL'] = 'redis://redis-local:6379/0' # Use the service name from docker-compose
+    print("Using local Redis for development")
+else:
+    app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 
+        'rediss://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6380')
+    print(f"Using external Redis: {app.config['REDIS_URL'].split('@')[1] if '@' in app.config['REDIS_URL'] else app.config['REDIS_URL']}")
 
 # Session configuration for Redis
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'fleet:'
-app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
+# Initialize Redis client after setting REDIS_URL
+try:
+    app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
+    app.config['SESSION_REDIS'].ping()
+    logger.info("Redis connection established successfully")
+except Exception as e:
+    logger.error(f"Redis connection failed: {e}")
+    app.config['SESSION_REDIS'] = None # Ensure it's None if connection fails
 
 # Security configurations
 app.config['WTF_CSRF_TIME_LIMIT'] = None
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
 
 # Logging configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(name)s %(message)s'
+# Configure structlog for better structured logging
+structlog.configure(
+    processors=[
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.ConsoleRenderer() if app.debug else structlog.processors.JSONRenderer(),
+        structlog.processors.CallsiteParameterAdder(
+            parameters=[
+                structlog.processors.CallsiteParameter.FILENAME,
+                structlog.processors.CallsiteParameter.LINENO,
+                structlog.processors.CallsiteParameter.FUNC_NAME,
+            ],
+        ),
+    ],
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
 )
+
+# Configure standard logging to use structlog
+logging.basicConfig(
+    format="%(message)s",
+    stream=sys.stdout,
+    level=logging.INFO,
+)
+
 logger = structlog.get_logger()
+
+# Add request and user context to logs
+@app.before_request
+def add_request_context_to_logger():
+    if request:
+        structlog.contextvars.bind_contextvars(
+            method=request.method,
+            path=request.path,
+            ip_address=request.remote_addr,
+            user_id=getattr(current_user, 'id', 'anonymous')
+        )
+
+@app.after_request
+def clear_request_context_from_logger(response):
+    structlog.contextvars.clear_contextvars()
+    return response
 
 # Initialize extensions
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
-# csrf = CSRFProtect(app)  # Temporarily disabled for testing
+csrf = CSRFProtect(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Initialize Redis
-try:
-    redis_client = redis.from_url(app.config['REDIS_URL'])
-    redis_client.ping()
-    logger.info("Redis connection established successfully")
-except Exception as e:
-    logger.error(f"Redis connection failed: {e}")
-    redis_client = None
+# Initialize Redis (moved this block to be after REDIS_URL is set)
+# try:
+#     redis_client = redis.from_url(app.config['REDIS_URL'])
+#     redis_client.ping()
+#     logger.info("Redis connection established successfully")
+# except Exception as e:
+#     logger.error(f"Redis connection failed: {e}")
+#     redis_client = None
+# The redis_client is now directly accessed via app.config['SESSION_REDIS']
 
 # Rate limiting
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"],
-    storage_uri=app.config['REDIS_URL'] if redis_client else "memory://"
+    storage_uri=app.config['REDIS_URL'] if app.config['SESSION_REDIS'] else "memory://" # Use SESSION_REDIS for storage_uri
 )
 limiter.init_app(app)
 
@@ -116,13 +156,8 @@ limiter.init_app(app)
 metrics = PrometheusMetrics(app)
 metrics.info('app_info', 'Application info', version='1.0.0')
 
-# Custom metrics (using prometheus_flask_exporter built-in metrics)
-# These are automatically tracked by prometheus_flask_exporter
-
 # Import models after db initialization
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.append(os.path.dirname(os.path.abspath(__file__))) # This line might not be necessary if models are importable directly
 
 from models.models.user import User
 from models.models.vessel import Vessel
@@ -141,10 +176,10 @@ def get_cache_key(prefix, *args):
 
 def cache_get(key, default=None):
     """Get value from Redis cache"""
-    if not redis_client:
+    if not app.config['SESSION_REDIS']: # Use SESSION_REDIS
         return default
     try:
-        value = redis_client.get(key)
+        value = app.config['SESSION_REDIS'].get(key) # Use SESSION_REDIS
         return value.decode('utf-8') if value else default
     except Exception as e:
         logger.warning(f"Cache get failed for key {key}: {e}")
@@ -152,20 +187,20 @@ def cache_get(key, default=None):
 
 def cache_set(key, value, timeout=300):
     """Set value in Redis cache with timeout"""
-    if not redis_client:
+    if not app.config['SESSION_REDIS']: # Use SESSION_REDIS
         return False
     try:
-        return redis_client.setex(key, timeout, str(value))
+        return app.config['SESSION_REDIS'].setex(key, timeout, str(value)) # Use SESSION_REDIS
     except Exception as e:
         logger.warning(f"Cache set failed for key {key}: {e}")
         return False
 
 def cache_delete(key):
     """Delete key from Redis cache"""
-    if not redis_client:
+    if not app.config['SESSION_REDIS']: # Use SESSION_REDIS
         return False
     try:
-        return redis_client.delete(key)
+        return app.config['SESSION_REDIS'].delete(key) # Use SESSION_REDIS
     except Exception as e:
         logger.warning(f"Cache delete failed for key {key}: {e}")
         return False
@@ -316,8 +351,8 @@ def health_detailed():
     
     # Check Redis
     try:
-        if redis_client:
-            redis_client.ping()
+        if app.config['SESSION_REDIS']: # Use SESSION_REDIS
+            app.config['SESSION_REDIS'].ping() # Use SESSION_REDIS
             health_status['dependencies']['redis'] = {'status': 'healthy'}
         else:
             health_status['dependencies']['redis'] = {'status': 'unavailable'}
@@ -340,11 +375,11 @@ def not_found_error(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 errors"""
-    db.session.rollback()
-    logger.error(f"Internal server error: {error}")
+    db.session.rollback() # Ensure any pending transactions are rolled back
+    logger.error(f"Internal server error: {error}") # Log the error
     if request.path.startswith('/api/'):
         return jsonify({'error': 'Internal server error'}), 500
-    return render_template('errors/500.html'), 500
+    return render_template('errors/500.html'), 500 # Redirect to generic 500 page
 
 @app.errorhandler(429)
 def ratelimit_handler(e):
@@ -353,7 +388,26 @@ def ratelimit_handler(e):
         return jsonify({'error': 'Rate limit exceeded', 'retry_after': e.retry_after}), 429
     return render_template('errors/429.html'), 429
 
+@app.errorhandler(Exception)
+def handle_unexpected_error(e):
+    """Handle all unexpected errors"""
+    db.session.rollback() # Ensure any pending transactions are rolled back
+    logger.exception(f"An unexpected error occurred: {e}") # Log the full exception traceback
+    
+    if request.path.startswith('/api/'):
+        return jsonify({'error': 'An unexpected server error occurred'}), 500
+    return render_template('errors/500.html'), 500 # Redirect to generic 500 page
+
 # Request hooks for security headers
+@app.before_request
+def enforce_https():
+    """Redirect HTTP requests to HTTPS in production"""
+    # Check if running in a production-like environment and if proto is http
+    if os.environ.get('FLASK_ENV') == 'production' and request.headers.get('X-Forwarded-Proto') == 'http':
+        url = request.url.replace('http://', 'https://', 1)
+        code = 301
+        return redirect(url, code=code)
+
 @app.after_request
 def after_request(response):
     """Add security headers"""
@@ -361,6 +415,7 @@ def after_request(response):
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
+    # HSTS header: max-age in seconds (1 year), includeSubDomains
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     
     return response

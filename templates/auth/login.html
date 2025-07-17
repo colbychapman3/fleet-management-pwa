@@ -3,38 +3,36 @@
 {% block title %}Login - Fleet Management{% endblock %}
 
 {% block content %}
-<div style="max-width: 400px; margin: 60px auto; text-align: center;">
-    <h1>🚢 Login</h1>
+<div class="max-w-md mx-auto my-16 p-8 bg-surface-color rounded-lg shadow-lg text-center">
+    <h1 class="text-3xl font-bold text-primary-color mb-6">🚢 Login</h1>
     
-    <form method="POST" style="text-align: left; margin-top: 30px;">
-        <div style="margin-bottom: 15px;">
-            <label for="email" style="display: block; margin-bottom: 5px;">Email:</label>
+    <form method="POST" class="text-left space-y-5">
+        <div class="form-group">
+            <label for="email" class="form-label">Email:</label>
             <input type="email" id="email" name="email" required 
-                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                   class="form-control">
         </div>
         
-        <div style="margin-bottom: 15px;">
-            <label for="password" style="display: block; margin-bottom: 5px;">Password:</label>
+        <div class="form-group">
+            <label for="password" class="form-label">Password:</label>
             <input type="password" id="password" name="password" required 
-                   style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                   class="form-control">
         </div>
         
-        <div style="margin-bottom: 20px;">
-            <label style="display: flex; align-items: center;">
-                <input type="checkbox" name="remember" style="margin-right: 8px;">
-                Remember me
-            </label>
+        <div class="flex items-center">
+            <input type="checkbox" name="remember" id="remember" class="form-check-input">
+            <label for="remember" class="ml-2 text-text-secondary">Remember me</label>
         </div>
         
-        <button type="submit" class="btn" style="width: 100%; font-size: 16px;">
+        <button type="submit" class="btn btn-primary w-full text-base py-3">
             Login
         </button>
     </form>
     
-    <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 4px;">
-        <h4>Demo Accounts:</h4>
-        <p><strong>Manager:</strong> admin@fleet.com / admin123</p>
-        <p><strong>Worker:</strong> worker@fleet.com / worker123</p>
+    <div class="mt-8 p-6 bg-background-color rounded-md">
+        <h4 class="text-lg font-semibold text-text-primary mb-3">Demo Accounts:</h4>
+        <p class="text-text-secondary mb-2"><strong>Manager:</strong> admin@fleet.com / admin123</p>
+        <p class="text-text-secondary"><strong>Worker:</strong> worker@fleet.com / worker123</p>
     </div>
 </div>
 {% endblock %}

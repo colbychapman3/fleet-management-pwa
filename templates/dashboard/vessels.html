@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Vessel Management{% endblock %}
+
+{% block content %}
+<div class="py-8 px-4">
+    <h1 class="text-3xl font-bold text-text-primary mb-4">🚢 Vessel Management</h1>
+    <p class="text-lg text-text-secondary mb-8">View and manage all vessels in the fleet.</p>
+
+    <!-- Vessel Filters and Actions -->
+    <div class="bg-surface-color p-6 rounded-lg shadow-md mb-8">
+        <h3 class="text-xl font-semibold text-text-primary mb-4">Filter Vessels</h3>
+        <form method="GET" action="{{ url_for('dashboard.vessels') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+            <div class="form-group">
+                <label for="status" class="form-label">Status:</label>
+                <select id="status" name="status" class="form-control">
+                    <option value="">All</option>
+                    <option value="expected" {% if request.args.get('status') == 'expected' %}selected{% endif %}>Expected</option>
+                    <option value="arrived" {% if request.args.get('status') == 'arrived' %}selected{% endif %}>Arrived</option>
+                    <option value="berthed" {% if request.args.get('status') == 'berthed' %}selected{% endif %}>Berthed</option>
+                    <option value="operations_active" {% if request.args.get('status') == 'operations_active' %}selected{% endif %}>Operations Active</option>
+                    <option value="operations_complete" {% if request.args.get('status') == 'operations_complete' %}selected{% endif %}>Operations Complete</option>
+                    <option value="departed" {% if request.args.get('status') == 'departed' %}selected{% endif %}>Departed</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vessel_type" class="form-label">Vessel Type:</label>
+                <select id="vessel_type" name="vessel_type" class="form-control">
+                    <option value="">All</option>
+                    <option value="Container Ship" {% if request.args.get('vessel_type') == 'Container Ship' %}selected{% endif %}>Container Ship</option>
+                    <option value="Bulk Carrier" {% if request.args.get('vessel_type') == 'Bulk Carrier' %}selected{% endif %}>Bulk Carrier</option>
+                    <option value="Auto Carrier" {% if request.args.get('vessel_type') == 'Auto Carrier' %}selected{% endif %}>Auto Carrier</option>
+                    <option value="Tanker" {% if request.args.get('vessel_type') == 'Tanker' %}selected{% endif %}>Tanker</option>
+                    <option value="General Cargo" {% if request.args.get('vessel_type') == 'General Cargo' %}selected{% endif %}>General Cargo</option>
+                </select>
+            </div>
+            <div class="form-group col-span-full md:col-span-1">
+                <button type="submit" class="btn btn-primary w-full">Apply Filters</button>
+            </div>
+            <div class="form-group col-span-full md:col-span-1">
+                <a href="{{ url_for('dashboard.vessels') }}" class="btn btn-secondary w-full">Clear Filters</a>
+            </div>
+        </form>
+        <div class="mt-6 flex justify-end">
+            <a href="{{ url_for('maritime.new_ship_operation_wizard') }}" class="btn btn-success">Add New Vessel Operation</a>
+        </div>
+    </div>
+
+    <!-- Vessel List Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="min-w-full bg-surface-color">
+                <thead class="bg-background-color">
+                    <tr>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Name</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">IMO</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Type</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Status</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Berth</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">ETA</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for vessel in vessels %}
+                    <tr class="border-b border-divider-color last:border-b-0">
+                        <td class="py-3 px-4 whitespace-nowrap font-medium text-text-primary">{{ vessel.name }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ vessel.imo_number or 'N/A' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ vessel.vessel_type }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                {% if vessel.status == 'departed' %}bg-gray-500 text-white
+                                {% elif vessel.status == 'operations_complete' %}bg-success-color text-white
+                                {% elif vessel.status == 'operations_active' %}bg-primary-color text-white
+                                {% elif vessel.status == 'berthed' %}bg-info-color text-white
+                                {% elif vessel.status == 'arrived' %}bg-warning-color text-white
+                                {% else %}bg-gray-200 text-gray-800{% endif %}">
+                                {{ vessel.status.replace('_', ' ')|title }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ vessel.berth.name if vessel.berth else 'N/A' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ vessel.eta.strftime('%Y-%m-%d %H:%M') if vessel.eta else 'N/A' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <a href="{{ url_for('dashboard.vessel_detail', vessel_id=vessel.id) }}" class="btn btn-info btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="py-4 px-4 text-center text-text-secondary italic">No vessels found matching your criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

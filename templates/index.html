@@ -3,65 +3,65 @@
 {% block title %}Fleet Management System - Login{% endblock %}
 
 {% block content %}
-<div style="text-align: center; padding: 40px 0;">
-    <h1>🚢 Fleet Management System</h1>
-    <p style="font-size: 18px; color: #666; margin-bottom: 30px;">
-        PWA-enabled task management for maritime operations
-    </p>
+<div class="flex flex-col items-center justify-center min-h-screen-minus-nav py-10 px-4">
+    <div class="text-center mb-8">
+        <h1 class="text-4xl font-bold text-primary-color mb-4">🚢 Fleet Management System</h1>
+        <p class="text-lg text-text-secondary mb-8">
+            PWA-enabled task management for maritime operations
+        </p>
+    </div>
     
-    <div style="max-width: 400px; margin: 0 auto;">
-        <h2>Login</h2>
-        <form method="POST" action="{{ url_for('auth.login') }}" style="text-align: left;">
-            <div style="margin-bottom: 15px;">
-                <label for="email" style="display: block; margin-bottom: 5px;">Email:</label>
+    <div class="w-full max-w-md bg-surface-color p-8 rounded-lg shadow-lg">
+        <h2 class="text-2xl font-semibold text-center text-text-primary mb-6">Login</h2>
+        <form method="POST" action="{{ url_for('auth.login') }}" class="space-y-5">
+            <div class="form-group">
+                <label for="email" class="form-label">Email:</label>
                 <input type="email" id="email" name="email" required 
-                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                       class="form-control">
             </div>
             
-            <div style="margin-bottom: 15px;">
-                <label for="password" style="display: block; margin-bottom: 5px;">Password:</label>
+            <div class="form-group">
+                <label for="password" class="form-label">Password:</label>
                 <input type="password" id="password" name="password" required 
-                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;">
+                       class="form-control">
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <label style="display: flex; align-items: center;">
-                    <input type="checkbox" name="remember" style="margin-right: 8px;">
-                    Remember me
-                </label>
+            <div class="flex items-center">
+                <input type="checkbox" name="remember" id="remember" class="form-check-input">
+                <label for="remember" class="ml-2 text-text-secondary">Remember me</label>
             </div>
             
-            <button type="submit" class="btn" style="width: 100%; font-size: 16px;">
+            <button type="submit" class="btn btn-primary w-full text-base py-3">
                 Login
             </button>
         </form>
         
-        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 4px;">
-            <h4>Demo Accounts:</h4>
-            <p><strong>Manager:</strong> admin@fleet.com / admin123</p>
-            <p><strong>Worker:</strong> worker@fleet.com / worker123</p>
+        <div class="mt-8 p-6 bg-background-color rounded-md text-center">
+            <h4 class="text-lg font-semibold text-text-primary mb-3">Demo Accounts:</h4>
+            <p class="text-text-secondary mb-2"><strong>Manager:</strong> admin@fleet.com / admin123</p>
+            <p class="text-text-secondary"><strong>Worker:</strong> worker@fleet.com / worker123</p>
         </div>
     </div>
-</div>
 
-<div style="margin-top: 40px; text-align: center; color: #666;">
-    <h3>✨ PWA Features</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
-        <div>
-            <h4>📱 Installable</h4>
-            <p>Install on mobile devices and desktops</p>
-        </div>
-        <div>
-            <h4>🔄 Offline Support</h4>
-            <p>Works without internet connection</p>
-        </div>
-        <div>
-            <h4>🚢 Ship Ready</h4>
-            <p>Perfect for maritime operations</p>
-        </div>
-        <div>
-            <h4>📊 Real-time Sync</h4>
-            <p>Data syncs when connection returns</p>
+    <div class="mt-12 text-center text-text-secondary">
+        <h3 class="text-2xl font-semibold mb-6">✨ PWA Features</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-6">
+            <div class="p-4 bg-surface-color rounded-lg shadow-sm">
+                <h4 class="text-xl font-semibold text-primary-color mb-2">📱 Installable</h4>
+                <p class="text-text-secondary">Install on mobile devices and desktops</p>
+            </div>
+            <div class="p-4 bg-surface-color rounded-lg shadow-sm">
+                <h4 class="text-xl font-semibold text-primary-color mb-2">🔄 Offline Support</h4>
+                <p class="text-text-secondary">Works without internet connection</p>
+            </div>
+            <div class="p-4 bg-surface-color rounded-lg shadow-sm">
+                <h4 class="text-xl font-semibold text-primary-color mb-2">🚢 Ship Ready</h4>
+                <p class="text-text-secondary">Perfect for maritime operations</p>
+            </div>
+            <div class="p-4 bg-surface-color rounded-lg shadow-sm">
+                <h4 class="text-xl font-semibold text-primary-color mb-2">📊 Real-time Sync</h4>
+                <p class="text-text-secondary">Data syncs when connection returns</p>
+            </div>
         </div>
     </div>
 </div>

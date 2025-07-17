@@ -1,43 +1,62 @@
 {% extends "base.html" %}
 
+{% block title %}Register User{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1 class="title">Register</h1>
-    <form method="POST">
-        <div class="field">
-            <label class="label">Email</label>
-            <div class="control">
-                <input class="input" type="email" name="email" required>
-            </div>
+<div class="max-w-md mx-auto my-16 p-8 bg-surface-color rounded-lg shadow-lg text-center">
+    <h1 class="text-3xl font-bold text-primary-color mb-6">👥 Register New User</h1>
+    
+    <form method="POST" class="text-left space-y-5">
+        <div class="form-group">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" id="email" name="email" required class="form-control">
         </div>
-        <div class="field">
-            <label class="label">Username</label>
-            <div class="control">
-                <input class="input" type="text" name="username" required>
-            </div>
+        <div class="form-group">
+            <label for="username" class="form-label">Username:</label>
+            <input type="text" id="username" name="username" required class="form-control">
         </div>
-        <div class="field">
-            <label class="label">Password</label>
-            <div class="control">
-                <input class="input" type="password" name="password" required>
-            </div>
+        <div class="form-group">
+            <label for="password" class="form-label">Password:</label>
+            <input type="password" id="password" name="password" required class="form-control">
         </div>
-        <div class="field">
-            <label class="label">Role</label>
-            <div class="control">
-                <div class="select">
-                    <select name="role">
-                        <option value="worker">Worker</option>
-                        <option value="manager">Manager</option>
-                    </select>
-                </div>
-            </div>
+        <div class="form-group">
+            <label for="role" class="form-label">Role:</label>
+            <select id="role" name="role" class="form-control">
+                <option value="general_stevedore">General Stevedore</option>
+                <option value="port_manager">Port Manager</option>
+                <option value="operations_manager">Operations Manager</option>
+                <option value="auto_ops_lead">Auto Operations Lead</option>
+                <option value="heavy_ops_lead">Heavy Operations Lead</option>
+                <option value="equipment_operator">Equipment Operator</option>
+                <option value="safety_officer">Safety Officer</option>
+                <option value="document_clerk">Document Clerk</option>
+            </select>
         </div>
-        <div class="field">
-            <div class="control">
-                <button class="button is-primary">Register</button>
-            </div>
+        <div class="form-group">
+            <label for="first_name" class="form-label">First Name (Optional):</label>
+            <input type="text" id="first_name" name="first_name" class="form-control">
         </div>
+        <div class="form-group">
+            <label for="last_name" class="form-label">Last Name (Optional):</label>
+            <input type="text" id="last_name" name="last_name" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="phone" class="form-label">Phone (Optional):</label>
+            <input type="tel" id="phone" name="phone" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="vessel_id" class="form-label">Assign to Vessel (Optional):</label>
+            <select id="vessel_id" name="vessel_id" class="form-control">
+                <option value="">None</option>
+                {% for vessel in vessels %}
+                <option value="{{ vessel.id }}">{{ vessel.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary w-full text-base py-3">
+            Register User
+        </button>
     </form>
 </div>
 {% endblock %}

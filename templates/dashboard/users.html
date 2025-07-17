@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="py-8 px-4">
+    <h1 class="text-3xl font-bold text-text-primary mb-4">👥 User Management</h1>
+    <p class="text-lg text-text-secondary mb-8">Manage user accounts and roles.</p>
+
+    <!-- User Filters and Actions -->
+    <div class="bg-surface-color p-6 rounded-lg shadow-md mb-8">
+        <h3 class="text-xl font-semibold text-text-primary mb-4">Filter Users</h3>
+        <form method="GET" action="{{ url_for('dashboard.users') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-end">
+            <div class="form-group">
+                <label for="role" class="form-label">Role:</label>
+                <select id="role" name="role" class="form-control">
+                    <option value="">All</option>
+                    <option value="manager" {% if request.args.get('role') == 'manager' %}selected{% endif %}>Manager</option>
+                    <option value="worker" {% if request.args.get('role') == 'worker' %}selected{% endif %}>Worker</option>
+                    <option value="port_manager" {% if request.args.get('role') == 'port_manager' %}selected{% endif %}>Port Manager</option>
+                    <option value="operations_manager" {% if request.args.get('role') == 'operations_manager' %}selected{% endif %}>Operations Manager</option>
+                    <option value="auto_ops_lead" {% if request.args.get('role') == 'auto_ops_lead' %}selected{% endif %}>Auto Ops Lead</option>
+                    <option value="heavy_ops_lead" {% if request.args.get('role') == 'heavy_ops_lead' %}selected{% endif %}>Heavy Ops Lead</option>
+                    <option value="general_stevedore" {% if request.args.get('role') == 'general_stevedore' %}selected{% endif %}>General Stevedore</option>
+                    <option value="equipment_operator" {% if request.args.get('role') == 'equipment_operator' %}selected{% endif %}>Equipment Operator</option>
+                    <option value="safety_officer" {% if request.args.get('role') == 'safety_officer' %}selected{% endif %}>Safety Officer</option>
+                    <option value="document_clerk" {% if request.args.get('role') == 'document_clerk' %}selected{% endif %}>Document Clerk</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vessel_id" class="form-label">Assigned Vessel:</label>
+                <select id="vessel_id" name="vessel_id" class="form-control">
+                    <option value="">All</option>
+                    {% for vessel in vessels %}
+                    <option value="{{ vessel.id }}" {% if request.args.get('vessel_id') == vessel.id %}selected{% endif %}>{{ vessel.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group col-span-full md:col-span-1">
+                <button type="submit" class="btn btn-primary w-full">Apply Filters</button>
+            </div>
+            <div class="form-group col-span-full md:col-span-1">
+                <a href="{{ url_for('dashboard.users') }}" class="btn btn-secondary w-full">Clear Filters</a>
+            </div>
+        </form>
+        <div class="mt-6 flex justify-end">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-success">Register New User</a>
+        </div>
+    </div>
+
+    <!-- User List Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="min-w-full bg-surface-color">
+                <thead class="bg-background-color">
+                    <tr>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Username</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Email</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Role</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Status</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Assigned Vessel</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr class="border-b border-divider-color last:border-b-0">
+                        <td class="py-3 px-4 whitespace-nowrap font-medium text-text-primary">{{ user.username }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ user.email }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                {% if user.role == 'manager' or user.role == 'operations_manager' or user.role == 'port_manager' %}bg-primary-color text-white
+                                {% elif user.role == 'worker' or user.role == 'general_stevedore' %}bg-info-color text-white
+                                {% elif user.role == 'auto_ops_lead' or user.role == 'heavy_ops_lead' %}bg-warning-color text-white
+                                {% else %}bg-gray-400 text-white{% endif %}">
+                                {{ user.get_display_role() }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                {% if user.is_active %}bg-success-color text-white
+                                {% else %}bg-error-color text-white{% endif %}">
+                                {{ 'Active' if user.is_active else 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ user.current_vessel.name if user.current_vessel else 'N/A' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <a href="{{ url_for('auth.profile', user_id=user.id) }}" class="btn btn-info btn-sm">View/Edit</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-4 px-4 text-center text-text-secondary italic">No users found matching your criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

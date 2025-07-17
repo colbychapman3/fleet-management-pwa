@@ -1,67 +1,61 @@
 {% extends "base.html" %}
 
+{% block title %}New Ship Operation - Step 1{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h1 class="title">New Ship Operation - Step 1: Operation Details</h1>
+<div class="max-w-2xl mx-auto my-8 p-8 bg-surface-color rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-primary-color mb-6 text-center">🚢 New Ship Operation - Step 1: Operation Details</h1>
     
     <!-- Progress indicator -->
-    <div class="field">
-        <div class="control">
-            <div class="level">
-                <div class="level-left">
-                    <div class="level-item">
-                        <span class="tag is-primary is-medium">Step 1 of 4</span>
-                    </div>
-                </div>
-                <div class="level-right">
-                    <div class="level-item">
-                        <progress class="progress is-primary" value="25" max="100">25%</progress>
-                    </div>
-                </div>
-            </div>
+    <div class="mb-6">
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-sm font-semibold text-text-secondary">Step 1 of 4</span>
+            <span class="text-sm font-semibold text-primary-color">25% Complete</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5">
+            <div class="bg-primary-color h-2.5 rounded-full" style="width: 25%"></div>
         </div>
     </div>
 
-    <form method="POST">
+    <form method="POST" class="space-y-5">
         {{ form.hidden_tag() }}
         
-        <div class="field">
-            {{ form.vessel_id.label(class="label") }}
-            <div class="control">
-                <div class="select{% if form.vessel_id.errors %} is-danger{% endif %}">
-                    {{ form.vessel_id(class="select") }}
-                </div>
-            </div>
+        <div class="form-group">
+            {{ form.vessel_id.label(class="form-label") }}
+            <select id="vessel_id" name="vessel_id" class="form-control {% if form.vessel_id.errors %}border-error-color{% endif %}" aria-label="Select Vessel">
+                <option value="">Select a Vessel</option>
+                {% for vessel in vessels %}
+                <option value="{{ vessel.id }}" {% if form.vessel_id.data == vessel.id %}selected{% endif %}>{{ vessel.name }}</option>
+                {% endfor %}
+            </select>
             {% if form.vessel_id.errors %}
-                <p class="help is-danger">{{ form.vessel_id.errors[0] }}</p>
+                <p class="text-error-color text-sm mt-1">{{ form.vessel_id.errors[0] }}</p>
             {% endif %}
         </div>
 
-        <div class="field">
-            {{ form.operation_type.label(class="label") }}
-            <div class="control">
-                <div class="select{% if form.operation_type.errors %} is-danger{% endif %}">
-                    {{ form.operation_type(class="select") }}
-                </div>
-            </div>
+        <div class="form-group">
+            {{ form.operation_type.label(class="form-label") }}
+            <select id="operation_type" name="operation_type" class="form-control {% if form.operation_type.errors %}border-error-color{% endif %}" aria-label="Select Operation Type">
+                <option value="">Select Operation Type</option>
+                <option value="loading" {% if form.operation_type.data == 'loading' %}selected{% endif %}>Loading</option>
+                <option value="discharging" {% if form.operation_type.data == 'discharging' %}selected{% endif %}>Discharging</option>
+                <option value="bunkering" {% if form.operation_type.data == 'bunkering' %}selected{% endif %}>Bunkering</option>
+                <option value="maintenance" {% if form.operation_type.data == 'maintenance' %}selected{% endif %}>Maintenance</option>
+            </select>
             {% if form.operation_type.errors %}
-                <p class="help is-danger">{{ form.operation_type.errors[0] }}</p>
+                <p class="text-error-color text-sm mt-1">{{ form.operation_type.errors[0] }}</p>
             {% endif %}
-            <p class="help">Select the type of operation to be performed on this vessel.</p>
+            <p class="text-text-secondary text-sm mt-1">Select the type of operation to be performed on this vessel.</p>
         </div>
 
-        <div class="field is-grouped">
-            <div class="control">
-                <button type="submit" class="button is-primary">
-                    <span class="icon">
-                        <i class="fas fa-arrow-right"></i>
-                    </span>
-                    <span>Next: Cargo Information</span>
-                </button>
-            </div>
-            <div class="control">
-                <a href="{{ url_for('dashboard.operations') }}" class="button">Cancel</a>
-            </div>
+        <div class="flex justify-between gap-4 mt-6">
+            <button type="submit" class="btn btn-primary w-full flex items-center justify-center gap-2">
+                <i class="fas fa-arrow-right"></i> {# Assuming Font Awesome is available #}
+                <span>Next: Cargo Information</span>
+            </button>
+            <a href="{{ url_for('dashboard.operations') }}" class="btn btn-secondary w-full flex items-center justify-center gap-2">
+                Cancel
+            </a>
         </div>
     </form>
 </div>

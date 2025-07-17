@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto my-16 p-8 bg-surface-color rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-primary-color mb-6 text-center">👤 User Profile</h1>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+            <h2 class="text-xl font-semibold text-text-primary mb-4">Account Information</h2>
+            <p class="text-text-secondary mb-2"><strong>Username:</strong> <span class="text-text-primary">{{ user.username }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Email:</strong> <span class="text-text-primary">{{ user.email }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Role:</strong> <span class="text-text-primary">{{ user.get_display_role() }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Status:</strong> <span class="text-text-primary">{{ 'Active' if user.is_active else 'Inactive' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Employee ID:</strong> <span class="text-text-primary">{{ user.employee_id or 'N/A' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Last Login:</strong> <span class="text-text-primary">{{ user.last_login.strftime('%Y-%m-%d %H:%M') if user.last_login else 'Never' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Last Sync:</strong> <span class="text-text-primary">{{ user.last_sync.strftime('%Y-%m-%d %H:%M') if user.last_sync else 'Never' }}</span></p>
+        </div>
+        
+        <div>
+            <h2 class="text-xl font-semibold text-text-primary mb-4">Certifications & Training</h2>
+            <p class="text-text-secondary mb-2"><strong>Maritime License:</strong> <span class="text-text-primary">{{ user.maritime_license_number or 'N/A' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>License Expiry:</strong> <span class="text-text-primary">{{ user.maritime_license_expiry.strftime('%Y-%m-%d') if user.maritime_license_expiry else 'N/A' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>TWIC Card:</strong> <span class="text-text-primary">{{ user.twic_card_number or 'N/A' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>TWIC Expiry:</strong> <span class="text-text-primary">{{ user.twic_expiry.strftime('%Y-%m-%d') if user.twic_expiry else 'N/A' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Safety Training:</strong> <span class="text-text-primary">{{ user.safety_training_completion.strftime('%Y-%m-%d') if user.safety_training_completion else 'N/A' }}</span></p>
+            <p class="text-text-secondary mb-2"><strong>Medical Clearance:</strong> <span class="text-text-primary">{{ user.medical_clearance_date.strftime('%Y-%m-%d') if user.medical_clearance_date else 'N/A' }}</span></p>
+            
+            {% if user.get_certification_warnings() %}
+            <div class="mt-4 p-3 bg-yellow-100 border-l-4 border-warning-color text-warning-color rounded-md">
+                <h5 class="font-semibold mb-1">Warnings:</h5>
+                <ul class="list-disc list-inside text-sm">
+                    {% for warning in user.get_certification_warnings() %}
+                    <li>{{ warning }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <h2 class="text-xl font-semibold text-text-primary mb-4">Edit Profile</h2>
+    <form method="POST" action="{{ url_for('auth.profile') }}" class="space-y-5">
+        <div class="form-group">
+            <label for="first_name" class="form-label">First Name:</label>
+            <input type="text" id="first_name" name="first_name" value="{{ user.first_name or '' }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="last_name" class="form-label">Last Name:</label>
+            <input type="text" id="last_name" name="last_name" value="{{ user.last_name or '' }}" class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="phone" class="form-label">Phone:</label>
+            <input type="tel" id="phone" name="phone" value="{{ user.phone or '' }}" class="form-control">
+        </div>
+        
+        {% if current_user.is_manager() %}
+        <div class="form-group">
+            <label for="vessel_id" class="form-label">Assigned Vessel:</label>
+            <select id="vessel_id" name="vessel_id" class="form-control">
+                <option value="">None</option>
+                {% for vessel in vessels %}
+                <option value="{{ vessel.id }}" {% if user.current_vessel_id == vessel.id %}selected{% endif %}>{{ vessel.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        
+        <button type="submit" class="btn btn-primary w-full text-base py-3">
+            Update Profile
+        </button>
+    </form>
+
+    <h2 class="text-xl font-semibold text-text-primary mt-10 mb-4">Change Password</h2>
+    <form method="POST" action="{{ url_for('auth.change_password') }}" class="space-y-5">
+        <div class="form-group">
+            <label for="current_password" class="form-label">Current Password:</label>
+            <input type="password" id="current_password" name="current_password" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="new_password" class="form-label">New Password:</label>
+            <input type="password" id="new_password" name="new_password" required class="form-control">
+        </div>
+        <div class="form-group">
+            <label for="confirm_password" class="form-label">Confirm New Password:</label>
+            <input type="password" id="confirm_password" name="confirm_password" required class="form-control">
+        </div>
+        <button type="submit" class="btn btn-warning w-full text-base py-3">
+            Change Password
+        </button>
+    </form>
+</div>
+{% endblock %}

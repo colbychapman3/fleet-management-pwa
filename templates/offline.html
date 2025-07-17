@@ -3,17 +3,17 @@
 {% block title %}Offline - Fleet Management System{% endblock %}
 
 {% block content %}
-<div style="text-align: center; padding: 60px 0;">
-    <h1>🔌 You're Offline</h1>
-    <p style="font-size: 18px; color: #666; margin: 20px 0;">
+<div class="flex flex-col items-center justify-center min-h-screen-minus-nav py-10 px-4 text-center">
+    <h1 class="text-4xl font-bold text-primary-color mb-4">🔌 You're Offline</h1>
+    <p class="text-lg text-text-secondary mb-6">
         No internet connection available, but you can still use cached features.
     </p>
-    <p style="color: #888;">
+    <p class="text-text-secondary mb-8">
         Your data will sync automatically when connection is restored.
     </p>
     
-    <div style="margin-top: 40px;">
-        <a href="/" class="btn">Try Again</a>
+    <div class="mt-8">
+        <a href="/" class="btn btn-primary">Try Again</a>
     </div>
 </div>
 {% endblock %}

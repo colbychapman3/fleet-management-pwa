@@ -18,84 +18,77 @@
     <link rel="icon" type="image/png" sizes="192x192" href="{{ url_for('static', filename='icons/icon-192x192.png') }}">
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192x192.png') }}">
     
-    <!-- Basic CSS -->
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-            color: #333;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 { color: #2196F3; }
-        .btn {
-            background: #2196F3;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            text-decoration: none;
-            display: inline-block;
-            margin: 5px;
-        }
-        .btn:hover { background: #1976D2; }
-        .alert {
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
-        }
-        .alert-success { background: #d4edda; color: #155724; }
-        .alert-error { background: #f8d7da; color: #721c24; }
-        nav {
-            background: #2196F3;
-            padding: 10px 0;
-            margin: -20px -20px 20px -20px;
-        }
-        nav a {
-            color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            display: inline-block;
-        }
-        nav a:hover { background: rgba(255,255,255,0.1); }
-    </style>
+    <!-- External CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/output.css') }}">
 </head>
-<body>
-    <div class="container">
-        {% if current_user.is_authenticated %}
-        <nav>
-            <a href="{{ url_for('dashboard.main') }}">Dashboard</a>
-            <a href="{{ url_for('dashboard.tasks') }}">Tasks</a>
-            {% if current_user.is_manager() %}
-            <a href="{{ url_for('dashboard.vessels') }}">Vessels</a>
-            <a href="{{ url_for('dashboard.users') }}">Users</a>
-            {% endif %}
-            <a href="{{ url_for('auth.profile') }}">Profile</a>
-            <a href="{{ url_for('auth.logout') }}">Logout</a>
-        </nav>
-        {% endif %}
-        
-        <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-        {% for category, message in messages %}
-        <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
-            {{ message }}
+<body class="bg-background-color text-text-primary font-sans">
+    <!-- Connectivity Bar (if implemented) -->
+    <div id="connectivity-bar" class="connectivity-bar hidden">
+        <div class="flex items-center">
+            <span id="connectivity-indicator" class="connectivity-indicator"></span>
+            <span id="connection-status" class="connection-status">Online</span>
         </div>
-        {% endfor %}
-        {% endif %}
-        {% endwith %}
+        <div id="sync-status" class="sync-status">
+            <span id="sync-indicator" class="sync-indicator"></span>
+            <span id="sync-message">Synced</span>
+        </div>
+    </div>
+
+    <header class="main-nav">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard.main') }}" class="nav-brand">
+                <img src="{{ url_for('static', filename='icons/icon-192x192.png') }}" alt="Logo" class="nav-logo">
+                <span class="nav-title">FleetMS</span>
+            </a>
+            <nav class="nav-menu">
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('dashboard.main') }}" class="nav-link {% if request.endpoint == 'dashboard.main' %}active{% endif %}">Dashboard</a>
+                <a href="{{ url_for('dashboard.tasks') }}" class="nav-link {% if request.endpoint == 'dashboard.tasks' %}active{% endif %}">Tasks</a>
+                <a href="{{ url_for('maritime.list_operations') }}" class="nav-link {% if request.endpoint == 'maritime.list_operations' %}active{% endif %}">Operations</a>
+                {% if current_user.is_manager() %}
+                <a href="{{ url_for('dashboard.vessels') }}" class="nav-link {% if request.endpoint == 'dashboard.vessels' %}active{% endif %}">Vessels</a>
+                <a href="{{ url_for('dashboard.users') }}" class="nav-link {% if request.endpoint == 'dashboard.users' %}active{% endif %}">Users</a>
+                {% endif %}
+                {% endif %}
+            </nav>
+            <div class="nav-actions">
+                {% if current_user.is_authenticated %}
+                <div class="user-menu">
+                    <button class="user-menu-toggle" id="user-menu-toggle">
+                        <span class="user-avatar">{{ current_user.username[0]|upper }}</span>
+                        <span>{{ current_user.username }}</span>
+                    </button>
+                    <div class="user-menu-dropdown" id="user-menu-dropdown">
+                        <a href="{{ url_for('auth.profile') }}" class="dropdown-item">Profile</a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{{ url_for('auth.logout') }}" class="dropdown-item">Logout</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-sm">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <!-- Flash Messages -->
+        <div class="flash-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}">
+                <span>{{ message }}</span>
+                <button class="flash-close" onclick="this.parentElement.style.display='none';">&times;</button>
+            </div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+        </div>
         
         {% block content %}{% endblock %}
-    </div>
+    </main>
     
     <!-- PWA Service Worker -->
     <script>
@@ -109,5 +102,7 @@
                 });
         }
     </script>
+    <!-- Main Application JavaScript -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

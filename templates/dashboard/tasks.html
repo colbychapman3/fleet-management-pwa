@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Task Management{% endblock %}
+
+{% block content %}
+<div class="py-8 px-4">
+    <h1 class="text-3xl font-bold text-text-primary mb-4">📋 Task Management</h1>
+    <p class="text-lg text-text-secondary mb-8">View and manage all tasks across the fleet.</p>
+
+    <!-- Task Filters and Actions -->
+    <div class="bg-surface-color p-6 rounded-lg shadow-md mb-8">
+        <h3 class="text-xl font-semibold text-text-primary mb-4">Filter Tasks</h3>
+        <form method="GET" action="{{ url_for('dashboard.tasks') }}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+            <div class="form-group">
+                <label for="status" class="form-label">Status:</label>
+                <select id="status" name="status" class="form-control">
+                    <option value="">All</option>
+                    <option value="pending" {% if current_filters.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if current_filters.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if current_filters.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="cancelled" {% if current_filters.status == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="priority" class="form-label">Priority:</label>
+                <select id="priority" name="priority" class="form-control">
+                    <option value="">All</option>
+                    <option value="low" {% if current_filters.priority == 'low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if current_filters.priority == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if current_filters.priority == 'high' %}selected{% endif %}>High</option>
+                    <option value="urgent" {% if current_filters.priority == 'urgent' %}selected{% endif %}>Urgent</option>
+                </select>
+            </div>
+            {% if current_user.is_manager() %}
+            <div class="form-group">
+                <label for="vessel_id" class="form-label">Vessel:</label>
+                <select id="vessel_id" name="vessel_id" class="form-control">
+                    <option value="">All</option>
+                    {% for vessel in vessels %}
+                    <option value="{{ vessel.id }}" {% if current_filters.vessel_id == vessel.id %}selected{% endif %}>{{ vessel.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="assigned_to" class="form-label">Assigned To:</label>
+                <select id="assigned_to" name="assigned_to" class="form-control">
+                    <option value="">All</option>
+                    {% for user in users %}
+                    <option value="{{ user.id }}" {% if current_filters.assigned_to == user.id %}selected{% endif %}>{{ user.username }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+            <div class="form-group col-span-full md:col-span-1">
+                <button type="submit" class="btn btn-primary w-full">Apply Filters</button>
+            </div>
+            <div class="form-group col-span-full md:col-span-1">
+                <a href="{{ url_for('dashboard.tasks') }}" class="btn btn-secondary w-full">Clear Filters</a>
+            </div>
+        </form>
+        <div class="mt-6 flex justify-end">
+            <a href="{{ url_for('dashboard.create_task') }}" class="btn btn-success">Create New Task</a>
+        </div>
+    </div>
+
+    <!-- Task List Table -->
+    <div class="card">
+        <div class="card-body p-0">
+            <table class="min-w-full bg-surface-color">
+                <thead class="bg-background-color">
+                    <tr>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Title</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Status</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Priority</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Assigned To</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Due Date</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Vessel</th>
+                        <th class="py-3 px-4 text-left text-sm font-semibold text-text-secondary uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                    <tr class="border-b border-divider-color last:border-b-0">
+                        <td class="py-3 px-4 whitespace-nowrap font-medium text-text-primary">{{ task.title }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                {% if task.status == 'completed' %}bg-success-color text-white
+                                {% elif task.status == 'in_progress' %}bg-info-color text-white
+                                {% elif task.status == 'pending' %}bg-warning-color text-white
+                                {% elif task.status == 'cancelled' %}bg-gray-500 text-white
+                                {% else %}bg-gray-200 text-gray-800{% endif %}">
+                                {{ task.status_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <span class="px-2 py-1 rounded-full text-xs font-semibold 
+                                {% if task.priority == 'urgent' %}bg-error-color text-white
+                                {% elif task.priority == 'high' %}bg-warning-color text-white
+                                {% elif task.priority == 'medium' %}bg-info-color text-white
+                                {% else %}bg-gray-400 text-white{% endif %}">
+                                {{ task.priority_display }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ task.assigned_to_name or 'Unassigned' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ task.due_date.strftime('%Y-%m-%d') if task.due_date else 'N/A' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap text-text-secondary">{{ task.vessel_name or 'N/A' }}</td>
+                        <td class="py-3 px-4 whitespace-nowrap">
+                            <a href="{{ url_for('dashboard.task_detail', task_id=task.id) }}" class="btn btn-info btn-sm">View</a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="py-4 px-4 text-center text-text-secondary italic">No tasks found matching your criteria.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <div class="flex justify-center mt-8 space-x-2">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('dashboard.tasks', page=pagination.page - 1, **request.args) }}" class="btn btn-outline btn-sm">Previous</a>
+        {% endif %}
+        
+        {% for p in pagination.iter_pages() %}
+            {% if p %}
+                <a href="{{ url_for('dashboard.tasks', page=p, **request.args) }}" class="btn btn-sm {% if p == pagination.page %}btn-primary{% else %}btn-outline{% endif %}">{{ p }}</a>
+            {% else %}
+                <span class="px-3 py-2 text-text-secondary">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+        <a href="{{ url_for('dashboard.tasks', page=pagination.page + 1, **request.args) }}" class="btn btn-outline btn-sm">Next</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
