@@ -76,7 +76,7 @@ class User(UserMixin, db.Model):
     
     # Relationships
     current_vessel = db.relationship('Vessel', foreign_keys=[current_vessel_id], backref='current_crew', lazy=True)
-    current_team = db.relationship('StevedoreTeam', foreign_keys=[current_team_id], backref='team_members', lazy=True)
+    current_team = db.relationship('StevedoreTeam', foreign_keys=[current_team_id], backref='assigned_users', lazy=True)
     
     # Task relationships (from existing model)
     tasks_assigned = db.relationship('Task', foreign_keys='Task.assigned_to_id', 

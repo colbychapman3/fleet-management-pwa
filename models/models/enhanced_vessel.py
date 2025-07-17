@@ -45,10 +45,28 @@ class Vessel(db.Model):
     # Status: 'expected', 'arrived', 'berthed', 'operations_active', 'operations_complete', 'departed'
     
     # Port operations
-    berth_id = db.Column(db.Integer, db.ForeignKey('berths.id'), nullable=True, index=True)
+    current_berth_id = db.Column(db.Integer, db.ForeignKey('berths.id'), nullable=True, index=True)
+    berth_arrival_time = db.Column(db.DateTime, nullable=True)
+    berth_departure_time = db.Column(db.DateTime, nullable=True)
     current_port = db.Column(db.String(100))
     previous_port = db.Column(db.String(100))
     next_port = db.Column(db.String(100))
+    
+    # Port clearances and requirements
+    pilot_required = db.Column(db.Boolean, default=True, nullable=False)
+    tug_assistance = db.Column(db.Boolean, default=False, nullable=False)
+    customs_clearance = db.Column(db.Boolean, default=False, nullable=False)
+    immigration_clearance = db.Column(db.Boolean, default=False, nullable=False)
+    health_clearance = db.Column(db.Boolean, default=False, nullable=False)
+    security_clearance = db.Column(db.Boolean, default=False, nullable=False)
+    
+    # Agent information
+    agent_company = db.Column(db.String(100), nullable=True)
+    agent_contact = db.Column(db.String(100), nullable=True)
+    
+    # Documentation
+    cargo_manifest_received = db.Column(db.Boolean, default=False, nullable=False)
+    work_permits_approved = db.Column(db.Boolean, default=False, nullable=False)
     
     # Scheduling
     eta = db.Column(db.DateTime, index=True)  # Estimated Time of Arrival
