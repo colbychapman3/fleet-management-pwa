@@ -223,7 +223,7 @@ class Vessel(db.Model):
     def berth_vessel(self, berth_id):
         """Berth the vessel at specified berth"""
         self.status = 'berthed'
-        self.berth_id = berth_id
+        self.current_berth_id = berth_id
         self.atb = datetime.utcnow()
         db.session.commit()
     
@@ -243,7 +243,7 @@ class Vessel(db.Model):
         """Mark vessel as departed"""
         self.status = 'departed'
         self.atd = datetime.utcnow()
-        self.berth_id = None
+        self.current_berth_id = None
         db.session.commit()
     
     # Resource management methods
@@ -453,7 +453,7 @@ class Vessel(db.Model):
             
             # Status
             'status': self.status,
-            'berth_id': self.berth_id,
+            'berth_id': self.current_berth_id,
             'current_port': self.current_port,
             'previous_port': self.previous_port,
             'next_port': self.next_port,
@@ -547,7 +547,7 @@ class Vessel(db.Model):
     @staticmethod
     def get_vessels_by_berth(berth_id):
         """Get vessels at specific berth"""
-        return Vessel.query.filter_by(berth_id=berth_id).all()
+        return Vessel.query.filter_by(current_berth_id=berth_id).all()
     
     @staticmethod
     def get_arrivals_today():
@@ -630,7 +630,7 @@ class Vessel(db.Model):
 
 # Create indexes for performance
 Index('idx_vessel_status_eta', Vessel.status, Vessel.eta)
-Index('idx_vessel_berth_status', Vessel.berth_id, Vessel.status)
+Index('idx_vessel_berth_status', Vessel.current_berth_id, Vessel.status)
 Index('idx_vessel_operations_schedule', Vessel.atb, Vessel.etc, Vessel.status)
 Index('idx_vessel_imo_call_sign', Vessel.imo_number, Vessel.call_sign)
 Index('idx_vessel_progress_tracking', Vessel.total_discharge_target, Vessel.total_discharged, Vessel.status)
