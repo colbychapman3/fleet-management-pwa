@@ -126,7 +126,7 @@ class Vessel(db.Model):
     berth = db.relationship('Berth', foreign_keys=[current_berth_id], back_populates='vessels', lazy=True)
     operations = db.relationship('ShipOperation', back_populates='vessel', lazy='dynamic', cascade='all, delete-orphan')
     cargo_batches = db.relationship('CargoBatch', backref='vessel', lazy='dynamic', cascade='all, delete-orphan')
-    equipment_assignments = db.relationship('EquipmentAssignment', backref='vessel', lazy='dynamic')
+    equipment_assignments = db.relationship('EquipmentAssignment', foreign_keys='EquipmentAssignment.vessel_id', lazy='dynamic')
     operation_assignments = db.relationship('OperationAssignment', backref='vessel', lazy='dynamic')
     tasks = db.relationship('Task', foreign_keys='Task.vessel_id', lazy='dynamic')
     time_logs = db.relationship('WorkTimeLog', backref='vessel', lazy='dynamic')
