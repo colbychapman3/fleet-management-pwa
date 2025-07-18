@@ -47,10 +47,10 @@ class EquipmentAssignment(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
     # Relationships
-    operator = db.relationship('User', foreign_keys=[user_id], backref='equipment_assignments')
-    vessel = db.relationship('Vessel', foreign_keys=[vessel_id], backref='equipment_assignments')
-    operation = db.relationship('ShipOperation', foreign_keys=[operation_id], backref='equipment_assignments')
-    assigned_by = db.relationship('User', foreign_keys=[assigned_by_id], backref='equipment_assignments_made')
+    operator = db.relationship('User', foreign_keys=[user_id])
+    vessel = db.relationship('Vessel', foreign_keys=[vessel_id])
+    operation = db.relationship('ShipOperation', foreign_keys=[operation_id])
+    assigned_by = db.relationship('User', foreign_keys=[assigned_by_id])
     
     def __repr__(self):
         return f'<EquipmentAssignment {self.equipment_id} -> {self.user_id}>'
