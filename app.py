@@ -32,6 +32,10 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'YOUR_SUPER_SECRET_KEY_C
 # Use environment variable if available, otherwise default to Supabase URL
 database_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres')
 
+# Fallback to SQLite for development if PostgreSQL is not available
+if not database_url or database_url == 'sqlite:///fleet_management.db':
+    database_url = 'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres'
+
 # Fix Render's postgres:// to postgresql:// if needed
 if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
@@ -47,7 +51,6 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_recycle': 300,
     'pool_pre_ping': True,
     'connect_args': {
-        'connect_timeout': 10,
         'application_name': 'fleet_management_pwa'
     }
 }
@@ -165,8 +168,11 @@ from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
 from models.models.berth import Berth
 from models.maritime.ship_operation import ShipOperation
+from models.maritime.stevedore_team import StevedoreTeam
 from models.models.operation_assignment import OperationAssignment
 from models.models.equipment_assignment import EquipmentAssignment
+from models.models.work_time_log import WorkTimeLog
+from models.models.cargo_batch import CargoBatch
 
 # User loader for Flask-Login
 @login_manager.user_loader
