@@ -109,7 +109,7 @@ class Task(db.Model):
     team = db.relationship('StevedoreTeam', backref='tasks', lazy=True)
     operation = db.relationship('ShipOperation', backref='tasks', lazy=True)
     assigned_to = db.relationship('User', foreign_keys=[assigned_to_id], lazy=True)
-    created_by = db.relationship('User', foreign_keys=[created_by_id], backref='created_tasks', lazy=True)
+    created_by = db.relationship('User', foreign_keys=[created_by_id], lazy=True)
     
     def __repr__(self):
         return f'<Task {self.title} ({self.status})>'
