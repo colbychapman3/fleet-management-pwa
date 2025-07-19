@@ -3,7 +3,7 @@
  * Implements offline-first caching strategy for maritime operations
  */
 
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.0.1';
 const STATIC_CACHE = `fleet-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE = `fleet-dynamic-${CACHE_VERSION}`;
 const OFFLINE_CACHE = `fleet-offline-${CACHE_VERSION}`;
