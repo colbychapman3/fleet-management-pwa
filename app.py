@@ -230,7 +230,11 @@ def index():
     
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.main'))
-    return render_template('index.html')
+    
+    # Import here to avoid circular imports
+    from models.forms.auth_forms import LoginForm
+    form = LoginForm()
+    return render_template('index.html', form=form)
 
 @app.route('/manifest.json')
 def manifest():

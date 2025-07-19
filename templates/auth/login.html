@@ -7,27 +7,37 @@
     <h1 class="text-3xl font-bold text-primary-color mb-6">🚢 Login</h1>
     
     <form method="POST" class="text-left space-y-5">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        {{ form.hidden_tag() }}
         <div class="form-group">
-            <label for="email" class="form-label">Email:</label>
-            <input type="email" id="email" name="email" required 
-                   class="form-control">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control", required=true) }}
+            {% if form.email.errors %}
+                <div class="text-red-500 text-sm mt-1">
+                    {% for error in form.email.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         
         <div class="form-group">
-            <label for="password" class="form-label">Password:</label>
-            <input type="password" id="password" name="password" required 
-                   class="form-control">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control", required=true) }}
+            {% if form.password.errors %}
+                <div class="text-red-500 text-sm mt-1">
+                    {% for error in form.password.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         
         <div class="flex items-center">
-            <input type="checkbox" name="remember" id="remember" class="form-check-input">
-            <label for="remember" class="ml-2 text-text-secondary">Remember me</label>
+            {{ form.remember(class="form-check-input") }}
+            {{ form.remember.label(class="ml-2 text-text-secondary") }}
         </div>
         
-        <button type="submit" class="btn btn-primary w-full text-base py-3">
-            Login
-        </button>
+        {{ form.submit(class="btn btn-primary w-full text-base py-3") }}
     </form>
     
     <div class="mt-8 p-6 bg-background-color rounded-md">
