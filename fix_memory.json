@@ -78,6 +78,42 @@
       "test_improvement": 0,
       "iteration": 3,
       "timestamp": "2025-07-20T02:19:11.059682"
+    },
+    {
+      "error_type": "rate_limit_error",
+      "error_signature": "rate_limit_error",
+      "fix_strategy": "rate_limit_mitigation",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T02:39:37.745489"
+    },
+    {
+      "error_type": "timeout_error",
+      "error_signature": "timeout_error",
+      "fix_strategy": "deployment_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [
+        "routes/health.py",
+        "app.py"
+      ],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T03:06:51.738132"
+    },
+    {
+      "error_type": "rate_limit_error",
+      "error_signature": "rate_limit_error",
+      "fix_strategy": "rate_limit_mitigation",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T03:07:51.584595"
     }
   ],
   "successful_patterns": {
@@ -89,9 +125,16 @@
       "comprehensive_dependency_fix",
       "comprehensive_dependency_fix",
       "comprehensive_dependency_fix"
+    ],
+    "rate_limit_error": [
+      "rate_limit_mitigation",
+      "rate_limit_mitigation"
+    ],
+    "timeout_error": [
+      "deployment_optimization"
     ]
   },
   "failed_patterns": {},
   "optimization_insights": [],
-  "last_updated": "2025-07-20T02:36:34.966705"
+  "last_updated": "2025-07-20T03:07:51.584856"
 }
