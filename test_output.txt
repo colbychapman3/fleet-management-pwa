@@ -1,0 +1,37 @@
+🚢 Fleet Management PWA - Automated Testing
+==================================================
+
+📋 Running Local Imports test...
+🔍 Testing local app imports...
+✅ Flask imports successfully
+✅ app.py file exists
+
+📋 Running Homepage test...
+🏠 Testing homepage...
+❌ Homepage returned 429
+
+📋 Running PWA Files test...
+📱 Testing PWA files...
+✅ /manifest.json
+✅ /service-worker.js
+✅ /static/css/offline.css
+✅ /static/icons/icon-192x192.png
+
+📋 Running Database Health test...
+🗄️ Testing database health...
+❌ Database health check failed: 429
+
+📋 Running Login Functionality test...
+🔑 Testing login functionality...
+✅ Login page accessible
+
+==================================================
+📊 Test Results Summary:
+  Local Imports        ✅ PASS
+  Homepage             ❌ FAIL
+  PWA Files            ✅ PASS
+  Database Health      ❌ FAIL
+  Login Functionality  ✅ PASS
+
+🎯 Overall: 3/5 tests passed
+⚠️ Some tests failed. Check the issues above.

@@ -1,0 +1,97 @@
+{
+  "fix_history": [
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "fix_missing_dependency",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T02:10:06.562246"
+    },
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "comprehensive_dependency_fix",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [
+        "app.py"
+      ],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T02:14:03.655835"
+    },
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "comprehensive_dependency_fix",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 2,
+      "timestamp": "2025-07-20T02:14:50.749067"
+    },
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "comprehensive_dependency_fix",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 3,
+      "timestamp": "2025-07-20T02:15:36.389699"
+    },
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "comprehensive_dependency_fix",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T02:17:39.422522"
+    },
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "comprehensive_dependency_fix",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 2,
+      "timestamp": "2025-07-20T02:18:25.227478"
+    },
+    {
+      "error_type": "missing_dependency",
+      "error_signature": "missing_dependency",
+      "fix_strategy": "comprehensive_dependency_fix",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 3,
+      "timestamp": "2025-07-20T02:19:11.059682"
+    }
+  ],
+  "successful_patterns": {
+    "missing_dependency": [
+      "fix_missing_dependency",
+      "comprehensive_dependency_fix",
+      "comprehensive_dependency_fix",
+      "comprehensive_dependency_fix",
+      "comprehensive_dependency_fix",
+      "comprehensive_dependency_fix",
+      "comprehensive_dependency_fix"
+    ]
+  },
+  "failed_patterns": {},
+  "optimization_insights": [],
+  "last_updated": "2025-07-20T02:36:34.966705"
+}
