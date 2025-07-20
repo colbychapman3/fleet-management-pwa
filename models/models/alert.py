@@ -39,7 +39,7 @@ class Alert(db.Model):
     operation = db.relationship('MaritimeOperation', back_populates='alerts', lazy='select')
     vessel = db.relationship('Vessel', back_populates='alerts', lazy='select')
     user = db.relationship('User', foreign_keys=[user_id], back_populates='user_alerts', lazy='select')
-    dismissed_by_user = db.relationship('User', foreign_keys=[dismissed_by], back_populates='dismissed_by_user', lazy='select')
+    dismissed_by_user = db.relationship('User', foreign_keys=[dismissed_by], back_populates='dismissed_alerts', lazy='select')
     
     def __repr__(self):
         return f'<Alert {self.id}: {self.title} ({self.severity})>'

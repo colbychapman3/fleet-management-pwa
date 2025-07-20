@@ -1,7 +1,7 @@
 # Models package initialization
 
 # Use enhanced models as primary
-from .enhanced_user import User
+from .user import User
 from .enhanced_vessel import Vessel
 from .enhanced_task import Task
 from .sync_log import SyncLog

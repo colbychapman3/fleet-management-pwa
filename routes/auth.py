@@ -12,7 +12,7 @@ def get_app_db():
     import app
     return app.db
 
-from models.models.enhanced_user import User
+from models.models.user import User
 from models.models.sync_log import SyncLog
 
 logger = structlog.get_logger()

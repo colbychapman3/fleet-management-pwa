@@ -166,7 +166,7 @@ limiter = Limiter(
 limiter.init_app(app)
 
 # Import models after db initialization
-from models.models.enhanced_user import User
+from models.models.user import User
 from models.models.enhanced_vessel import Vessel
 from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog

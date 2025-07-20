@@ -14,7 +14,7 @@ def get_app_db():
 def get_app_components():
     import app
     return app.db, app.redis_client, app.metrics
-from models.models.enhanced_user import User
+from models.models.user import User
 from models.models.enhanced_task import Task
 from models.models.enhanced_vessel import Vessel
 from models.models.sync_log import SyncLog
