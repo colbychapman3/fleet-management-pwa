@@ -1,4 +1,6 @@
-#!/home/colby/fleet-management-pwa/venv/bin/python3
+#!/bin/sh
+'''exec' "/mnt/c/Users/colby/Desktop/Stevedores Dashboard/fleet-management-pwa/venv/bin/python3" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

@@ -22,7 +22,7 @@
             <div class="card-body">
                 <h3 class="card-title mb-2">🚢 Fleet & Berth Status</h3>
                 <p class="text-text-secondary">Active Vessels: <span class="font-semibold text-primary-color">{{ vessels|length if vessels else 0 }}</span></p>
-                <p class="text-text-secondary">Available Berths: <span class="font-semibold text-info-color">{{ (3 - (vessels|length if vessels else 0))|max(0) }}</span>/3</p>
+                <p class="text-text-secondary">Available Berths: <span class="font-semibold text-info-color">{{ [3 - (vessels|length if vessels else 0), 0]|max }}</span>/3</p>
                 <p class="text-text-secondary">Berth Utilization: <span class="font-semibold text-primary-color">{{ ((vessels|length if vessels else 0) / 3 * 100)|round(1) }}%</span></p>
             </div>
         </div>

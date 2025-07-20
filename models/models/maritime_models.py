@@ -319,3 +319,201 @@ class MaritimeOperationsHelper:
             'drivers_remaining': remaining_drivers,
             'vehicles_needed': len(assignments)
         }
+
+
+class TicoVehicle(db.Model):
+    """TICO (Transport In/Check Out) vehicles for staff transportation"""
+    
+    __tablename__ = 'tico_vehicles'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    vehicle_id = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    vehicle_type = db.Column(db.String(50), nullable=False)  # Van, Station Wagon, etc.
+    capacity = db.Column(db.Integer, nullable=False, default=7)
+    current_passengers = db.Column(db.Integer, default=0, nullable=False)
+    status = db.Column(db.String(20), default='available', nullable=False)  # available, in_use, maintenance, out_of_service
+    vessel_id = db.Column(db.Integer, db.ForeignKey('vessels.id'), nullable=True, index=True)
+    driver_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    location = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    vessel = db.relationship('Vessel', backref='tico_vehicles')
+    driver = db.relationship('User', backref='assigned_vehicles')
+    
+    def __repr__(self):
+        return f'<TicoVehicle {self.vehicle_id} ({self.vehicle_type})>'
+    
+    def get_available_capacity(self):
+        """Get available passenger capacity"""
+        return max(0, self.capacity - self.current_passengers)
+    
+    def get_capacity_percentage(self):
+        """Get current capacity usage as percentage"""
+        if self.capacity <= 0:
+            return 0
+        return min(100, (self.current_passengers / self.capacity) * 100)
+    
+    def is_available(self):
+        """Check if vehicle is available for assignment"""
+        return self.status == 'available' and self.get_available_capacity() > 0
+    
+    def assign_passengers(self, passenger_count):
+        """Assign passengers to vehicle"""
+        if passenger_count <= 0:
+            return False
+        
+        available = self.get_available_capacity()
+        if passenger_count > available:
+            return False
+        
+        self.current_passengers += passenger_count
+        if self.current_passengers >= self.capacity:
+            self.status = 'in_use'
+        
+        return True
+    
+    def remove_passengers(self, passenger_count):
+        """Remove passengers from vehicle"""
+        if passenger_count <= 0:
+            return False
+        
+        self.current_passengers = max(0, self.current_passengers - passenger_count)
+        if self.current_passengers < self.capacity and self.status == 'in_use':
+            self.status = 'available'
+        
+        return True
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            'id': self.id,
+            'vehicle_id': self.vehicle_id,
+            'vehicle_type': self.vehicle_type,
+            'capacity': self.capacity,
+            'current_passengers': self.current_passengers,
+            'available_capacity': self.get_available_capacity(),
+            'capacity_percentage': self.get_capacity_percentage(),
+            'status': self.status,
+            'vessel_id': self.vessel_id,
+            'driver_id': self.driver_id,
+            'location': self.location,
+            'is_available': self.is_available(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
+    @classmethod
+    def get_available_vehicles(cls, vessel_id=None):
+        """Get all available vehicles, optionally filtered by vessel"""
+        query = cls.query.filter_by(status='available')
+        if vessel_id:
+            query = query.filter_by(vessel_id=vessel_id)
+        return query.order_by(cls.capacity.desc()).all()
+    
+    @classmethod
+    def get_vehicles_by_status(cls, status):
+        """Get vehicles by status"""
+        return cls.query.filter_by(status=status).all()
+
+
+class StevedoreTeam(db.Model):
+    """Stevedoring team management and assignments"""
+    
+    __tablename__ = 'stevedore_teams'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    team_name = db.Column(db.String(100), nullable=False)
+    team_lead_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    shift = db.Column(db.String(20), nullable=False)  # morning, afternoon, night
+    specialization = db.Column(db.String(50))  # auto_ops, heavy_ops, general
+    max_members = db.Column(db.Integer, default=8, nullable=False)
+    current_operation_id = db.Column(db.Integer, db.ForeignKey('maritime_operations.id'), nullable=True)
+    status = db.Column(db.String(20), default='available', nullable=False)  # available, assigned, break, off_duty
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    team_lead = db.relationship('User', foreign_keys=[team_lead_id], backref='led_teams')
+    current_operation = db.relationship('MaritimeOperation', backref='assigned_teams')
+    
+    def __repr__(self):
+        return f'<StevedoreTeam {self.team_name} ({self.specialization})>'
+    
+    def get_team_members(self):
+        """Get all team members including lead"""
+        # This would typically query a team_members table in a real system
+        # For now, return a simplified list
+        members = [self.team_lead] if self.team_lead else []
+        return members
+    
+    def get_member_count(self):
+        """Get current number of team members"""
+        return len(self.get_team_members())
+    
+    def is_available(self):
+        """Check if team is available for assignment"""
+        return self.status == 'available'
+    
+    def assign_to_operation(self, operation_id):
+        """Assign team to a maritime operation"""
+        if not self.is_available():
+            return False
+        
+        self.current_operation_id = operation_id
+        self.status = 'assigned'
+        return True
+    
+    def release_from_operation(self):
+        """Release team from current operation"""
+        self.current_operation_id = None
+        self.status = 'available'
+        return True
+    
+    def get_efficiency_rating(self):
+        """Calculate team efficiency based on recent performance"""
+        # This would calculate based on historical data in a real system
+        # For now, return a mock rating
+        base_rating = 85
+        member_bonus = min(10, self.get_member_count() * 2)
+        return min(100, base_rating + member_bonus)
+    
+    def to_dict(self):
+        """Convert to dictionary for API responses"""
+        return {
+            'id': self.id,
+            'team_name': self.team_name,
+            'team_lead_id': self.team_lead_id,
+            'team_lead_name': self.team_lead.get_full_name() if self.team_lead else None,
+            'shift': self.shift,
+            'specialization': self.specialization,
+            'max_members': self.max_members,
+            'current_member_count': self.get_member_count(),
+            'current_operation_id': self.current_operation_id,
+            'status': self.status,
+            'is_available': self.is_available(),
+            'efficiency_rating': self.get_efficiency_rating(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+        }
+    
+    @classmethod
+    def get_available_teams(cls, specialization=None, shift=None):
+        """Get available teams, optionally filtered by specialization and shift"""
+        query = cls.query.filter_by(status='available')
+        if specialization:
+            query = query.filter_by(specialization=specialization)
+        if shift:
+            query = query.filter_by(shift=shift)
+        return query.order_by(cls.team_name).all()
+    
+    @classmethod
+    def get_teams_by_shift(cls, shift):
+        """Get all teams for a specific shift"""
+        return cls.query.filter_by(shift=shift).all()
+    
+    @classmethod
+    def get_assigned_teams(cls):
+        """Get all currently assigned teams"""
+        return cls.query.filter_by(status='assigned').all()

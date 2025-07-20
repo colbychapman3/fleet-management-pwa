@@ -59,8 +59,10 @@ def detailed_health_check():
         # Test Redis
         redis_healthy = False
         try:
-            redis_client.ping()
-            redis_healthy = True
+            from app import app
+            if app.config.get('SESSION_REDIS'):
+                app.config['SESSION_REDIS'].ping()
+                redis_healthy = True
         except:
             pass
         
