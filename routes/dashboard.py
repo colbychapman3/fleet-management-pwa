@@ -2,7 +2,7 @@
 Dashboard routes for web interface
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import structlog
@@ -94,7 +94,7 @@ def manager():
                 'recent_count': 0
             }
         
-        return render_template('dashboard/manager.html',
+        response = make_response(render_template('dashboard/manager.html',
             task_stats=task_stats,
             overdue_tasks=overdue_tasks,
             recent_tasks=recent_tasks,
@@ -108,7 +108,9 @@ def manager():
             berth_utilization=berth_utilization,
             alerts=[alert.to_dict() for alert in manager_alerts],
             alert_stats=manager_alert_stats
-        )
+        ))
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        return response
         
     except Exception as e:
         logger.error(f"Manager dashboard error: {e}")

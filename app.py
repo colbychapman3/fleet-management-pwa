@@ -10,7 +10,7 @@ try:
     import redis
 except ImportError:
     redis = None
-    print("Warning: Redis not available - using fallback configuration")
+    # Redis not available - will log later
 import sys # Added import for sys
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response, flash
@@ -45,7 +45,7 @@ if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-print(f"Using PostgreSQL database: {database_url.split('@')[1] if '@' in database_url else database_url}") # More informative print
+# Database URL will be logged after structlog is configured
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -62,11 +62,11 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 # Redis URL configuration: Use local Redis if FLASK_ENV is development, otherwise use external Upstash
 if os.environ.get('FLASK_ENV') == 'development':
     app.config['REDIS_URL'] = 'redis://redis-local:6379/0' # Use the service name from docker-compose
-    print("Using local Redis for development")
+    redis_env = 'local'
 else:
     app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 
         'rediss://default:AXXXAAIjcDFlM2ZmOWZjNmM0MDk0MTY4OWMyNjhmNThlYjE4OGJmNnAxMA@keen-sponge-30167.upstash.io:6380')
-    print(f"Using external Redis: {app.config['REDIS_URL'].split('@')[1] if '@' in app.config['REDIS_URL'] else app.config['REDIS_URL']}")
+    redis_env = 'external'
 
 # Logging configuration
 # Configure structlog for better structured logging
@@ -98,6 +98,12 @@ logging.basicConfig(
 )
 
 logger = structlog.get_logger()
+
+# Log configuration after structlog is set up
+if not redis:
+    logger.warning("Redis not available - using fallback configuration")
+logger.info(f"Using PostgreSQL database: {database_url.split('@')[1] if '@' in database_url else database_url}")
+logger.info(f"Using {redis_env} Redis configuration")
 
 # Session configuration for Redis
 app.config['SESSION_TYPE'] = 'redis'
@@ -495,9 +501,9 @@ def init_database():
 def init_db():
     """Initialize the database with tables and sample data"""
     if init_database():
-        print("Database initialized successfully!")
+        logger.info("Database initialized successfully!")
     else:
-        print("Database initialization failed!")
+        logger.error("Database initialization failed!")
 
 # Import and register blueprints after all app setup is complete
 from routes.auth import auth_bp
