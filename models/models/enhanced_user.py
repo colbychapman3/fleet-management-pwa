@@ -128,9 +128,13 @@ class User(UserMixin, db.Model):
     def is_document_clerk(self):
         return self.role == 'document_clerk'
     
+    def is_manager(self):
+        """Check if user has manager role (legacy compatibility)"""
+        return self.role in ['port_manager', 'operations_manager', 'manager']
+    
     def has_management_role(self):
         """Check if user has any management role"""
-        return self.role in ['port_manager', 'operations_manager', 'auto_ops_lead', 'heavy_ops_lead']
+        return self.role in ['port_manager', 'operations_manager', 'auto_ops_lead', 'heavy_ops_lead', 'manager']
     
     def can_assign_tasks(self):
         """Check if user can assign tasks to others"""

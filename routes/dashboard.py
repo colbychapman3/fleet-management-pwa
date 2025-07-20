@@ -15,7 +15,11 @@ from models.models.enhanced_user import User
 from models.models.enhanced_vessel import Vessel
 from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
-from models.models.alert import Alert, AlertGenerator
+try:
+    from models.models.alert import Alert, AlertGenerator
+except ImportError:
+    Alert = None
+    AlertGenerator = None
 
 logger = structlog.get_logger()
 
@@ -76,9 +80,10 @@ def manager():
         
         # Run alert generation checks and get alerts
         try:
-            AlertGenerator.run_all_checks()
-            manager_alerts = Alert.get_active_alerts(limit=5)
-            manager_alert_stats = Alert.get_alert_statistics()
+            if AlertGenerator:
+                AlertGenerator.run_all_checks()
+            manager_alerts = Alert.get_active_alerts(limit=5) if Alert else []
+            manager_alert_stats = Alert.get_alert_statistics() if Alert else {}
         except Exception as e:
             logger.error(f"Manager dashboard alert generation error: {e}")
             manager_alerts = []
@@ -626,16 +631,17 @@ def operations():
         
         # Run alert generation checks
         try:
-            AlertGenerator.run_all_checks()
+            if AlertGenerator:
+                AlertGenerator.run_all_checks()
         except Exception as e:
             logger.error(f"Alert generation error: {e}")
         
         # Get real alerts data
-        alerts = Alert.get_active_alerts(limit=10)
-        alert_stats = Alert.get_alert_statistics()
+        alerts = Alert.get_active_alerts(limit=10) if Alert else []
+        alert_stats = Alert.get_alert_statistics() if Alert else {}
         
         # Convert alerts to dict format for template
-        alerts_dict = [alert.to_dict() for alert in alerts]
+        alerts_dict = [alert.to_dict() for alert in alerts] if alerts else []
         
         return render_template('dashboard/operations.html',
             active_operations=active_operations,
