@@ -23,6 +23,11 @@ self.addEventListener('install', event => {
 });
 
 self.addEventListener('fetch', event => {
+    // Only handle http/https requests, skip chrome-extension and other schemes
+    if (!event.request.url.startsWith('http')) {
+        return;
+    }
+    
     event.respondWith(
         caches.match(event.request)
             .then(cachedResponse => {
@@ -34,7 +39,10 @@ self.addEventListener('fetch', event => {
                             const responseToCache = networkResponse.clone();
                             caches.open(CACHE_NAME)
                                 .then(cache => {
-                                    cache.put(event.request, responseToCache);
+                                    // Additional check before caching
+                                    if (event.request.url.startsWith('http')) {
+                                        cache.put(event.request, responseToCache);
+                                    }
                                 });
                         }
                         return networkResponse;

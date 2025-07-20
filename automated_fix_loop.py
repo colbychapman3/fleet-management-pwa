@@ -887,7 +887,7 @@ class AutomatedFixLoop:
             {
                 'type': 'timeout_error',
                 'agent': 'deployment',
-                'patterns': ['timeout', 'Read timed out', 'Connection timeout'],
+                'patterns': ['timeout', 'Read timed out', 'Connection timeout', 'HTTPSConnectionPool', 'read timeout'],
                 'priority': 'high',
                 'description': 'Network timeout issues'
             },
@@ -901,7 +901,7 @@ class AutomatedFixLoop:
             {
                 'type': 'server_error',
                 'agent': 'database',
-                'patterns': ['500', 'internal server error', 'server error'],
+                'patterns': ['500', '502', '503', '504', 'internal server error', 'server error', 'bad gateway'],
                 'priority': 'high',
                 'description': 'Server errors'
             },

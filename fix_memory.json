@@ -114,6 +114,107 @@
       "test_improvement": 0,
       "iteration": 1,
       "timestamp": "2025-07-20T03:07:51.584595"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [
+        "static/manifest.json"
+      ],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T09:32:17.992250"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 2,
+      "timestamp": "2025-07-20T09:32:40.125213"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 3,
+      "timestamp": "2025-07-20T09:33:01.244227"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 4,
+      "timestamp": "2025-07-20T09:33:52.324770"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 5,
+      "timestamp": "2025-07-20T09:34:13.449368"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T09:34:38.383474"
+    },
+    {
+      "error_type": "rate_limit_error",
+      "error_signature": "rate_limit_error",
+      "fix_strategy": "rate_limit_mitigation",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T09:35:38.151217"
+    },
+    {
+      "error_type": "file_missing",
+      "error_signature": "file_missing",
+      "fix_strategy": "filesystem_optimization",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T09:37:21.284658"
+    },
+    {
+      "error_type": "rate_limit_error",
+      "error_signature": "rate_limit_error",
+      "fix_strategy": "rate_limit_mitigation",
+      "success": true,
+      "time_taken": 1.0,
+      "files_modified": [],
+      "test_improvement": 0,
+      "iteration": 1,
+      "timestamp": "2025-07-20T09:38:21.028315"
     }
   ],
   "successful_patterns": {
@@ -128,13 +229,24 @@
     ],
     "rate_limit_error": [
       "rate_limit_mitigation",
+      "rate_limit_mitigation",
+      "rate_limit_mitigation",
       "rate_limit_mitigation"
     ],
     "timeout_error": [
       "deployment_optimization"
+    ],
+    "file_missing": [
+      "filesystem_optimization",
+      "filesystem_optimization",
+      "filesystem_optimization",
+      "filesystem_optimization",
+      "filesystem_optimization",
+      "filesystem_optimization",
+      "filesystem_optimization"
     ]
   },
   "failed_patterns": {},
   "optimization_insights": [],
-  "last_updated": "2025-07-20T03:07:51.584856"
+  "last_updated": "2025-07-20T09:38:21.028878"
 }
