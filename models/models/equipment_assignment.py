@@ -48,7 +48,7 @@ class EquipmentAssignment(db.Model):
     
     # Relationships
     operator = db.relationship('User', foreign_keys=[user_id])
-    vessel = db.relationship('Vessel', foreign_keys=[vessel_id])
+    vessel = db.relationship('Vessel', foreign_keys=[vessel_id], back_populates='equipment_assignments')
     operation = db.relationship('ShipOperation', foreign_keys=[operation_id])
     assigned_by = db.relationship('User', foreign_keys=[assigned_by_id])
     

@@ -40,7 +40,7 @@ class OperationAssignment(db.Model):
     # Relationships
     user = db.relationship('User', foreign_keys=[user_id])
     operation = db.relationship('ShipOperation', foreign_keys=[operation_id])
-    vessel = db.relationship('Vessel', foreign_keys=[vessel_id])
+    vessel = db.relationship('Vessel', foreign_keys=[vessel_id], back_populates='operation_assignments')
     assigned_by = db.relationship('User', foreign_keys=[assigned_by_id])
     
     def __repr__(self):
