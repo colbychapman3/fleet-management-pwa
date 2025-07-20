@@ -110,14 +110,20 @@ class FleetManagementTester:
                 print("❌ Could not extract CSRF token")
                 return False
             
-            # Attempt login
+            # Attempt login with proper headers
             login_data = {
                 'email': 'admin@fleet.com',
                 'password': 'admin123',
                 'csrf_token': csrf_token
             }
             
-            response = self.session.post(login_url, data=login_data, allow_redirects=False)
+            # Add referrer header for CSRF protection
+            headers = {
+                'Referer': login_url,
+                'Origin': self.base_url
+            }
+            
+            response = self.session.post(login_url, data=login_data, headers=headers, allow_redirects=False)
             
             # Check for successful login (redirect to dashboard)
             if response.status_code in [302, 301]:
