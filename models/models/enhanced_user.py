@@ -4,11 +4,13 @@ Enhanced User model with maritime-specific roles, certifications, and stevedorin
 
 from datetime import datetime, timedelta
 from decimal import Decimal
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash
 from sqlalchemy import Index, DECIMAL
-from app import db
+from flask_sqlalchemy import SQLAlchemy
+
+# Initialize db instance
+db = SQLAlchemy()
 
 class User(UserMixin, db.Model):
     """Enhanced User model with maritime roles and stevedoring operations"""
@@ -80,9 +82,9 @@ class User(UserMixin, db.Model):
     
     # Task relationships (from existing model)
     assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', 
-                                   lazy='dynamic')
+                                   back_populates='assigned_to', lazy='dynamic')
     created_tasks = db.relationship('Task', foreign_keys='Task.created_by_id', 
-                                  lazy='dynamic')
+                                  back_populates='created_by', lazy='dynamic')
     
     # Maritime-specific relationships
     operation_assignments = db.relationship('OperationAssignment', foreign_keys='OperationAssignment.user_id', lazy='dynamic')
