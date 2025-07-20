@@ -1,5 +1,4 @@
 # Docker Compose for Local Preview Environment
-version: '3.8'
 
 services:
   web-preview:
@@ -7,7 +6,7 @@ services:
     ports:
       - "5001:5000"  # Different port for preview
     environment:
-      - FLASK_ENV=development
+      - FLASK_ENV=production
       - FLASK_DEBUG=1
       - SECRET_KEY=preview-secret-key-change-in-production
       - DATABASE_URL=postgresql://preview:preview123@db-preview:5432/fleet_preview
@@ -19,7 +18,7 @@ services:
     volumes:
       - .:/app
       - /app/venv  # Exclude venv from volume mount
-    command: python app.py
+    command: python app_real_preview.py
     
   db-preview:
     image: postgres:15

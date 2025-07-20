@@ -159,13 +159,7 @@ limiter = Limiter(
 )
 limiter.init_app(app)
 
-# Prometheus metrics
-metrics = PrometheusMetrics(app)
-metrics.info('app_info', 'Application info', version='1.0.0')
-
 # Import models after db initialization
-# sys.path.append(os.path.dirname(os.path.abspath(__file__))) # This line might not be necessary if models are importable directly
-
 from models.models.enhanced_user import User
 from models.models.enhanced_vessel import Vessel
 from models.models.enhanced_task import Task
@@ -331,6 +325,11 @@ def service_worker():
 def offline():
     """Offline page for PWA"""
     return render_template('offline.html')
+
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon"""
+    return redirect(url_for('static', filename='favicon.ico'))
 
 # Health check endpoints
 @app.route('/health')
@@ -514,6 +513,10 @@ app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
 app.register_blueprint(monitoring_bp, url_prefix='/monitoring')
 app.register_blueprint(maritime_bp, url_prefix='/maritime')
+
+# Initialize Prometheus metrics after all blueprints are registered
+metrics = PrometheusMetrics(app)
+metrics.info('app_info', 'Application info', version='1.0.0')
 
 if __name__ == '__main__':
     app.run(

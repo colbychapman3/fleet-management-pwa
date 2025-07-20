@@ -24,7 +24,12 @@ self.addEventListener('install', event => {
 
 self.addEventListener('fetch', event => {
     // Only handle http/https requests, skip chrome-extension and other schemes
-    if (!event.request.url.startsWith('http')) {
+    if (!event.request.url.startsWith('http://') && !event.request.url.startsWith('https://')) {
+        return;
+    }
+    
+    // Skip caching for chrome-extension and other non-http schemes
+    if (event.request.url.includes('chrome-extension://')) {
         return;
     }
     
@@ -34,14 +39,19 @@ self.addEventListener('fetch', event => {
                 // Stale-while-revalidate strategy
                 const fetchPromise = fetch(event.request).then(
                     networkResponse => {
-                        // Check if we received a valid response
-                        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+                        // Check if we received a valid response and URL is cacheable
+                        if (networkResponse && 
+                            networkResponse.status === 200 && 
+                            networkResponse.type === 'basic' &&
+                            (event.request.url.startsWith('http://') || event.request.url.startsWith('https://'))) {
+                            
                             const responseToCache = networkResponse.clone();
                             caches.open(CACHE_NAME)
                                 .then(cache => {
-                                    // Additional check before caching
-                                    if (event.request.url.startsWith('http')) {
+                                    try {
                                         cache.put(event.request, responseToCache);
+                                    } catch (error) {
+                                        console.log('Cache put failed:', error);
                                     }
                                 });
                         }
