@@ -153,6 +153,84 @@ class FleetManagementTester:
             print(f"❌ Login test failed: {e}")
             return False
     
+    def test_dashboard_access(self):
+        """Test dashboard access after login"""
+        print("📊 Testing dashboard access...")
+        try:
+            # Try to access dashboard directly - if we're already logged in from previous test, this should work
+            dashboard_url = urljoin(self.base_url, "/dashboard/manager")
+            response = self.session.get(dashboard_url, timeout=10)
+            
+            if response.status_code == 200:
+                # Check for dashboard content
+                if "Manager Dashboard" in response.text and "Stevedoring" in response.text:
+                    print("✅ Manager dashboard loads successfully")
+                    return True
+                else:
+                    print("❌ Dashboard content missing or incomplete")
+                    return False
+            elif response.status_code == 302:
+                # If redirected, we need to login first
+                print("🔐 Dashboard redirected, attempting login first...")
+                
+                # Get the redirect location
+                redirect_url = response.headers.get('Location', '/auth/login')
+                if not redirect_url.startswith('http'):
+                    redirect_url = urljoin(self.base_url, redirect_url)
+                
+                # Get login page
+                response = self.session.get(redirect_url)
+                if response.status_code != 200:
+                    print(f"❌ Could not access login page: {response.status_code}")
+                    return False
+                
+                # Extract CSRF token
+                csrf_token = None
+                for line in response.text.split('\n'):
+                    if 'csrf_token' in line and 'value=' in line:
+                        start = line.find('value="') + 7
+                        end = line.find('"', start)
+                        csrf_token = line[start:end]
+                        break
+                
+                if not csrf_token:
+                    print("❌ Could not extract CSRF token for dashboard login")
+                    return False
+                
+                # Login for dashboard test
+                login_data = {
+                    'email': 'admin@fleet.com',
+                    'password': 'admin123',
+                    'csrf_token': csrf_token
+                }
+                
+                headers = {
+                    'Referer': redirect_url,
+                    'Origin': self.base_url
+                }
+                
+                login_response = self.session.post(redirect_url, data=login_data, headers=headers, allow_redirects=True)
+                
+                # Now try dashboard again
+                response = self.session.get(dashboard_url, timeout=10)
+                if response.status_code == 200:
+                    if "Manager Dashboard" in response.text and "Stevedoring" in response.text:
+                        print("✅ Manager dashboard loads successfully after login")
+                        return True
+                    else:
+                        print("❌ Dashboard content missing after login")
+                        return False
+                else:
+                    print(f"❌ Dashboard still returned {response.status_code} after login")
+                    return False
+            else:
+                print(f"❌ Dashboard returned {response.status_code}")
+                return False
+                
+        except requests.RequestException as e:
+            print(f"❌ Dashboard test failed: {e}")
+            return False
+    
     def test_database_health(self):
         """Test if database is healthy by checking API endpoints"""
         print("🗄️ Testing database health...")
@@ -183,6 +261,7 @@ class FleetManagementTester:
             ("CSRF Protection", self.test_csrf_login),
             ("Database Health", self.test_database_health),
             ("Login Functionality", self.test_login_functionality),
+            ("Dashboard Access", self.test_dashboard_access),
         ]
         
         results = []
