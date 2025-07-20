@@ -1,0 +1,152 @@
+/* Offline Mode Styles for Fleet Management PWA */
+
+.offline-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: #ff6b6b;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    z-index: 9999;
+    font-weight: bold;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease;
+}
+
+.offline-indicator.show {
+    transform: translateY(0);
+}
+
+.offline-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+.offline-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+}
+
+.offline-title {
+    font-size: 2rem;
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+.offline-message {
+    font-size: 1.1rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+.retry-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.retry-button:hover {
+    background: #0056b3;
+}
+
+.offline-features {
+    margin-top: 2rem;
+    text-align: left;
+    max-width: 500px;
+}
+
+.offline-features h3 {
+    color: #495057;
+    margin-bottom: 1rem;
+}
+
+.offline-features ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.offline-features li {
+    padding: 8px 0;
+    color: #6c757d;
+}
+
+.offline-features li::before {
+    content: "✓ ";
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 8px;
+}
+
+/* Sync status indicator */
+.sync-status {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    z-index: 1000;
+}
+
+.sync-status.syncing {
+    background: #ffc107;
+    color: #000;
+}
+
+.sync-status.error {
+    background: #dc3545;
+}
+
+.sync-status.success {
+    background: #28a745;
+}
+
+/* Loading animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .offline-title {
+        font-size: 1.5rem;
+    }
+    
+    .offline-message {
+        font-size: 1rem;
+    }
+    
+    .offline-container {
+        padding: 15px;
+    }
+}
