@@ -17,7 +17,8 @@ from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
 try:
     from models.models.alert import Alert, AlertGenerator
-except ImportError:
+except ImportError as e:
+    logger.warning(f"Alert system not available: {e}")
     Alert = None
     AlertGenerator = None
 

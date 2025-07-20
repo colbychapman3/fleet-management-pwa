@@ -93,6 +93,10 @@ class User(UserMixin, db.Model):
     # Offline sync tracking
     sync_logs = db.relationship('SyncLog', backref='user', lazy='dynamic')
     
+    # Alert relationships
+    user_alerts = db.relationship('Alert', foreign_keys='Alert.user_id', back_populates='user', lazy='dynamic')
+    dismissed_alerts = db.relationship('Alert', foreign_keys='Alert.dismissed_by', back_populates='dismissed_by_user', lazy='dynamic')
+    
     def __repr__(self):
         return f'<User {self.username} ({self.role})>'
     

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Error{% endblock %}
+
+{% block content %}
+<div class="py-8 px-4">
+    <div class="max-w-2xl mx-auto text-center">
+        <div class="mb-8">
+            <div class="text-6xl mb-4">⚠️</div>
+            <h1 class="text-3xl font-bold text-error-color mb-4">Dashboard Error</h1>
+            <p class="text-lg text-text-secondary mb-8">
+                We encountered an error while loading the dashboard. Please try again or contact your system administrator if the problem persists.
+            </p>
+        </div>
+        
+        <div class="space-y-4">
+            <a href="{{ url_for('dashboard.main') }}" class="btn btn-primary inline-block">
+                🔄 Try Again
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary inline-block ml-4">
+                🏠 Go to Home
+            </a>
+        </div>
+        
+        <div class="mt-8 p-4 bg-background-color rounded-lg">
+            <h3 class="text-lg font-semibold text-text-primary mb-2">Need Help?</h3>
+            <p class="text-text-secondary">
+                If this error continues to occur, please contact your system administrator 
+                with details about what you were trying to do when the error occurred.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

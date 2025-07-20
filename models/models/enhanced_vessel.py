@@ -131,6 +131,7 @@ class Vessel(db.Model):
     operation_assignments = db.relationship('OperationAssignment', back_populates='vessel', lazy='dynamic')
     tasks = db.relationship('Task', foreign_keys='Task.vessel_id', lazy='dynamic')
     time_logs = db.relationship('WorkTimeLog', backref='vessel', lazy='dynamic')
+    alerts = db.relationship('Alert', back_populates='vessel', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Vessel {self.name} ({self.status})>'
