@@ -76,7 +76,15 @@ def manager():
         
         # Run alert generation checks and get alerts
         try:
-            AlertGenerator.run_all_checks()
+            # Check if required models exist before running alert checks
+            from models.models.maritime_models import TicoVehicle, StevedoreTeam
+            
+            # Only run alert checks if database tables exist
+            db = get_app_db()
+            if db.engine.dialect.has_table(db.engine, 'tico_vehicles') and \
+               db.engine.dialect.has_table(db.engine, 'stevedore_teams'):
+                AlertGenerator.run_all_checks()
+            
             manager_alerts = Alert.get_active_alerts(limit=5)
             manager_alert_stats = Alert.get_alert_statistics()
         except Exception as e:
