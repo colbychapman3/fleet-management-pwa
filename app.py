@@ -6,7 +6,11 @@ Production-ready Flask app with PostgreSQL, Redis, PWA support, and monitoring
 
 import os
 import logging
-import redis
+try:
+    import redis
+except ImportError:
+    redis = None
+    print("Warning: Redis not available - using fallback configuration")
 import sys # Added import for sys
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response, flash
