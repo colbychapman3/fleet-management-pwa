@@ -509,12 +509,14 @@ from routes.api import api_bp
 from routes.dashboard import dashboard_bp
 from routes.monitoring import monitoring_bp
 from routes.maritime.ship_operations import maritime_bp
+from routes.health import health_bp
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
 app.register_blueprint(monitoring_bp, url_prefix='/monitoring')
 app.register_blueprint(maritime_bp, url_prefix='/maritime')
+app.register_blueprint(health_bp)
 
 if __name__ == '__main__':
     app.run(
