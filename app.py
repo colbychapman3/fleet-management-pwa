@@ -502,12 +502,14 @@ def init_db():
 
 # Import and register blueprints after all app setup is complete
 from routes.auth import auth_bp
+from routes.health import health_bp
 from routes.api import api_bp
 from routes.dashboard import dashboard_bp
 from routes.monitoring import monitoring_bp
 from routes.maritime.ship_operations import maritime_bp
 
 app.register_blueprint(auth_bp, url_prefix='/auth')
+app.register_blueprint(health_bp)
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
 app.register_blueprint(monitoring_bp, url_prefix='/monitoring')
