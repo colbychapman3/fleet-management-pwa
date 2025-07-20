@@ -65,8 +65,9 @@ class StevedoreTeam(db.Model):
     last_assignment = db.Column(db.DateTime)
     
     # Relationships
-    team_leader = db.relationship('User', foreign_keys=[team_leader_id], backref='led_teams', lazy=True)
-    supervisor = db.relationship('User', foreign_keys=[supervisor_id], backref='supervised_teams', lazy=True)
+    team_leader = db.relationship('User', foreign_keys=[team_leader_id], back_populates='led_teams', lazy=True)
+    supervisor = db.relationship('User', foreign_keys=[supervisor_id], back_populates='supervised_teams', lazy=True)
+    assigned_users = db.relationship('User', foreign_keys='User.current_team_id', back_populates='current_team', lazy='dynamic')
     team_members = db.relationship('StevedoreTeamMember', backref='team', lazy='dynamic', cascade='all, delete-orphan')
     
     # Indexes

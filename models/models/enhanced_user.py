@@ -7,10 +7,7 @@ from decimal import Decimal
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash
 from sqlalchemy import Index, DECIMAL
-from flask_sqlalchemy import SQLAlchemy
-
-# Initialize db instance
-db = SQLAlchemy()
+from app import db
 
 class User(UserMixin, db.Model):
     """Enhanced User model with maritime roles and stevedoring operations"""
@@ -77,8 +74,8 @@ class User(UserMixin, db.Model):
     radio_call_sign = db.Column(db.String(10))
     
     # Relationships
-    current_vessel = db.relationship('Vessel', foreign_keys=[current_vessel_id], backref='current_crew', lazy=True)
-    current_team = db.relationship('StevedoreTeam', foreign_keys=[current_team_id], backref='assigned_users', lazy=True)
+    current_vessel = db.relationship('Vessel', foreign_keys=[current_vessel_id], back_populates='current_crew', lazy=True)
+    current_team = db.relationship('StevedoreTeam', foreign_keys=[current_team_id], back_populates='assigned_users', lazy=True)
     
     # Task relationships (from existing model)
     assigned_tasks = db.relationship('Task', foreign_keys='Task.assigned_to_id', 
@@ -87,6 +84,8 @@ class User(UserMixin, db.Model):
                                   back_populates='created_by', lazy='dynamic')
     
     # Maritime-specific relationships
+    led_teams = db.relationship('StevedoreTeam', foreign_keys='StevedoreTeam.team_leader_id', back_populates='team_leader', lazy='dynamic')
+    supervised_teams = db.relationship('StevedoreTeam', foreign_keys='StevedoreTeam.supervisor_id', back_populates='supervisor', lazy='dynamic')
     operation_assignments = db.relationship('OperationAssignment', foreign_keys='OperationAssignment.user_id', lazy='dynamic')
     equipment_assignments = db.relationship('EquipmentAssignment', foreign_keys='EquipmentAssignment.user_id', lazy='dynamic')
     time_logs = db.relationship('WorkTimeLog', foreign_keys='WorkTimeLog.user_id', lazy='dynamic')
