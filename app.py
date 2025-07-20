@@ -163,6 +163,7 @@ metrics.info('app_info', 'Application info', version='1.0.0')
 # sys.path.append(os.path.dirname(os.path.abspath(__file__))) # This line might not be necessary if models are importable directly
 
 from models.models.enhanced_user import User
+from models.models.maritime_models import TicoVehicle, StevedoreTeam
 from models.models.enhanced_vessel import Vessel
 from models.models.enhanced_task import Task
 from models.models.sync_log import SyncLog
