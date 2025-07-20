@@ -131,6 +131,10 @@ class User(UserMixin, db.Model):
         """Check if user has any management role"""
         return self.role in ['port_manager', 'operations_manager', 'auto_ops_lead', 'heavy_ops_lead']
     
+    def is_manager(self):
+        """Check if user has manager-level access (backward compatibility)"""
+        return self.has_management_role()
+    
     def can_assign_tasks(self):
         """Check if user can assign tasks to others"""
         return self.has_management_role() or self.is_safety_officer()
