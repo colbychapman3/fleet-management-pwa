@@ -221,7 +221,10 @@ def index():
     """Main landing page with PWA manifest"""
     # Try to initialize database on first request if not already done
     try:
-        User.query.first()  # Test database connection
+        if User.query.count() == 0:  # Check if no users exist
+            logger.info("No users found, initializing database with demo users")
+            if not init_database():
+                flash('Database initialization failed. Some features may not work.', 'error')
     except Exception as e:
         logger.info(f"Database not initialized, attempting to initialize now: {e}")
         if not init_database():
@@ -447,7 +450,7 @@ def init_database():
                     email='admin@fleet.com',
                     username='admin',
                     password_hash=generate_password_hash('admin123'),
-                    role='manager',
+                    role='port_manager',
                     is_active=True
                 )
                 db.session.add(admin)
@@ -457,7 +460,7 @@ def init_database():
                     email='worker@fleet.com',
                     username='worker',
                     password_hash=generate_password_hash('worker123'),
-                    role='worker',
+                    role='general_stevedore',
                     is_active=True
                 )
                 db.session.add(worker)
