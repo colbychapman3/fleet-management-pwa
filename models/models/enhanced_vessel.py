@@ -129,7 +129,7 @@ class Vessel(db.Model):
     cargo_batches = db.relationship('CargoBatch', backref='vessel', lazy='dynamic', cascade='all, delete-orphan')
     equipment_assignments = db.relationship('EquipmentAssignment', back_populates='vessel', lazy='dynamic')
     operation_assignments = db.relationship('OperationAssignment', back_populates='vessel', lazy='dynamic')
-    tasks = db.relationship('Task', foreign_keys='Task.vessel_id', lazy='dynamic')
+    # tasks relationship provided by backref='all_tasks' in enhanced_task.py
     time_logs = db.relationship('WorkTimeLog', backref='vessel', lazy='dynamic')
     alerts = db.relationship('Alert', back_populates='vessel', lazy='dynamic', cascade='all, delete-orphan')
     
