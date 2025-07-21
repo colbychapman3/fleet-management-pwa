@@ -487,11 +487,11 @@ def operations():
                 MaritimeOperation.berth_assigned.isnot(None),
                 MaritimeOperation.status.in_(['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4'])
             ).count()
-            berth_utilization = min(int((berths_occupied / 3) * 100), 100) if berths_occupied >= 0 else 0
+            berth_utilization_percentage = min(int((berths_occupied / 3) * 100), 100) if berths_occupied >= 0 else 0
         except Exception as e:
             logger.error(f"Berth utilization calculation error: {e}")
             berths_occupied = 0
-            berth_utilization = 0
+            berth_utilization_percentage = 0
         
         # Cargo throughput: Sum cargo_weight from completed operations today / total hours
         try:
@@ -569,7 +569,7 @@ def operations():
         
         kpi_stats = {
             'operations_trend': operations_trend,
-            'berth_utilization': berth_utilization,
+            'berth_utilization_percentage': berth_utilization_percentage,
             'berths_occupied': berths_occupied,
             'cargo_throughput': cargo_throughput,
             'throughput_trend': throughput_trend,
