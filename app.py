@@ -3,6 +3,7 @@
 Fleet Management System - Main Flask Application
 Production-ready Flask app with PostgreSQL, Redis, PWA support, and monitoring
 Updated: Model consolidation completed - using vessel.py and task.py
+Fixed: Manager dashboard iteration error resolved
 """
 
 import os
