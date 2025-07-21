@@ -471,7 +471,7 @@ class AlertGenerator:
     def check_equipment_availability_alerts():
         """Check for equipment availability issues"""
         try:
-            from models.models.maritime_models import TicoVehicle
+            from models.models.tico_vehicle import TicoVehicle
             
             # Get TICO vehicle availability
             total_vehicles = TicoVehicle.query.count()
@@ -651,7 +651,7 @@ class AlertGenerator:
     def check_resource_allocation_alerts():
         """Check for resource allocation issues"""
         try:
-            from models.models.maritime_models import StevedoreTeam
+            from models.maritime.stevedore_team import StevedoreTeam
             from models.maritime.maritime_operation import MaritimeOperation
             
             # Get active operations
@@ -779,7 +779,7 @@ class AlertGenerator:
     def check_equipment_maintenance_alerts():
         """Check for equipment maintenance requirements"""
         try:
-            from models.models.maritime_models import TicoVehicle
+            from models.models.tico_vehicle import TicoVehicle
             
             # Get vehicles that might need maintenance (in production, this would be based on usage hours)
             vehicles = TicoVehicle.query.filter_by(status='maintenance').all()

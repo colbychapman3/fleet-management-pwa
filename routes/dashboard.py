@@ -85,6 +85,12 @@ def manager():
                 AlertGenerator.run_all_checks()
             manager_alerts = Alert.get_active_alerts(limit=5) if Alert else []
             manager_alert_stats = Alert.get_alert_statistics() if Alert else {}
+            
+            # Ensure manager_alerts is iterable
+            if not isinstance(manager_alerts, (list, tuple)):
+                logger.warning(f"Alert query returned non-iterable type: {type(manager_alerts)}")
+                manager_alerts = []
+                
         except Exception as e:
             logger.error(f"Manager dashboard alert generation error: {e}")
             manager_alerts = []
@@ -107,7 +113,7 @@ def manager():
             today=today,
             completed_tasks_today=completed_tasks_today,
             berth_utilization=berth_utilization,
-            alerts=[alert.to_dict() for alert in manager_alerts],
+            alerts=[alert.to_dict() for alert in (manager_alerts or []) if hasattr(alert, 'to_dict')],
             alert_stats=manager_alert_stats
         ))
         response.headers['Content-Type'] = 'text/html; charset=utf-8'
