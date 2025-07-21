@@ -646,7 +646,8 @@ from flask import Blueprint, request, jsonify
 from flask_login import login_required, current_user
 from marshmallow import ValidationError
 from models.schemas import CargoDischargeSchema
-from models.models.maritime import ShipOperation, CargoDischarge
+from models.maritime.ship_operation import ShipOperation
+from models.maritime.cargo_discharge import CargoDischarge
 from utils.permissions import require_permission
 from utils.websockets import broadcast_cargo_update
 

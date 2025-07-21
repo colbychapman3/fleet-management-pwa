@@ -9,7 +9,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app import app, db
-from models.models.vessel import Vessel
+from models.models.enhanced_vessel import Vessel
 from models.models.user import User
 from models.maritime.ship_operation import ShipOperation
 from models.maritime.stevedore_team import StevedoreTeam, StevedoreTeamMember
