@@ -86,9 +86,12 @@ def manager():
             manager_alerts = Alert.get_active_alerts(limit=5) if Alert else []
             manager_alert_stats = Alert.get_alert_statistics() if Alert else {}
             
-            # Ensure manager_alerts is iterable
+            # Ensure manager_alerts is iterable with comprehensive type checking
             if not isinstance(manager_alerts, (list, tuple)):
-                logger.warning(f"Alert query returned non-iterable type: {type(manager_alerts)}")
+                logger.warning(f"Alert query returned non-iterable type: {type(manager_alerts)}, value: {manager_alerts}")
+                manager_alerts = []
+            elif manager_alerts is None:
+                logger.warning("Alert query returned None")
                 manager_alerts = []
                 
         except Exception as e:
@@ -113,7 +116,10 @@ def manager():
             today=today,
             completed_tasks_today=completed_tasks_today,
             berth_utilization=berth_utilization,
-            alerts=[alert.to_dict() for alert in (manager_alerts or []) if hasattr(alert, 'to_dict')],
+            alerts=[
+                alert.to_dict() for alert in (manager_alerts or []) 
+                if hasattr(alert, 'to_dict') and alert is not None
+            ] if isinstance(manager_alerts, (list, tuple)) else [],
             alert_stats=manager_alert_stats
         ))
         response.headers['Content-Type'] = 'text/html; charset=utf-8'
