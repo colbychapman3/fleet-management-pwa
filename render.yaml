@@ -1,0 +1,61 @@
+# Render deployment configuration for Fleet Management PWA
+services:
+  - type: web
+    name: fleet-management-pwa
+    env: docker
+    plan: starter
+    
+    # Build configuration
+    dockerfilePath: ./Dockerfile
+    
+    # Environment variables
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: PORT
+        value: "10000"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fleet-management-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: fleet-management-redis
+          property: connectionString
+    
+    # Health check configuration
+    healthCheckPath: /health
+    
+    # Auto-deploy on git push
+    autoDeploy: true
+    
+    # Build command (runs during deployment)
+    buildCommand: |
+      echo "Building Fleet Management PWA..."
+      # Database initialization will be done via CLI command after deployment
+    
+    # Start command
+    startCommand: |
+      # Initialize database if needed
+      flask init-db || echo "Database initialization failed, continuing..."
+      # Start the application
+      gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --preload --access-logfile - --error-logfile - app:app
+
+# Database service
+databases:
+  - name: fleet-management-db
+    databaseName: fleet_management
+    user: fleet_user
+    plan: starter
+
+# Redis service
+services:
+  - type: redis
+    name: fleet-management-redis
+    plan: starter
+    maxmemoryPolicy: allkeys-lru
