@@ -4,16 +4,18 @@ Fleet Management System - Main Flask Application
 Production-ready Flask app with PostgreSQL, Redis, PWA support, and monitoring
 Updated: Model consolidation completed - using vessel.py and task.py
 Fixed: Manager dashboard iteration error resolved
+Fixed: Render deployment issues - removed DB init from index route, improved Redis fallback
 """
 
 import os
 import logging
 try:
     import redis
+    from redis.exceptions import ConnectionError, TimeoutError, ConnectionResetError
 except ImportError:
     redis = None
-    # Redis not available - will log later
-import sys # Added import for sys
+    ConnectionError = TimeoutError = ConnectionResetError = Exception
+import sys
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify, render_template, session, redirect, url_for, make_response, flash
 from flask_sqlalchemy import SQLAlchemy
@@ -30,12 +32,9 @@ import structlog
 app = Flask(__name__)
 
 # Configuration
-# IMPORTANT: Change this to a strong, randomly generated key in production!
-# Use `os.urandom(24)` to generate a good secret key.
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'YOUR_SUPER_SECRET_KEY_CHANGE_THIS_IN_PRODUCTION')
 
 # Database URL - PostgreSQL is primary
-# Use environment variable if available, otherwise default to Supabase URL
 database_url = os.environ.get('DATABASE_URL', 'postgresql://postgres:HobokenHome3!@db.mjalobwwhnrgqqlnnbfa.supabase.co:5432/postgres')
 
 # Fallback to SQLite for development if PostgreSQL is not available
@@ -47,8 +46,6 @@ if database_url.startswith('postgres://'):
     database_url = database_url.replace('postgres://', 'postgresql://', 1)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-# Database URL will be logged after structlog is configured
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # PostgreSQL engine options
@@ -61,9 +58,9 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     }
 }
 
-# Redis URL configuration: Use local Redis if FLASK_ENV is development, otherwise use external Upstash
+# Redis URL configuration with improved fallback
 if os.environ.get('FLASK_ENV') == 'development':
-    app.config['REDIS_URL'] = 'redis://redis-local:6379/0' # Use the service name from docker-compose
+    app.config['REDIS_URL'] = 'redis://redis-local:6379/0'
     redis_env = 'local'
 else:
     app.config['REDIS_URL'] = os.environ.get('REDIS_URL', 
@@ -71,8 +68,6 @@ else:
     redis_env = 'external'
 
 # Logging configuration
-# Configure structlog for better structured logging
-# Use environment variable to determine if we're in debug mode
 is_debug = os.environ.get('FLASK_ENV') == 'development'
 
 structlog.configure(
@@ -92,7 +87,6 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-# Configure standard logging to use structlog
 logging.basicConfig(
     format="%(message)s",
     stream=sys.stdout,
@@ -107,19 +101,80 @@ if not redis:
 logger.info(f"Using PostgreSQL database: {database_url.split('@')[1] if '@' in database_url else database_url}")
 logger.info(f"Using {redis_env} Redis configuration")
 
-# Session configuration for Redis
+# Improved Redis connection with fallback
+class FallbackRedisClient:
+    """Redis client with automatic fallback to in-memory storage"""
+    
+    def __init__(self, redis_url):
+        self.redis_client = None
+        self.fallback_storage = {}
+        self.using_fallback = False
+        
+        if redis:
+            try:
+                self.redis_client = redis.from_url(redis_url)
+                self.redis_client.ping()
+                logger.info("Redis connection established successfully")
+            except Exception as e:
+                logger.warning(f"Redis connection failed, using fallback: {e}")
+                self.using_fallback = True
+        else:
+            logger.warning("Redis module not available, using fallback storage")
+            self.using_fallback = True
+    
+    def _execute_with_fallback(self, operation, *args, **kwargs):
+        """Execute Redis operation with fallback to in-memory storage"""
+        if self.using_fallback:
+            return self._fallback_operation(operation, *args, **kwargs)
+        
+        try:
+            return getattr(self.redis_client, operation)(*args, **kwargs)
+        except (ConnectionError, TimeoutError, ConnectionResetError) as e:
+            logger.warning(f"Redis operation failed, switching to fallback: {e}")
+            self.using_fallback = True
+            return self._fallback_operation(operation, *args, **kwargs)
+    
+    def _fallback_operation(self, operation, *args, **kwargs):
+        """Fallback operations using in-memory storage"""
+        if operation == 'get':
+            return self.fallback_storage.get(args[0])
+        elif operation == 'set':
+            self.fallback_storage[args[0]] = args[1]
+            return True
+        elif operation == 'setex':
+            # Ignore timeout in fallback mode
+            self.fallback_storage[args[0]] = args[2]
+            return True
+        elif operation == 'delete':
+            return self.fallback_storage.pop(args[0], None) is not None
+        elif operation == 'ping':
+            return True
+        return None
+    
+    def get(self, key):
+        return self._execute_with_fallback('get', key)
+    
+    def set(self, key, value):
+        return self._execute_with_fallback('set', key, value)
+    
+    def setex(self, key, timeout, value):
+        return self._execute_with_fallback('setex', key, timeout, value)
+    
+    def delete(self, key):
+        return self._execute_with_fallback('delete', key)
+    
+    def ping(self):
+        return self._execute_with_fallback('ping')
+
+# Initialize Redis with fallback
+redis_client = FallbackRedisClient(app.config['REDIS_URL'])
+app.config['SESSION_REDIS'] = redis_client
+
+# Session configuration
 app.config['SESSION_TYPE'] = 'redis'
 app.config['SESSION_PERMANENT'] = False
 app.config['SESSION_USE_SIGNER'] = True
 app.config['SESSION_KEY_PREFIX'] = 'fleet:'
-# Initialize Redis client after setting REDIS_URL
-try:
-    app.config['SESSION_REDIS'] = redis.from_url(app.config['REDIS_URL'])
-    app.config['SESSION_REDIS'].ping()
-    logger.info("Redis connection established successfully")
-except Exception as e:
-    logger.error(f"Redis connection failed: {e}")
-    app.config['SESSION_REDIS'] = None # Ensure it's None if connection fails
 
 # Security configurations
 app.config['WTF_CSRF_TIME_LIMIT'] = None
@@ -149,21 +204,11 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Please log in to access this page.'
 
-# Initialize Redis (moved this block to be after REDIS_URL is set)
-# try:
-#     redis_client = redis.from_url(app.config['REDIS_URL'])
-#     redis_client.ping()
-#     logger.info("Redis connection established successfully")
-# except Exception as e:
-#     logger.error(f"Redis connection failed: {e}")
-#     redis_client = None
-# The redis_client is now directly accessed via app.config['SESSION_REDIS']
-
-# Rate limiting
+# Rate limiting with fallback
 limiter = Limiter(
     key_func=get_remote_address,
     default_limits=["1000 per day", "200 per hour", "50 per minute"],
-    storage_uri=app.config['REDIS_URL'] if app.config['SESSION_REDIS'] else "memory://" # Use SESSION_REDIS for storage_uri
+    storage_uri=app.config['REDIS_URL'] if not redis_client.using_fallback else "memory://"
 )
 limiter.init_app(app)
 
@@ -192,10 +237,8 @@ def get_cache_key(prefix, *args):
 
 def cache_get(key, default=None):
     """Get value from Redis cache"""
-    if not app.config['SESSION_REDIS']: # Use SESSION_REDIS
-        return default
     try:
-        value = app.config['SESSION_REDIS'].get(key) # Use SESSION_REDIS
+        value = redis_client.get(key)
         return value.decode('utf-8') if value else default
     except Exception as e:
         logger.warning(f"Cache get failed for key {key}: {e}")
@@ -203,40 +246,72 @@ def cache_get(key, default=None):
 
 def cache_set(key, value, timeout=300):
     """Set value in Redis cache with timeout"""
-    if not app.config['SESSION_REDIS']: # Use SESSION_REDIS
-        return False
     try:
-        return app.config['SESSION_REDIS'].setex(key, timeout, str(value)) # Use SESSION_REDIS
+        return redis_client.setex(key, timeout, str(value))
     except Exception as e:
         logger.warning(f"Cache set failed for key {key}: {e}")
         return False
 
 def cache_delete(key):
     """Delete key from Redis cache"""
-    if not app.config['SESSION_REDIS']: # Use SESSION_REDIS
-        return False
     try:
-        return app.config['SESSION_REDIS'].delete(key) # Use SESSION_REDIS
+        return redis_client.delete(key)
     except Exception as e:
         logger.warning(f"Cache delete failed for key {key}: {e}")
         return False
 
-# Main routes
+# Main routes - FIXED: Removed database initialization from index route
 @app.route('/')
 def index():
     """Main landing page with PWA manifest"""
-    # Try to initialize database on first request if not already done
-    try:
-        User.query.first()  # Test database connection
-    except Exception as e:
-        logger.info(f"Database not initialized, attempting to initialize now: {e}")
-        if not init_database():
-            # If database init fails, still show the page but with a message
-            flash('Database connection unavailable. Some features may not work.', 'error')
-    
     if current_user.is_authenticated:
         return redirect(url_for('dashboard.main'))
     return render_template('index.html')
+
+# Health check endpoints - IMPROVED
+@app.route('/health')
+def health_check():
+    """Basic health check for Render deployment"""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'version': '1.0.0'
+    }), 200
+
+@app.route('/health/detailed')
+def health_detailed():
+    """Detailed health check with dependencies"""
+    health_status = {
+        'status': 'healthy',
+        'timestamp': datetime.utcnow().isoformat(),
+        'version': '1.0.0',
+        'dependencies': {}
+    }
+    
+    # Check database
+    try:
+        db.session.execute('SELECT 1')
+        health_status['dependencies']['database'] = {'status': 'healthy'}
+    except Exception as e:
+        health_status['dependencies']['database'] = {
+            'status': 'unhealthy',
+            'error': str(e)
+        }
+        health_status['status'] = 'unhealthy'
+    
+    # Check Redis
+    try:
+        redis_client.ping()
+        health_status['dependencies']['redis'] = {
+            'status': 'healthy' if not redis_client.using_fallback else 'fallback'
+        }
+    except Exception as e:
+        health_status['dependencies']['redis'] = {
+            'status': 'unhealthy',
+            'error': str(e)
+        }
+    
+    return jsonify(health_status)
 
 @app.route('/manifest.json')
 def manifest():
@@ -318,22 +393,16 @@ def manifest():
             ]
         }
         
-        # Log successful manifest generation
         app.logger.info("PWA manifest generated successfully")
         
         response = make_response(jsonify(manifest_data))
         response.headers['Content-Type'] = 'application/manifest+json'
-        # Add cache control headers to prevent browser caching of errors
-        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-        response.headers['Pragma'] = 'no-cache'
-        response.headers['Expires'] = '0'
+        response.headers['Cache-Control'] = 'public, max-age=3600'  # Cache for 1 hour
         
         return response
         
     except Exception as e:
-        # Log the error for debugging
         app.logger.error(f"Failed to generate PWA manifest: {str(e)}")
-        # Return a basic fallback manifest to prevent complete PWA failure
         fallback_manifest = {
             "name": "Fleet Management System",
             "short_name": "FleetMS",
@@ -365,51 +434,23 @@ def favicon():
     """Serve favicon"""
     return redirect(url_for('static', filename='favicon.ico'))
 
-# Health check endpoints
-@app.route('/health')
-def health_check():
-    """Basic health check"""
-    return jsonify({
-        'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat(),
-        'version': '1.0.0'
-    })
-
-@app.route('/health/detailed')
-def health_detailed():
-    """Detailed health check with dependencies"""
-    health_status = {
-        'status': 'healthy',
-        'timestamp': datetime.utcnow().isoformat(),
-        'version': '1.0.0',
-        'dependencies': {}
-    }
+# Static file serving with proper headers
+@app.after_request
+def add_static_file_headers(response):
+    """Add proper headers for static files including PWA icons"""
+    if request.path.startswith('/static/'):
+        # Cache static files for 1 hour
+        response.headers['Cache-Control'] = 'public, max-age=3600'
+        
+        # Add proper MIME types for PWA icons
+        if request.path.endswith('.png'):
+            response.headers['Content-Type'] = 'image/png'
+        elif request.path.endswith('.ico'):
+            response.headers['Content-Type'] = 'image/x-icon'
+        elif request.path.endswith('.webmanifest') or request.path.endswith('manifest.json'):
+            response.headers['Content-Type'] = 'application/manifest+json'
     
-    # Check database
-    try:
-        db.session.execute('SELECT 1')
-        health_status['dependencies']['database'] = {'status': 'healthy'}
-    except Exception as e:
-        health_status['dependencies']['database'] = {
-            'status': 'unhealthy',
-            'error': str(e)
-        }
-        health_status['status'] = 'unhealthy'
-    
-    # Check Redis
-    try:
-        if app.config['SESSION_REDIS']: # Use SESSION_REDIS
-            app.config['SESSION_REDIS'].ping() # Use SESSION_REDIS
-            health_status['dependencies']['redis'] = {'status': 'healthy'}
-        else:
-            health_status['dependencies']['redis'] = {'status': 'unavailable'}
-    except Exception as e:
-        health_status['dependencies']['redis'] = {
-            'status': 'unhealthy',
-            'error': str(e)
-        }
-    
-    return jsonify(health_status)
+    return response
 
 # Error handlers
 @app.errorhandler(404)
@@ -422,11 +463,11 @@ def not_found_error(error):
 @app.errorhandler(500)
 def internal_error(error):
     """Handle 500 errors"""
-    db.session.rollback() # Ensure any pending transactions are rolled back
-    logger.error(f"Internal server error: {error}") # Log the error
+    db.session.rollback()
+    logger.error(f"Internal server error: {error}")
     if request.path.startswith('/api/'):
         return jsonify({'error': 'Internal server error'}), 500
-    return render_template('errors/500.html'), 500 # Redirect to generic 500 page
+    return render_template('errors/500.html'), 500
 
 @app.errorhandler(429)
 def ratelimit_handler(e):
@@ -438,18 +479,17 @@ def ratelimit_handler(e):
 @app.errorhandler(Exception)
 def handle_unexpected_error(e):
     """Handle all unexpected errors"""
-    db.session.rollback() # Ensure any pending transactions are rolled back
-    logger.exception(f"An unexpected error occurred: {e}") # Log the full exception traceback
+    db.session.rollback()
+    logger.exception(f"An unexpected error occurred: {e}")
     
     if request.path.startswith('/api/'):
         return jsonify({'error': 'An unexpected server error occurred'}), 500
-    return render_template('errors/500.html'), 500 # Redirect to generic 500 page
+    return render_template('errors/500.html'), 500
 
 # Request hooks for security headers
 @app.before_request
 def enforce_https():
     """Redirect HTTP requests to HTTPS in production"""
-    # Check if running in a production-like environment and if proto is http
     if os.environ.get('FLASK_ENV') == 'production' and request.headers.get('X-Forwarded-Proto') == 'http':
         url = request.url.replace('http://', 'https://', 1)
         code = 301
@@ -458,16 +498,14 @@ def enforce_https():
 @app.after_request
 def after_request(response):
     """Add security headers"""
-    # Security headers
     response.headers['X-Content-Type-Options'] = 'nosniff'
     response.headers['X-Frame-Options'] = 'DENY'
     response.headers['X-XSS-Protection'] = '1; mode=block'
-    # HSTS header: max-age in seconds (1 year), includeSubDomains
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     
     return response
 
-# Database initialization helper
+# Database initialization helper - MOVED to CLI command
 def init_database():
     """Initialize database tables and sample data if needed"""
     try:
@@ -524,7 +562,7 @@ def init_database():
         logger.error(f"Database initialization failed: {e}")
         return False
 
-# CLI commands
+# CLI commands - IMPROVED
 @app.cli.command()
 def init_db():
     """Initialize the database with tables and sample data"""
@@ -532,6 +570,16 @@ def init_db():
         logger.info("Database initialized successfully!")
     else:
         logger.error("Database initialization failed!")
+
+@app.cli.command()
+def create_tables():
+    """Create database tables only"""
+    try:
+        with app.app_context():
+            db.create_all()
+            logger.info("Database tables created successfully!")
+    except Exception as e:
+        logger.error(f"Failed to create database tables: {e}")
 
 # Import and register blueprints after all app setup is complete
 from routes.auth import auth_bp
