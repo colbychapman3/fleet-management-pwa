@@ -38,7 +38,7 @@ class OperationAssignment(db.Model):
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=True)
     
     # Relationships
-    user = db.relationship('User', foreign_keys=[user_id])
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='operation_assignments')
     operation = db.relationship('ShipOperation', foreign_keys=[operation_id])
     vessel = db.relationship('Vessel', foreign_keys=[vessel_id], back_populates='operation_assignments')
     assigned_by = db.relationship('User', foreign_keys=[assigned_by_id])

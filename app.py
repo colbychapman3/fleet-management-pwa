@@ -238,86 +238,112 @@ def index():
 
 @app.route('/manifest.json')
 def manifest():
-    """PWA Web App Manifest"""
-    manifest_data = {
-        "name": "Fleet Management System",
-        "short_name": "FleetMS",
-        "description": "Offline-capable fleet and task management for maritime operations",
-        "start_url": "/",
-        "display": "standalone",
-        "background_color": "#ffffff",
-        "theme_color": "#2196F3",
-        "orientation": "portrait-primary",
-        "icons": [
-            {
-                "src": "/static/icons/icon-72x72.png",
-                "sizes": "72x72",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/static/icons/icon-96x96.png",
-                "sizes": "96x96",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/static/icons/icon-128x128.png",
-                "sizes": "128x128",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/static/icons/icon-144x144.png",
-                "sizes": "144x144",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/static/icons/icon-152x152.png",
-                "sizes": "152x152",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/static/icons/icon-192x192.png",
-                "sizes": "192x192",
-                "type": "image/png",
-                "purpose": "any maskable"
-            },
-            {
-                "src": "/static/icons/icon-384x384.png",
-                "sizes": "384x384",
-                "type": "image/png",
-                "purpose": "any"
-            },
-            {
-                "src": "/static/icons/icon-512x512.png",
-                "sizes": "512x512",
-                "type": "image/png",
-                "purpose": "any maskable"
-            }
-        ],
-        "categories": ["productivity", "business"],
-        "screenshots": [
-            {
-                "src": "/static/screenshots/desktop-1.png",
-                "sizes": "1280x720",
-                "type": "image/png",
-                "form_factor": "wide"
-            },
-            {
-                "src": "/static/screenshots/mobile-1.png",
-                "sizes": "375x667",
-                "type": "image/png",
-                "form_factor": "narrow"
-            }
-        ]
-    }
-    
-    response = make_response(jsonify(manifest_data))
-    response.headers['Content-Type'] = 'application/manifest+json'
-    return response
+    """PWA Web App Manifest with error handling and caching"""
+    try:
+        manifest_data = {
+            "name": "Fleet Management System",
+            "short_name": "FleetMS",
+            "description": "Offline-capable fleet and task management for maritime operations",
+            "start_url": "/",
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#2196F3",
+            "orientation": "portrait-primary",
+            "icons": [
+                {
+                    "src": "/static/icons/icon-72x72.png",
+                    "sizes": "72x72",
+                    "type": "image/png",
+                    "purpose": "any"
+                },
+                {
+                    "src": "/static/icons/icon-96x96.png",
+                    "sizes": "96x96",
+                    "type": "image/png",
+                    "purpose": "any"
+                },
+                {
+                    "src": "/static/icons/icon-128x128.png",
+                    "sizes": "128x128",
+                    "type": "image/png",
+                    "purpose": "any"
+                },
+                {
+                    "src": "/static/icons/icon-144x144.png",
+                    "sizes": "144x144",
+                    "type": "image/png",
+                    "purpose": "any"
+                },
+                {
+                    "src": "/static/icons/icon-152x152.png",
+                    "sizes": "152x152",
+                    "type": "image/png",
+                    "purpose": "any"
+                },
+                {
+                    "src": "/static/icons/icon-192x192.png",
+                    "sizes": "192x192",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                },
+                {
+                    "src": "/static/icons/icon-384x384.png",
+                    "sizes": "384x384",
+                    "type": "image/png",
+                    "purpose": "any"
+                },
+                {
+                    "src": "/static/icons/icon-512x512.png",
+                    "sizes": "512x512",
+                    "type": "image/png",
+                    "purpose": "any maskable"
+                }
+            ],
+            "categories": ["productivity", "business"],
+            "screenshots": [
+                {
+                    "src": "/static/screenshots/desktop-1.png",
+                    "sizes": "1280x720",
+                    "type": "image/png",
+                    "form_factor": "wide"
+                },
+                {
+                    "src": "/static/screenshots/mobile-1.png",
+                    "sizes": "375x667",
+                    "type": "image/png",
+                    "form_factor": "narrow"
+                }
+            ]
+        }
+        
+        # Log successful manifest generation
+        app.logger.info("PWA manifest generated successfully")
+        
+        response = make_response(jsonify(manifest_data))
+        response.headers['Content-Type'] = 'application/manifest+json'
+        # Add cache control headers to prevent browser caching of errors
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        
+        return response
+        
+    except Exception as e:
+        # Log the error for debugging
+        app.logger.error(f"Failed to generate PWA manifest: {str(e)}")
+        # Return a basic fallback manifest to prevent complete PWA failure
+        fallback_manifest = {
+            "name": "Fleet Management System",
+            "short_name": "FleetMS",
+            "start_url": "/",
+            "display": "standalone",
+            "background_color": "#ffffff",
+            "theme_color": "#2196F3"
+        }
+        response = make_response(jsonify(fallback_manifest))
+        response.headers['Content-Type'] = 'application/manifest+json'
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
 
 @app.route('/service-worker.js')
 def service_worker():
