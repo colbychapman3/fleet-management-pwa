@@ -17,8 +17,8 @@ def get_cache_functions():
     import app
     return app.cache_get, app.cache_set, app.cache_delete, app.get_cache_key
 from models.models.user import User
-from models.models.enhanced_vessel import Vessel
-from models.models.enhanced_task import Task
+from models.models.vessel import Vessel
+from models.models.task import Task
 from models.models.sync_log import SyncLog
 from models.models.maritime_models import (
     CargoOperation, MaritimeDocument,

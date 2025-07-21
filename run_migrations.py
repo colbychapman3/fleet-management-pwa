@@ -84,8 +84,8 @@ def main():
         try:
             print("\n4. Importing models...")
             import models.models.user
-            import models.models.enhanced_vessel  
-            import models.models.enhanced_task
+            import models.models.vessel  
+            import models.models.task
             print("   Core models imported successfully")
         except ImportError as e:
             print(f"   Warning: Could not import some models: {e}")

@@ -4,7 +4,7 @@ from app import db
 # MaritimeOperation import moved to individual functions to avoid circular import
 from models.maritime.wizard_step import WizardStep
 from models.maritime.validation import MaritimeValidator
-from models.models.enhanced_vessel import Vessel
+from models.models.vessel import Vessel
 from models.forms.maritime_forms import (
     MaritimeOperationStep1Form, MaritimeOperationStep2Form,
     MaritimeOperationStep3Form, MaritimeOperationStep4Form,
@@ -690,7 +690,7 @@ def get_cache_functions():
     return app.cache_get, app.cache_set, app.cache_delete, app.get_cache_key
 
 from models.models.user import User
-from models.models.enhanced_vessel import Vessel
+from models.models.vessel import Vessel
 from models.models.maritime_models import (
     CargoOperation, MaritimeDocument, 
     DischargeProgress, MaritimeOperationsHelper

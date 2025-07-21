@@ -1,0 +1,147 @@
+{
+  "timestamp": "2025-07-21 01:12:11",
+  "enhanced_model_analysis": {
+    "models/models/enhanced_vessel.py": {
+      "exists": true,
+      "syntax_valid": true,
+      "syntax_error": null,
+      "import_analysis": {
+        "success": true,
+        "all_imports": [
+          "from datetime import datetime",
+          "from datetime import timedelta",
+          "from decimal import Decimal",
+          "from sqlalchemy import Index",
+          "from sqlalchemy import text",
+          "from sqlalchemy import DECIMAL",
+          "from app import db",
+          "from operation_assignment import OperationAssignment"
+        ],
+        "enhanced_imports": [],
+        "enhanced_count": 0
+      },
+      "model_info": {
+        "classes": [
+          {
+            "name": "Vessel",
+            "bases": [
+              "db.Model"
+            ],
+            "is_sqlalchemy_model": true
+          }
+        ],
+        "has_sqlalchemy_models": true
+      }
+    },
+    "models/models/enhanced_task.py": {
+      "exists": true,
+      "syntax_valid": true,
+      "syntax_error": null,
+      "import_analysis": {
+        "success": true,
+        "all_imports": [
+          "from datetime import datetime",
+          "from datetime import timedelta",
+          "from decimal import Decimal",
+          "from sqlalchemy import Index",
+          "from sqlalchemy import text",
+          "from sqlalchemy import DECIMAL",
+          "from app import db",
+          "import uuid"
+        ],
+        "enhanced_imports": [],
+        "enhanced_count": 0
+      },
+      "model_info": {
+        "classes": [
+          {
+            "name": "Task",
+            "bases": [
+              "db.Model"
+            ],
+            "is_sqlalchemy_model": true
+          }
+        ],
+        "has_sqlalchemy_models": true
+      }
+    }
+  },
+  "enhanced_import_scan": {
+    "run_migrations.py": [
+      "import models.models.enhanced_vessel",
+      "import models.models.enhanced_task"
+    ],
+    "integration_validator.py": [
+      "from models.models.enhanced_vessel import Vessel",
+      "from models.models.enhanced_task import Task"
+    ],
+    "app.py": [
+      "from models.models.enhanced_vessel import Vessel",
+      "from models.models.enhanced_task import Task"
+    ],
+    "routes/api.py": [
+      "from models.models.enhanced_vessel import Vessel",
+      "from models.models.enhanced_task import Task"
+    ],
+    "routes/monitoring.py": [
+      "from models.models.enhanced_task import Task",
+      "from models.models.enhanced_vessel import Vessel"
+    ],
+    "routes/dashboard.py": [
+      "from models.models.enhanced_vessel import Vessel",
+      "from models.models.enhanced_task import Task"
+    ],
+    "scripts/create_sample_data.py": [
+      "from models.models.enhanced_vessel import Vessel"
+    ],
+    "routes/maritime/cargo_management.py": [
+      "from models.models.enhanced_vessel import Vessel"
+    ],
+    "routes/maritime/team_management.py": [
+      "from models.models.enhanced_vessel import Vessel"
+    ],
+    "routes/maritime/berth_management.py": [
+      "from models.models.enhanced_vessel import Vessel"
+    ],
+    "routes/maritime/ship_operations.py": [
+      "from models.models.enhanced_vessel import Vessel",
+      "from models.models.enhanced_vessel import Vessel"
+    ],
+    "models/models/__init__.py": [
+      "from enhanced_vessel import Vessel",
+      "from enhanced_task import Task"
+    ]
+  },
+  "models_init_analysis": {
+    "exists": true,
+    "syntax_valid": true,
+    "syntax_error": null,
+    "import_analysis": {
+      "success": true,
+      "all_imports": [
+        "from user import User",
+        "from enhanced_vessel import Vessel",
+        "from enhanced_task import Task",
+        "from sync_log import SyncLog",
+        "from maritime_models import CargoOperation",
+        "from maritime_models import MaritimeDocument",
+        "from maritime_models import DischargeProgress",
+        "from maritime_models import MaritimeOperationsHelper",
+        "from tico_vehicle import TicoVehicle",
+        "from tico_vehicle import TicoVehicleAssignment",
+        "from tico_vehicle import TicoVehicleLocation",
+        "from tico_vehicle import TicoRouteOptimizer",
+        "from alert import Alert",
+        "from alert import AlertGenerator"
+      ],
+      "enhanced_imports": [
+        "from enhanced_vessel import Vessel",
+        "from enhanced_task import Task"
+      ],
+      "enhanced_count": 2
+    }
+  },
+  "critical_errors": [],
+  "warnings": [],
+  "system_healthy": true
+}

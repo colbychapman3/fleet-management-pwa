@@ -167,8 +167,8 @@ limiter.init_app(app)
 
 # Import models after db initialization
 from models.models.user import User
-from models.models.enhanced_vessel import Vessel
-from models.models.enhanced_task import Task
+from models.models.vessel import Vessel
+from models.models.task import Task
 from models.models.sync_log import SyncLog
 from models.models.berth import Berth
 from models.maritime.ship_operation import ShipOperation

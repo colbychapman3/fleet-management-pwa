@@ -2,8 +2,8 @@
 
 # Use enhanced models as primary
 from .user import User
-from .enhanced_vessel import Vessel
-from .enhanced_task import Task
+from .vessel import Vessel
+from .task import Task
 from .sync_log import SyncLog
 from .maritime_models import (
     CargoOperation, 
