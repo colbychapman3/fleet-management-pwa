@@ -1,0 +1,321 @@
+{
+  "timestamp": "2025-07-21 01:09:17",
+  "file_existence": {
+    "models/models/enhanced_vessel.py": true,
+    "models/models/enhanced_task.py": true,
+    "models/models/__init__.py": true,
+    "app.py": true,
+    "run_migrations.py": true
+  },
+  "syntax_validation": {
+    "run_migrations.py": {
+      "success": true,
+      "error": null
+    },
+    "validate_imports.py": {
+      "success": true,
+      "error": null
+    },
+    "app_real_preview.py": {
+      "success": true,
+      "error": null
+    },
+    "test_phase1.py": {
+      "success": true,
+      "error": null
+    },
+    "static_import_analysis.py": {
+      "success": true,
+      "error": null
+    },
+    "test_imports.py": {
+      "success": true,
+      "error": null
+    },
+    "test_connection.py": {
+      "success": true,
+      "error": null
+    },
+    "integration_validator.py": {
+      "success": true,
+      "error": null
+    },
+    "test_preview.py": {
+      "success": true,
+      "error": null
+    },
+    "test_phase1_simple.py": {
+      "success": true,
+      "error": null
+    },
+    "test_production_env.py": {
+      "success": true,
+      "error": null
+    },
+    "app_preview.py": {
+      "success": true,
+      "error": null
+    },
+    "test_deployment.py": {
+      "success": true,
+      "error": null
+    },
+    "test_deployment_sim.py": {
+      "success": true,
+      "error": null
+    },
+    "test_berth_assignment.py": {
+      "success": true,
+      "error": null
+    },
+    "app.py": {
+      "success": true,
+      "error": null
+    },
+    "automated_fix_loop.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/env.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/api.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/monitoring.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/__init__.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/dashboard.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/auth.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/health.py": {
+      "success": true,
+      "error": null
+    },
+    "scripts/create_tico_vehicle_data.py": {
+      "success": true,
+      "error": null
+    },
+    "scripts/test_migrations.py": {
+      "success": true,
+      "error": null
+    },
+    "scripts/create_sample_data.py": {
+      "success": true,
+      "error": null
+    },
+    "scripts/verify_rollback.py": {
+      "success": true,
+      "error": null
+    },
+    "models/__init__.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/007_add_tico_vehicle_tables.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/008_add_operation_id_to_tasks.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/006_add_alert_system.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/001_initial_migration.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/005_enhance_maritime_operations.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/003_berth_management.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/009_fix_maritime_operations_table.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/002_maritime_enhancement.py": {
+      "success": true,
+      "error": null
+    },
+    "migrations/versions/004_enhance_maritime_operations.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/maritime/operations_api.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/maritime/cargo_management.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/maritime/team_management.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/maritime/__init__.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/maritime/berth_management.py": {
+      "success": true,
+      "error": null
+    },
+    "routes/maritime/ship_operations.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/wizard_step.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/__init__.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/cargo_discharge.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/ship_operation.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/stevedore_team.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/maritime_operation.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/performance_calculator.py": {
+      "success": true,
+      "error": null
+    },
+    "models/maritime/validation.py": {
+      "success": true,
+      "error": null
+    },
+    "models/forms/__init__.py": {
+      "success": true,
+      "error": null
+    },
+    "models/forms/maritime_forms.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/enhanced_task.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/cargo_batch.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/enhanced_vessel.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/equipment_assignment.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/user.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/__init__.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/alert.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/sync_log.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/operation_assignment.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/berth.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/work_time_log.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/tico_vehicle.py": {
+      "success": true,
+      "error": null
+    },
+    "models/models/maritime_models.py": {
+      "success": true,
+      "error": null
+    }
+  },
+  "import_validation": {
+    "import models.models.enhanced_vessel": {
+      "success": false,
+      "error": "Import error: No module named 'flask_login'",
+      "description": "Enhanced Vessel module import"
+    },
+    "import models.models.enhanced_task": {
+      "success": false,
+      "error": "Import error: No module named 'flask_login'",
+      "description": "Enhanced Task module import"
+    },
+    "from models.models.enhanced_vessel import Vessel": {
+      "success": false,
+      "error": "Import error: No module named 'flask_login'",
+      "description": "Direct Vessel import"
+    },
+    "from models.models.enhanced_task import Task": {
+      "success": false,
+      "error": "Import error: No module named 'flask_login'",
+      "description": "Direct Task import"
+    },
+    "from models.models import Vessel, Task": {
+      "success": false,
+      "error": "Import error: No module named 'flask_login'",
+      "description": "Models package import"
+    }
+  },
+  "sqlalchemy_validation": {
+    "error": "Failed to load SQLAlchemy models: No module named 'flask_login'",
+    "traceback": "Traceback (most recent call last):\n  File \"/home/colby/fleet-management-pwa/integration_validator.py\", line 173, in validate_sqlalchemy_models\n    from models.models.enhanced_vessel import Vessel\n  File \"/home/colby/fleet-management-pwa/models/models/__init__.py\", line 4, in <module>\n    from .user import User\n  File \"/home/colby/fleet-management-pwa/models/models/user.py\", line 7, in <module>\n    from flask_login import UserMixin\nModuleNotFoundError: No module named 'flask_login'\n"
+  },
+  "critical_errors": [
+    "Import failure: Enhanced Vessel module import - Import error: No module named 'flask_login'",
+    "Import failure: Enhanced Task module import - Import error: No module named 'flask_login'",
+    "Import failure: Direct Vessel import - Import error: No module named 'flask_login'",
+    "Import failure: Direct Task import - Import error: No module named 'flask_login'",
+    "Import failure: Models package import - Import error: No module named 'flask_login'",
+    "Failed to load SQLAlchemy models: No module named 'flask_login'"
+  ],
+  "warnings": [],
+  "system_healthy": false
+}

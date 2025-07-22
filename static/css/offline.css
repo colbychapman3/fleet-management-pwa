@@ -1,16 +1,29 @@
+<<<<<<< HEAD
 /* Offline-specific styles for Fleet Management System */
+=======
+/* Offline Mode Styles for Fleet Management PWA */
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
 
 .offline-indicator {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
+<<<<<<< HEAD
     background: #f59e0b;
     color: white;
     text-align: center;
     padding: 8px;
     font-size: 14px;
     z-index: 9999;
+=======
+    background: #ff6b6b;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    z-index: 9999;
+    font-weight: bold;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     transform: translateY(-100%);
     transition: transform 0.3s ease;
 }
@@ -19,12 +32,17 @@
     transform: translateY(0);
 }
 
+<<<<<<< HEAD
 .offline-page {
+=======
+.offline-container {
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+<<<<<<< HEAD
     padding: 2rem;
     text-align: center;
     background: #f9fafb;
@@ -35,17 +53,33 @@
     height: 80px;
     margin-bottom: 2rem;
     opacity: 0.6;
+=======
+    padding: 20px;
+    text-align: center;
+    background: #f8f9fa;
+}
+
+.offline-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    margin-bottom: 1rem;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
 }
 
 .offline-title {
     font-size: 2rem;
+<<<<<<< HEAD
     font-weight: bold;
     color: #374151;
+=======
+    color: #495057;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     margin-bottom: 1rem;
 }
 
 .offline-message {
     font-size: 1.1rem;
+<<<<<<< HEAD
     color: #6b7280;
     margin-bottom: 2rem;
     max-width: 500px;
@@ -79,10 +113,42 @@
     font-size: 1.25rem;
     font-weight: semibold;
     color: #374151;
+=======
+    color: #6c757d;
+    margin-bottom: 2rem;
+    max-width: 500px;
+    line-height: 1.6;
+}
+
+.retry-button {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.retry-button:hover {
+    background: #0056b3;
+}
+
+.offline-features {
+    margin-top: 2rem;
+    text-align: left;
+    max-width: 500px;
+}
+
+.offline-features h3 {
+    color: #495057;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     margin-bottom: 1rem;
 }
 
 .offline-features ul {
+<<<<<<< HEAD
     list-style: none;
     padding: 0;
     text-align: left;
@@ -102,6 +168,22 @@
     content: "✓";
     color: #10b981;
     margin-right: 0.5rem;
+=======
+    list-style-type: none;
+    padding: 0;
+}
+
+.offline-features li {
+    padding: 8px 0;
+    color: #6c757d;
+}
+
+.offline-features li::before {
+    content: "✓ ";
+    color: #28a745;
+    font-weight: bold;
+    margin-right: 8px;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
 }
 
 /* Sync status indicator */
@@ -109,6 +191,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
+<<<<<<< HEAD
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 6px;
@@ -118,10 +201,18 @@
     align-items: center;
     gap: 8px;
     font-size: 14px;
+=======
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     z-index: 1000;
 }
 
 .sync-status.syncing {
+<<<<<<< HEAD
     border-color: #3b82f6;
     background: #eff6ff;
 }
@@ -167,6 +258,39 @@
         padding: 1rem;
     }
     
+=======
+    background: #ffc107;
+    color: #000;
+}
+
+.sync-status.error {
+    background: #dc3545;
+}
+
+.sync-status.success {
+    background: #28a745;
+}
+
+/* Loading animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     .offline-title {
         font-size: 1.5rem;
     }
@@ -175,6 +299,7 @@
         font-size: 1rem;
     }
     
+<<<<<<< HEAD
     .offline-features {
         margin-top: 2rem;
         padding: 1.5rem;
@@ -185,5 +310,9 @@
         right: 10px;
         font-size: 12px;
         padding: 8px 12px;
+=======
+    .offline-container {
+        padding: 15px;
+>>>>>>> 4e49b731f64fd42daed4637f411f05aa1cb96683
     }
 }

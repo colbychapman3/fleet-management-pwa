@@ -1,0 +1,624 @@
+{
+  "metadata": {
+    "timestamp": "2025-07-21 01:13:34",
+    "project_root": "/home/colby/fleet-management-pwa",
+    "validation_version": "1.0"
+  },
+  "enhanced_models": {
+    "enhanced_vessel": {
+      "file_path": "models/models/enhanced_vessel.py",
+      "exists": true,
+      "syntax_valid": true,
+      "classes": [
+        {
+          "name": "Vessel",
+          "bases": [
+            "db.Model"
+          ],
+          "is_sqlalchemy_model": true
+        }
+      ],
+      "dependencies": [
+        "from datetime import datetime",
+        "from datetime import timedelta",
+        "from decimal import Decimal",
+        "from sqlalchemy import Index",
+        "from sqlalchemy import text",
+        "from sqlalchemy import DECIMAL",
+        "from app import db",
+        "from operation_assignment import OperationAssignment"
+      ],
+      "internal_enhanced_imports": [],
+      "has_sqlalchemy_models": true
+    },
+    "enhanced_task": {
+      "file_path": "models/models/enhanced_task.py",
+      "exists": true,
+      "syntax_valid": true,
+      "classes": [
+        {
+          "name": "Task",
+          "bases": [
+            "db.Model"
+          ],
+          "is_sqlalchemy_model": true
+        }
+      ],
+      "dependencies": [
+        "from datetime import datetime",
+        "from datetime import timedelta",
+        "from decimal import Decimal",
+        "from sqlalchemy import Index",
+        "from sqlalchemy import text",
+        "from sqlalchemy import DECIMAL",
+        "from app import db",
+        "import uuid"
+      ],
+      "internal_enhanced_imports": [],
+      "has_sqlalchemy_models": true
+    }
+  },
+  "dependent_files": {
+    "run_migrations.py": {
+      "import_statements": [
+        "import models.models.enhanced_vessel",
+        "import models.models.enhanced_task"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [],
+        "module_imports": [
+          "import models.models.enhanced_vessel",
+          "import models.models.enhanced_task"
+        ],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "module"
+        ]
+      },
+      "file_category": "migration_system",
+      "criticality": "critical",
+      "consolidation_risk": "medium"
+    },
+    "integration_validator.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel",
+        "from models.models.enhanced_task import Task"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "testing_validation",
+      "criticality": "low",
+      "consolidation_risk": "medium"
+    },
+    "app.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel",
+        "from models.models.enhanced_task import Task"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "main_application",
+      "criticality": "critical",
+      "consolidation_risk": "medium"
+    },
+    "routes/api.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel",
+        "from models.models.enhanced_task import Task"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "medium"
+    },
+    "routes/monitoring.py": {
+      "import_statements": [
+        "from models.models.enhanced_task import Task",
+        "from models.models.enhanced_vessel import Vessel"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_task import Task",
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "medium"
+    },
+    "routes/dashboard.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel",
+        "from models.models.enhanced_task import Task"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "medium"
+    },
+    "scripts/create_sample_data.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel"
+      ],
+      "import_count": 1,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "utility_script",
+      "criticality": "medium",
+      "consolidation_risk": "low"
+    },
+    "routes/maritime/cargo_management.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel"
+      ],
+      "import_count": 1,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "low"
+    },
+    "routes/maritime/team_management.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel"
+      ],
+      "import_count": 1,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "low"
+    },
+    "routes/maritime/berth_management.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel"
+      ],
+      "import_count": 1,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "low"
+    },
+    "routes/maritime/ship_operations.py": {
+      "import_statements": [
+        "from models.models.enhanced_vessel import Vessel",
+        "from models.models.enhanced_vessel import Vessel"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "direct"
+        ]
+      },
+      "file_category": "route_handler",
+      "criticality": "high",
+      "consolidation_risk": "medium"
+    },
+    "models/models/__init__.py": {
+      "import_statements": [
+        "from enhanced_vessel import Vessel",
+        "from enhanced_task import Task"
+      ],
+      "import_count": 2,
+      "import_patterns": {
+        "direct_imports": [],
+        "module_imports": [],
+        "enhanced_models_used": [
+          "enhanced_task",
+          "enhanced_vessel"
+        ],
+        "import_styles": [
+          "other"
+        ]
+      },
+      "file_category": "model_definition",
+      "criticality": "high",
+      "consolidation_risk": "medium"
+    }
+  },
+  "import_patterns": {
+    "total_files_with_enhanced_imports": 12,
+    "import_style_distribution": {
+      "module": 1,
+      "direct": 10,
+      "other": 1
+    },
+    "model_usage_distribution": {
+      "enhanced_task": 7,
+      "enhanced_vessel": 12
+    },
+    "file_category_distribution": {
+      "migration_system": 1,
+      "testing_validation": 1,
+      "main_application": 1,
+      "route_handler": 7,
+      "utility_script": 1,
+      "model_definition": 1
+    },
+    "criticality_distribution": {
+      "critical": 2,
+      "low": 1,
+      "high": 8,
+      "medium": 1
+    },
+    "consolidation_risk_distribution": {
+      "medium": 8,
+      "low": 4
+    }
+  },
+  "consolidation_impact": {
+    "files_requiring_updates": [
+      {
+        "file": "run_migrations.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "critical"
+      },
+      {
+        "file": "integration_validator.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "low"
+      },
+      {
+        "file": "app.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "critical"
+      },
+      {
+        "file": "routes/api.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "high"
+      },
+      {
+        "file": "routes/monitoring.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "high"
+      },
+      {
+        "file": "routes/dashboard.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "high"
+      },
+      {
+        "file": "scripts/create_sample_data.py",
+        "import_count": 1,
+        "risk_level": "low",
+        "criticality": "medium"
+      },
+      {
+        "file": "routes/maritime/cargo_management.py",
+        "import_count": 1,
+        "risk_level": "low",
+        "criticality": "high"
+      },
+      {
+        "file": "routes/maritime/team_management.py",
+        "import_count": 1,
+        "risk_level": "low",
+        "criticality": "high"
+      },
+      {
+        "file": "routes/maritime/berth_management.py",
+        "import_count": 1,
+        "risk_level": "low",
+        "criticality": "high"
+      },
+      {
+        "file": "routes/maritime/ship_operations.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "high"
+      },
+      {
+        "file": "models/models/__init__.py",
+        "import_count": 2,
+        "risk_level": "medium",
+        "criticality": "high"
+      }
+    ],
+    "high_risk_files": [],
+    "critical_files": [
+      "run_migrations.py",
+      "app.py"
+    ],
+    "import_statement_changes": {
+      "run_migrations.py": {
+        "current": [
+          "import models.models.enhanced_vessel",
+          "import models.models.enhanced_task"
+        ],
+        "new": [
+          "import models.models.vessel",
+          "import models.models.task"
+        ],
+        "changes_count": 2
+      },
+      "integration_validator.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel",
+          "from models.models.task import Task"
+        ],
+        "changes_count": 2
+      },
+      "app.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel",
+          "from models.models.task import Task"
+        ],
+        "changes_count": 2
+      },
+      "routes/api.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel",
+          "from models.models.task import Task"
+        ],
+        "changes_count": 2
+      },
+      "routes/monitoring.py": {
+        "current": [
+          "from models.models.enhanced_task import Task",
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "new": [
+          "from models.models.task import Task",
+          "from models.models.vessel import Vessel"
+        ],
+        "changes_count": 2
+      },
+      "routes/dashboard.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_task import Task"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel",
+          "from models.models.task import Task"
+        ],
+        "changes_count": 2
+      },
+      "scripts/create_sample_data.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel"
+        ],
+        "changes_count": 1
+      },
+      "routes/maritime/cargo_management.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel"
+        ],
+        "changes_count": 1
+      },
+      "routes/maritime/team_management.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel"
+        ],
+        "changes_count": 1
+      },
+      "routes/maritime/berth_management.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel"
+        ],
+        "changes_count": 1
+      },
+      "routes/maritime/ship_operations.py": {
+        "current": [
+          "from models.models.enhanced_vessel import Vessel",
+          "from models.models.enhanced_vessel import Vessel"
+        ],
+        "new": [
+          "from models.models.vessel import Vessel",
+          "from models.models.vessel import Vessel"
+        ],
+        "changes_count": 2
+      },
+      "models/models/__init__.py": {
+        "current": [
+          "from enhanced_vessel import Vessel",
+          "from enhanced_task import Task"
+        ],
+        "new": [
+          "from vessel import Vessel",
+          "from task import Task"
+        ],
+        "changes_count": 2
+      }
+    },
+    "validation_checkpoints": [
+      {
+        "name": "Pre-consolidation baseline",
+        "description": "Validate current system state",
+        "files_to_check": [
+          "run_migrations.py",
+          "app.py"
+        ]
+      },
+      {
+        "name": "Models consolidation",
+        "description": "Validate enhanced_* files are properly merged",
+        "files_to_check": [
+          "models/models/vessel.py",
+          "models/models/task.py"
+        ]
+      },
+      {
+        "name": "Import updates - critical files",
+        "description": "Update imports in critical files first",
+        "files_to_check": [
+          "run_migrations.py",
+          "app.py"
+        ]
+      },
+      {
+        "name": "Import updates - high-risk files",
+        "description": "Update imports in high-risk files",
+        "files_to_check": []
+      },
+      {
+        "name": "Import updates - remaining files",
+        "description": "Update imports in remaining files",
+        "files_to_check": [
+          "integration_validator.py",
+          "routes/api.py",
+          "routes/monitoring.py",
+          "routes/dashboard.py",
+          "scripts/create_sample_data.py",
+          "routes/maritime/cargo_management.py",
+          "routes/maritime/team_management.py",
+          "routes/maritime/berth_management.py",
+          "routes/maritime/ship_operations.py",
+          "models/models/__init__.py"
+        ]
+      },
+      {
+        "name": "Final validation",
+        "description": "Complete system validation",
+        "files_to_check": "all"
+      }
+    ]
+  }
+}

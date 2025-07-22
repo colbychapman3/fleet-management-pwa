@@ -115,6 +115,7 @@ class MaritimeOperation(db.Model):
     
     # Relationships
     vessel = db.relationship('Vessel', backref='maritime_operations')
+    alerts = db.relationship('Alert', back_populates='operation', lazy='dynamic', cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<MaritimeOperation {self.id}: {self.vessel_name}>'

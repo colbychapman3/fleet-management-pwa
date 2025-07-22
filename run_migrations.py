@@ -83,9 +83,9 @@ def main():
         # Import models to ensure they're registered
         try:
             print("\n4. Importing models...")
-            import models.user
-            import models.vessel  
-            import models.task
+            import models.models.user
+            import models.models.vessel  
+            import models.models.task
             print("   Core models imported successfully")
         except ImportError as e:
             print(f"   Warning: Could not import some models: {e}")

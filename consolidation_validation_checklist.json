@@ -1,0 +1,120 @@
+[
+  {
+    "phase": "pre_consolidation",
+    "step": "baseline_validation",
+    "description": "Validate current system state",
+    "validation_points": [
+      "All enhanced_* files exist and have valid syntax",
+      "All import statements resolve correctly",
+      "SQLAlchemy models load without errors",
+      "No circular import dependencies"
+    ],
+    "files_to_monitor": [
+      "run_migrations.py",
+      "integration_validator.py",
+      "app.py",
+      "routes/api.py",
+      "routes/monitoring.py",
+      "routes/dashboard.py",
+      "scripts/create_sample_data.py",
+      "routes/maritime/cargo_management.py",
+      "routes/maritime/team_management.py",
+      "routes/maritime/berth_management.py",
+      "routes/maritime/ship_operations.py",
+      "models/models/__init__.py"
+    ],
+    "critical_success_criteria": "Zero syntax errors, zero import resolution failures"
+  },
+  {
+    "phase": "consolidation",
+    "step": "pre-consolidation_baseline",
+    "description": "Validate current system state",
+    "files_to_monitor": [
+      "run_migrations.py",
+      "app.py"
+    ],
+    "validation_points": [
+      "Syntax validation after changes",
+      "Import resolution testing",
+      "Model loading verification"
+    ],
+    "rollback_trigger": "Any syntax error or import failure"
+  },
+  {
+    "phase": "consolidation",
+    "step": "models_consolidation",
+    "description": "Validate enhanced_* files are properly merged",
+    "files_to_monitor": [
+      "models/models/vessel.py",
+      "models/models/task.py"
+    ],
+    "validation_points": [
+      "Syntax validation after changes",
+      "Import resolution testing",
+      "Model loading verification"
+    ],
+    "rollback_trigger": "Any syntax error or import failure"
+  },
+  {
+    "phase": "consolidation",
+    "step": "import_updates_-_critical_files",
+    "description": "Update imports in critical files first",
+    "files_to_monitor": [
+      "run_migrations.py",
+      "app.py"
+    ],
+    "validation_points": [
+      "Syntax validation after changes",
+      "Import resolution testing",
+      "Model loading verification"
+    ],
+    "rollback_trigger": "Any syntax error or import failure"
+  },
+  {
+    "phase": "consolidation",
+    "step": "import_updates_-_high-risk_files",
+    "description": "Update imports in high-risk files",
+    "files_to_monitor": [],
+    "validation_points": [
+      "Syntax validation after changes",
+      "Import resolution testing",
+      "Model loading verification"
+    ],
+    "rollback_trigger": "Any syntax error or import failure"
+  },
+  {
+    "phase": "consolidation",
+    "step": "import_updates_-_remaining_files",
+    "description": "Update imports in remaining files",
+    "files_to_monitor": [
+      "integration_validator.py",
+      "routes/api.py",
+      "routes/monitoring.py",
+      "routes/dashboard.py",
+      "scripts/create_sample_data.py",
+      "routes/maritime/cargo_management.py",
+      "routes/maritime/team_management.py",
+      "routes/maritime/berth_management.py",
+      "routes/maritime/ship_operations.py",
+      "models/models/__init__.py"
+    ],
+    "validation_points": [
+      "Syntax validation after changes",
+      "Import resolution testing",
+      "Model loading verification"
+    ],
+    "rollback_trigger": "Any syntax error or import failure"
+  },
+  {
+    "phase": "consolidation",
+    "step": "final_validation",
+    "description": "Complete system validation",
+    "files_to_monitor": "all",
+    "validation_points": [
+      "Syntax validation after changes",
+      "Import resolution testing",
+      "Model loading verification"
+    ],
+    "rollback_trigger": "Any syntax error or import failure"
+  }
+]

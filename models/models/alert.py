@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from app import db
 from sqlalchemy import and_, or_
 import uuid
+import random
 import structlog
 
 logger = structlog.get_logger()
@@ -18,25 +19,27 @@ class Alert(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     message = db.Column(db.Text, nullable=False)
-    severity = db.Column(db.String(20), nullable=False, default='info')  # info, warning, error, critical
+    severity = db.Column(db.String(20), nullable=False, default='info', index=True)  # info, warning, error, critical
     icon = db.Column(db.String(50), default='alert-circle')
-    operation_id = db.Column(db.Integer, db.ForeignKey('maritime_operations.id'), nullable=True)
-    vessel_id = db.Column(db.Integer, db.ForeignKey('vessels.id'), nullable=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    alert_type = db.Column(db.String(50), nullable=False)  # berth_capacity, operation_delay, safety_violation, equipment_failure, etc.
-    alert_code = db.Column(db.String(20), nullable=False)  # Unique identifier for alert type
+    operation_id = db.Column(db.Integer, db.ForeignKey('maritime_operations.id'), nullable=True, index=True)
+    vessel_id = db.Column(db.Integer, db.ForeignKey('vessels.id'), nullable=True, index=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True, index=True)
+    alert_type = db.Column(db.String(50), nullable=False, index=True)  # berth_capacity, operation_delay, safety_violation, equipment_failure, etc.
+    alert_code = db.Column(db.String(20), nullable=False, index=True)  # Unique identifier for alert type
     alert_metadata = db.Column(db.Text)  # JSON string for additional alert-specific data
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
-    dismissed_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False, index=True)
+    dismissed_at = db.Column(db.DateTime, nullable=True, index=True)
     dismissed_by = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
-    auto_dismiss_at = db.Column(db.DateTime, nullable=True)  # For auto-expiring alerts
-    is_active = db.Column(db.Boolean, default=True, nullable=False)
+    auto_dismiss_at = db.Column(db.DateTime, nullable=True, index=True)  # For auto-expiring alerts
+    is_active = db.Column(db.Boolean, default=True, nullable=False, index=True)
     
     # Relationships
-    operation = db.relationship('MaritimeOperation', backref='alerts')
-    vessel = db.relationship('Vessel', backref='alerts')
-    user = db.relationship('User', foreign_keys=[user_id], backref='user_alerts')
-    dismissed_by_user = db.relationship('User', foreign_keys=[dismissed_by], backref='dismissed_alerts')
+    # Use back_populates instead of backref to avoid conflicts and provide better control
+    # Use string references to avoid import order issues
+    operation = db.relationship('MaritimeOperation', back_populates='alerts', lazy='select')
+    vessel = db.relationship('Vessel', back_populates='alerts', lazy='select')
+    user = db.relationship('User', foreign_keys=[user_id], back_populates='user_alerts', lazy='select')
+    dismissed_by_user = db.relationship('User', foreign_keys=[dismissed_by], back_populates='dismissed_alerts', lazy='select')
     
     def __repr__(self):
         return f'<Alert {self.id}: {self.title} ({self.severity})>'
@@ -468,7 +471,7 @@ class AlertGenerator:
     def check_equipment_availability_alerts():
         """Check for equipment availability issues"""
         try:
-            from models.models.maritime_models import TicoVehicle
+            from models.models.tico_vehicle import TicoVehicle
             
             # Get TICO vehicle availability
             total_vehicles = TicoVehicle.query.count()
@@ -648,7 +651,7 @@ class AlertGenerator:
     def check_resource_allocation_alerts():
         """Check for resource allocation issues"""
         try:
-            from models.models.maritime_models import StevedoreTeam
+            from models.maritime.stevedore_team import StevedoreTeam
             from models.maritime.maritime_operation import MaritimeOperation
             
             # Get active operations
@@ -751,7 +754,6 @@ class AlertGenerator:
             ).all()
             
             # Simulate weather conditions (in production, this would be real data)
-            import random
             weather_conditions = ['clear', 'rain', 'strong_wind', 'fog', 'storm']
             current_weather = random.choice(weather_conditions)
             
@@ -777,7 +779,7 @@ class AlertGenerator:
     def check_equipment_maintenance_alerts():
         """Check for equipment maintenance requirements"""
         try:
-            from models.models.maritime_models import TicoVehicle
+            from models.models.tico_vehicle import TicoVehicle
             
             # Get vehicles that might need maintenance (in production, this would be based on usage hours)
             vehicles = TicoVehicle.query.filter_by(status='maintenance').all()

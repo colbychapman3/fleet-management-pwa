@@ -1,0 +1,101 @@
+{
+  "metadata": {
+    "timestamp": "2025-07-21T01:14:49.430046",
+    "project_root": "/home/colby/fleet-management-pwa",
+    "monitor_version": "1.0"
+  },
+  "file_states": {
+    "run_migrations.py": {
+      "exists": true,
+      "size": 3665,
+      "syntax_valid": true,
+      "syntax_error": null,
+      "hash": "ae340f342e25cb8d07d6165bf30e3c14f20231e5b239a31331783cade7c6aa83"
+    },
+    "models/models/enhanced_vessel.py": {
+      "exists": true,
+      "size": 27176,
+      "syntax_valid": true,
+      "syntax_error": null,
+      "hash": "7767c7ba531b524d3ab6ba39cd9d8d89133d2a7623c582598352799f1ac97101"
+    },
+    "models/models/enhanced_task.py": {
+      "exists": true,
+      "size": 29416,
+      "syntax_valid": true,
+      "syntax_error": null,
+      "hash": "49bdc35fac71eb7a3efc9f6ef0c418bb6d52e66a2b9cabe0038d0d4a8a83c9ef"
+    },
+    "app.py": {
+      "exists": true,
+      "size": 21360,
+      "syntax_valid": true,
+      "syntax_error": null,
+      "hash": "d96482a6dbc9e90398eff349b4ffc7a88bf81f907951da8bf17a3f615b1ee58b"
+    }
+  },
+  "validation_history": [
+    {
+      "timestamp": "2025-07-21 01:14:49.415",
+      "level": "INFO",
+      "message": "Capturing baseline file states..."
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.416",
+      "level": "INFO",
+      "message": "\u2713 run_migrations.py - baseline captured"
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.421",
+      "level": "INFO",
+      "message": "\u2713 models/models/enhanced_vessel.py - baseline captured"
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.426",
+      "level": "INFO",
+      "message": "\u2713 models/models/enhanced_task.py - baseline captured"
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.429",
+      "level": "INFO",
+      "message": "\u2713 app.py - baseline captured"
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.430",
+      "level": "INFO",
+      "message": "\ud83c\udfaf Generating go/no-go decision..."
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.430",
+      "level": "INFO",
+      "message": "\u2705 GO DECISION: System is healthy for consolidation"
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.430",
+      "level": "INFO",
+      "message": "\ud83c\udfaf Generating go/no-go decision..."
+    },
+    {
+      "timestamp": "2025-07-21 01:14:49.430",
+      "level": "INFO",
+      "message": "\u2705 GO DECISION: System is healthy for consolidation"
+    }
+  ],
+  "critical_errors": [],
+  "warnings": [],
+  "go_no_go_decision": {
+    "decision": "GO",
+    "timestamp": "2025-07-21T01:14:49.430062",
+    "summary": {
+      "total_files_monitored": 4,
+      "healthy_files": 4,
+      "missing_files": 0,
+      "syntax_error_files": 0,
+      "critical_errors": 0,
+      "warnings": 0
+    },
+    "critical_errors": [],
+    "warnings": [],
+    "recommendation": "System is healthy. Proceed with consolidation with confidence."
+  }
+}

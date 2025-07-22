@@ -2,7 +2,7 @@
 Dashboard routes for web interface
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, make_response
 from flask_login import login_required, current_user
 from datetime import datetime, timedelta
 import structlog
@@ -11,11 +11,15 @@ from sqlalchemy import func
 def get_app_db():
     import app
     return app.db
-from models.models.enhanced_user import User
-from models.models.enhanced_vessel import Vessel
-from models.models.enhanced_task import Task
+from models.models.user import User
+from models.models.vessel import Vessel
+from models.models.task import Task
 from models.models.sync_log import SyncLog
-from models.models.alert import Alert, AlertGenerator
+try:
+    from models.models.alert import Alert, AlertGenerator
+except ImportError as e:
+    Alert = None
+    AlertGenerator = None
 
 logger = structlog.get_logger()
 
@@ -51,9 +55,25 @@ def manager():
         vessels = Vessel.get_active_vessels()
         users = User.query.filter_by(is_active=True).all()
         
-        # Get sync status
+        # Get sync status with fix for 'int' object is not iterable error
         pending_syncs = SyncLog.get_pending_syncs()
         failed_syncs = SyncLog.get_failed_syncs()
+
+        # Fix pending_syncs_count and failed_syncs_count to handle both list and integer return types
+        # Add type checking to prevent len() being called on integers
+        if isinstance(pending_syncs, (list, tuple)):
+            pending_syncs_count = len(pending_syncs)
+        elif isinstance(pending_syncs, int):
+            pending_syncs_count = pending_syncs
+        else:
+            pending_syncs_count = 0
+            
+        if isinstance(failed_syncs, (list, tuple)):
+            failed_syncs_count = len(failed_syncs)
+        elif isinstance(failed_syncs, int):
+            failed_syncs_count = failed_syncs
+        else:
+            failed_syncs_count = 0
 
         # Get maritime operations
         # Get maritime operations (late import to avoid circular import)
@@ -74,12 +94,23 @@ def manager():
             'berth_3': {'status': 'occupied', 'vessel': vessels[1] if len(vessels) > 1 else None, 'eta': '16:00', 'progress': 30}
         }
         
-        # Get alerts (simplified to avoid table dependency issues)
+        # Run alert generation checks and get alerts
         try:
-            manager_alerts = Alert.get_active_alerts(limit=5)
-            manager_alert_stats = Alert.get_alert_statistics()
+            if AlertGenerator:
+                AlertGenerator.run_all_checks()
+            manager_alerts = Alert.get_active_alerts(limit=5) if Alert else []
+            manager_alert_stats = Alert.get_alert_statistics() if Alert else {}
+            
+            # Ensure manager_alerts is iterable with comprehensive type checking
+            if not isinstance(manager_alerts, (list, tuple)):
+                logger.warning(f"Alert query returned non-iterable type: {type(manager_alerts)}, value: {manager_alerts}")
+                manager_alerts = []
+            elif manager_alerts is None:
+                logger.warning("Alert query returned None")
+                manager_alerts = []
+                
         except Exception as e:
-            logger.error(f"Manager dashboard alert error: {e}")
+            logger.error(f"Manager dashboard alert generation error: {e}")
             manager_alerts = []
             manager_alert_stats = {
                 'total_active': 0,
@@ -88,21 +119,26 @@ def manager():
                 'recent_count': 0
             }
         
-        return render_template('dashboard/manager.html',
+        response = make_response(render_template('dashboard/manager.html',
             task_stats=task_stats,
             overdue_tasks=overdue_tasks,
             recent_tasks=recent_tasks,
             vessels=vessels,
             users=users,
-            pending_syncs_count=len(pending_syncs),
-            failed_syncs_count=len(failed_syncs),
+            pending_syncs_count=pending_syncs_count,
+            failed_syncs_count=failed_syncs_count,
             maritime_operations=maritime_operations,
             today=today,
             completed_tasks_today=completed_tasks_today,
             berth_utilization=berth_utilization,
-            alerts=[alert.to_dict() for alert in manager_alerts],
+            alerts=[
+                alert.to_dict() for alert in (manager_alerts or []) 
+                if hasattr(alert, 'to_dict') and alert is not None
+            ] if isinstance(manager_alerts, (list, tuple)) else [],
             alert_stats=manager_alert_stats
-        )
+        ))
+        response.headers['Content-Type'] = 'text/html; charset=utf-8'
+        return response
         
     except Exception as e:
         logger.error(f"Manager dashboard error: {e}")
@@ -466,11 +502,11 @@ def operations():
                 MaritimeOperation.berth_assigned.isnot(None),
                 MaritimeOperation.status.in_(['initiated', 'in_progress', 'step_1', 'step_2', 'step_3', 'step_4'])
             ).count()
-            berth_utilization = min(int((berths_occupied / 3) * 100), 100) if berths_occupied >= 0 else 0
+            berth_utilization_percentage = min(int((berths_occupied / 3) * 100), 100) if berths_occupied >= 0 else 0
         except Exception as e:
             logger.error(f"Berth utilization calculation error: {e}")
             berths_occupied = 0
-            berth_utilization = 0
+            berth_utilization_percentage = 0
         
         # Cargo throughput: Sum cargo_weight from completed operations today / total hours
         try:
@@ -548,7 +584,7 @@ def operations():
         
         kpi_stats = {
             'operations_trend': operations_trend,
-            'berth_utilization': berth_utilization,
+            'berth_utilization_percentage': berth_utilization_percentage,
             'berths_occupied': berths_occupied,
             'cargo_throughput': cargo_throughput,
             'throughput_trend': throughput_trend,
@@ -610,41 +646,14 @@ def operations():
                 
         except Exception as e:
             logger.error(f"Active teams calculation error: {e}")
-        
-        # If no teams found, create default empty team structure
-        if not active_teams:
-            active_teams = [{
-                'id': 1,
-                'team_name': 'No Active Teams',
-                'status': 'inactive',
-                'cargo_processed_today': 0,
-                'efficiency_rating': 0,
-                'active_members_count': 0,
-                'current_operation': None
-            }]
-        
-        # Run alert generation checks
-        try:
-            AlertGenerator.run_all_checks()
-        except Exception as e:
-            logger.error(f"Alert generation error: {e}")
-        
-        # Get real alerts data
-        alerts = Alert.get_active_alerts(limit=10)
-        alert_stats = Alert.get_alert_statistics()
-        
-        # Convert alerts to dict format for template
-        alerts_dict = [alert.to_dict() for alert in alerts]
+            active_teams = []
         
         return render_template('dashboard/operations.html',
             active_operations=active_operations,
-            active_operations_count=len(active_operations),
             vessel_queue=vessel_queue,
             berth_status=berth_status,
             kpi_stats=kpi_stats,
-            active_teams=active_teams,
-            alerts=alerts_dict,
-            alert_stats=alert_stats
+            active_teams=active_teams
         )
         
     except Exception as e:

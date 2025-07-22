@@ -1,0 +1,42 @@
+# Preview Environment Configuration for Render
+# This creates a separate preview deployment for testing
+
+services:
+  - type: web
+    name: fleet-management-preview
+    env: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    branch: preview  # Deploy from preview branch
+    envVars:
+      - key: FLASK_ENV
+        value: development
+      - key: FLASK_DEBUG
+        value: "1"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: fleet-preview-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: fleet-preview-redis
+          property: connectionString
+      - key: PREVIEW_MODE
+        value: "true"
+    buildCommand: echo "Building preview environment..."
+    startCommand: gunicorn --bind 0.0.0.0:$PORT app:app --workers 2 --timeout 120
+    healthCheckPath: /health
+    
+databases:
+  - name: fleet-preview-db
+    databaseName: fleet_preview
+    plan: free
+    
+services:
+  - type: redis
+    name: fleet-preview-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru

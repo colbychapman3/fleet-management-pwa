@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0056b3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#007bff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="ship" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f8f9fa;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="240" fill="url(#bg)" stroke="#0056b3" stroke-width="8"/>
+  
+  <!-- Ship hull -->
+  <path d="M150 300 Q256 320 362 300 L350 280 Q256 290 162 280 Z" fill="url(#ship)" stroke="#495057" stroke-width="2"/>
+  
+  <!-- Ship deck -->
+  <rect x="170" y="260" width="172" height="20" rx="2" fill="#e9ecef" stroke="#495057" stroke-width="1"/>
+  
+  <!-- Cargo containers -->
+  <rect x="180" y="230" width="30" height="30" fill="#28a745" stroke="#1e7e34" stroke-width="1"/>
+  <rect x="220" y="230" width="30" height="30" fill="#dc3545" stroke="#bd2130" stroke-width="1"/>
+  <rect x="260" y="230" width="30" height="30" fill="#ffc107" stroke="#e0a800" stroke-width="1"/>
+  <rect x="300" y="230" width="30" height="30" fill="#17a2b8" stroke="#138496" stroke-width="1"/>
+  
+  <!-- Ship superstructure -->
+  <rect x="200" y="200" width="112" height="30" fill="#f8f9fa" stroke="#495057" stroke-width="2"/>
+  
+  <!-- Bridge -->
+  <rect x="230" y="180" width="52" height="20" fill="#ffffff" stroke="#495057" stroke-width="2"/>
+  
+  <!-- Mast -->
+  <line x1="256" y1="180" x2="256" y2="140" stroke="#495057" stroke-width="3"/>
+  
+  <!-- Radar/antenna -->
+  <circle cx="256" cy="140" r="6" fill="#495057"/>
+  
+  <!-- Fleet management radar sweep -->
+  <circle cx="256" cy="256" r="180" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.3" stroke-dasharray="8,4"/>
+  <circle cx="256" cy="256" r="140" fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.2" stroke-dasharray="6,3"/>
+  
+  <!-- Navigation waypoints -->
+  <circle cx="180" cy="200" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="332" cy="200" r="4" fill="#ffffff" opacity="0.8"/>
+  <circle cx="256" cy="160" r="4" fill="#ffffff" opacity="0.8"/>
+  
+  <!-- Location pin for fleet management -->
+  <path d="M120 180 Q120 165 135 165 Q150 165 150 180 Q150 190 135 200 Q120 190 120 180 Z" fill="#ffffff" stroke="#007bff" stroke-width="2"/>
+  <circle cx="135" cy="175" r="4" fill="#007bff"/>
+</svg>

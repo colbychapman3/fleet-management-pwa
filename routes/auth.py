@@ -12,9 +12,8 @@ def get_app_db():
     import app
     return app.db
 
-from models.models.enhanced_user import User
+from models.models.user import User
 from models.models.sync_log import SyncLog
-from models.forms.auth_forms import LoginForm
 
 logger = structlog.get_logger()
 
@@ -26,18 +25,13 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     """User login endpoint"""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard.main'))
+    if request.method == 'GET':
+        if current_user.is_authenticated:
+            return redirect(url_for('dashboard.main'))
+        return render_template('auth/login.html')
     
-    form = LoginForm()
-    
-    if form.validate_on_submit():
-        # Form data with CSRF validation passed
-        email = form.email.data.strip().lower()
-        password = form.password.data
-        remember = form.remember.data
-    elif request.method == 'POST':
-        # Handle raw form submission (fallback for non-WTF forms)
+    # Handle POST request
+    try:
         if request.is_json:
             data = request.get_json()
             email = data.get('email', '').strip().lower()
@@ -47,12 +41,6 @@ def login():
             email = request.form.get('email', '').strip().lower()
             password = request.form.get('password', '')
             remember = request.form.get('remember', False)
-    else:
-        # GET request
-        return render_template('auth/login.html', form=form)
-    
-    # Process login
-    try:
         
         # Validate input
         if not email or not password:
@@ -60,7 +48,7 @@ def login():
             if request.is_json:
                 return jsonify({'error': error_msg}), 400
             flash(error_msg, 'error')
-            return render_template('auth/login.html', form=form), 400
+            return render_template('auth/login.html'), 400
         
         # Find user
         user = User.query.filter_by(email=email).first()
@@ -71,14 +59,14 @@ def login():
             if request.is_json:
                 return jsonify({'error': error_msg}), 401
             flash(error_msg, 'error')
-            return render_template('auth/login.html', form=form), 401
+            return render_template('auth/login.html'), 401
         
         if not user.is_active:
             error_msg = 'Account is disabled'
             if request.is_json:
                 return jsonify({'error': error_msg}), 401
             flash(error_msg, 'error')
-            return render_template('auth/login.html', form=form), 401
+            return render_template('auth/login.html'), 401
         
         # Login successful
         login_user(user, remember=remember)

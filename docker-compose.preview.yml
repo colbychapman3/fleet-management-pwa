@@ -1,0 +1,44 @@
+# Docker Compose for Local Preview Environment
+
+services:
+  web-preview:
+    build: .
+    ports:
+      - "5001:5000"  # Different port for preview
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=1
+      - SECRET_KEY=preview-secret-key-change-in-production
+      - DATABASE_URL=postgresql://preview:preview123@db-preview:5432/fleet_preview
+      - REDIS_URL=redis://redis-preview:6379/0
+      - PREVIEW_MODE=true
+    depends_on:
+      - db-preview
+      - redis-preview
+    volumes:
+      - .:/app
+      - /app/venv  # Exclude venv from volume mount
+    command: python app_real_preview.py
+    
+  db-preview:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=fleet_preview
+      - POSTGRES_USER=preview
+      - POSTGRES_PASSWORD=preview123
+    ports:
+      - "5433:5432"  # Different port for preview
+    volumes:
+      - preview_postgres_data:/var/lib/postgresql/data
+      
+  redis-preview:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"  # Different port for preview
+    volumes:
+      - preview_redis_data:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  preview_postgres_data:
+  preview_redis_data:
